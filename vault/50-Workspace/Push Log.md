@@ -15,9 +15,23 @@ Each entry: when, which session, what shipped, what's next.
 
 ---
 
+## 2026-09-06 (night) — local session (this one)
+
+**Shipped:** Phase 2 of [[AI Operating System]] — the read-only dashboard
+backend and frontend (`dashboard/server.mjs` + `dashboard/public/`). Serves
+cost, activity, and digest data over HTTP Basic Auth, bound to localhost
+only. Verified against real data via curl (auth 401/200 paths, all three
+endpoints, static files). One thing genuinely left undone: the Tailscale
+tunnel needs Kevin's own interactive login, so this only runs on localhost
+until he sets that up.
+
+**Next:** Tailscale setup (Kevin), then phase 3 (`executive-assistant`
+read-only chat) whenever he's ready. `voice.md` writing samples still
+outstanding.
+
 ## 2026-09-06 (evening) — local session (this one)
 
-**Shipped, not yet pushed:** Phase 1 of [[AI Operating System]] — the chatbot
+**Pushed:** `d4df167` to `origin/main`. Phase 1 of [[AI Operating System]] — the chatbot
 cost pipeline. New `dashboard/` folder: `cost-report.mjs` pulls
 `kcit-chatbot`'s CloudWatch usage logs, prices them via `pricing.mjs`
 (Opus 5: $5/$25 per MTok, cache read $0.50, cache write $6.25 at the default

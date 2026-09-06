@@ -142,10 +142,29 @@ Not yet done: running this on a schedule (currently a manual/on-demand
 script) and surfacing it anywhere but the terminal — that's what phase 2's
 dashboard is for.
 
-**Phase 2 — read-only dashboard MVP.** Local backend + tunnel + auth, serving
-the Activity Log/Daily Digest feed and the phase 1 cost widgets. No chat.
-Proves out hosting and access control, the part everything else depends on,
-before any tool-execution risk is added.
+**Phase 2 — read-only dashboard MVP. Backend/frontend done, 2026-09-06;
+tunnel is the one piece left for Kevin.** `dashboard/server.mjs` (plain
+`node:http`, no new dependencies) serves three read-only endpoints —
+`/api/costs` (phase 1's SQLite), `/api/activity` (parses
+[[Activity Log]]), `/api/digest` (`Daily Digest.md`, graceful when EA
+hasn't produced one yet) — plus a small static frontend in
+`dashboard/public/`. Binds to `127.0.0.1` only; gated with HTTP Basic Auth
+(`DASHBOARD_USER`/`DASHBOARD_PASS` env vars, or a random one generated and
+printed each run if unset — never a shipped default credential). Verified
+end to end: auth rejects with no/wrong credentials and accepts the right
+ones, all three endpoints tested against real data, static files serve
+correctly. (Browser screenshot verification hit a snag — Chrome's native
+Basic Auth dialog doesn't play well with automated screenshotting — so this
+was verified via curl against every endpoint instead of a visual check;
+worth a 30-second manual look once Kevin has it running.)
+
+**Not done, needs Kevin:** the actual tunnel. Tailscale isn't installed on
+this machine yet, and installing it means creating/logging into a Tailscale
+account through a browser — an interactive step that has to be his, not
+something to do on his behalf. Once it's on his machine and phone, `node
+server.mjs` in `dashboard/` plus the printed Tailscale IP is the whole
+remaining step to reach this from outside the house. Until then it only
+runs on localhost.
 
 **Phase 3 — chat with `executive-assistant` only, read-only.** EA already
 only reads files and never acts for the other agents (its own "never write
