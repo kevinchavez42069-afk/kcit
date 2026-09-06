@@ -1,0 +1,571 @@
+<title>KC IT Infrastructure Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #eceff0;
+    --panel: #fbfcfc;
+    --panel-2: #f1f5f5;
+    --ink: #16201f;
+    --muted: #5b6a68;
+    --border: #c5d0cf;
+    --line: #4a5a58;
+    --zone: rgba(16, 62, 58, 0.035);
+    --zone-edge: #b9c7c5;
+    --accent: #0e6f68;
+    --signal: #99590f;
+    --signal-soft: rgba(153, 89, 15, 0.07);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1413;
+      --panel: #161e1d;
+      --panel-2: #1d2726;
+      --ink: #e6eeec;
+      --muted: #93a5a2;
+      --border: #2b3937;
+      --line: #b3c3c0;
+      --zone: rgba(120, 200, 190, 0.045);
+      --zone-edge: #33433f;
+      --accent: #55bdb0;
+      --signal: #dda45f;
+      --signal-soft: rgba(221, 164, 95, 0.1);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1413;
+    --panel: #161e1d;
+    --panel-2: #1d2726;
+    --ink: #e6eeec;
+    --muted: #93a5a2;
+    --border: #2b3937;
+    --line: #b3c3c0;
+    --zone: rgba(120, 200, 190, 0.045);
+    --zone-edge: #33433f;
+    --accent: #55bdb0;
+    --signal: #dda45f;
+    --signal-soft: rgba(221, 164, 95, 0.1);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.5;
+  }
+
+  .wrap {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.25rem;
+  }
+
+  .masthead { display: flex; flex-direction: column; gap: 0.5rem; }
+
+  .stamp {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 1.85rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  .standfirst {
+    margin: 0;
+    color: var(--muted);
+    font-size: 1rem;
+    max-width: 68ch;
+  }
+
+  .key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.9rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--panel);
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .key b { color: var(--ink); font-weight: 500; }
+  .key span { display: inline-flex; align-items: center; gap: 0.55rem; }
+  .key i { flex: none; display: inline-block; width: 30px; height: 0; border-top: 2px solid var(--line); }
+  .key i.dotted { border-top-style: dotted; }
+  .key i.dashed { border-top-style: dashed; border-color: var(--muted); }
+  .key i.gated { border-color: var(--signal); }
+
+  section { display: flex; flex-direction: column; gap: 0.9rem; }
+
+  h2 {
+    margin: 0;
+    font-size: 1.02rem;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+  }
+  h2 em {
+    font-style: normal;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  figure { margin: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+
+  .frame {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.6rem;
+    overflow-x: auto;
+  }
+
+  .frame svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-width: 980px;
+  }
+
+  figcaption {
+    color: var(--muted);
+    font-size: 0.875rem;
+    max-width: 78ch;
+  }
+
+  .notes {
+    border-top: 1px solid var(--border);
+    padding-top: 1.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+  .notes h2 { margin-bottom: 0.2rem; }
+  .notes dl { margin: 0; display: grid; gap: 1.15rem; }
+  .notes dt {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.15rem;
+  }
+  .notes dd {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+    max-width: 82ch;
+  }
+
+  code {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.88em;
+    color: var(--ink);
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.03em 0.32em;
+  }
+
+  /* ---- SVG typography tokens ---- */
+  svg text { font-family: "IBM Plex Sans", sans-serif; fill: var(--ink); }
+  svg .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  svg .t { font-size: 14px; font-weight: 600; }
+  svg .s { font-size: 11px; fill: var(--muted); }
+  svg .lbl { font-size: 11px; fill: var(--muted); font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  svg .zl { font-size: 11.5px; font-weight: 500; fill: var(--accent); letter-spacing: 0.06em; font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  svg .gate-t { font-size: 13px; font-weight: 600; fill: var(--signal); font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  svg .gate-s { font-size: 10.5px; fill: var(--muted); font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  svg .gate-eyebrow { font-size: 9px; font-weight: 600; fill: var(--signal); letter-spacing: 0.13em; }
+  svg .step { font-size: 11px; fill: var(--accent); font-weight: 600; font-family: "IBM Plex Mono", ui-monospace, monospace; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    a { transition: color 120ms ease; }
+  }
+  a { color: var(--accent); }
+  a:focus-visible, .frame:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="wrap">
+
+  <div class="masthead">
+    <p class="stamp">As of 2026-09-06 &middot; internal reference</p>
+    <h1>KC IT Infrastructure Map</h1>
+    <p class="standfirst">Every live piece behind kcitsolutions.co and the ops fleet that runs the business, in three views: how a page request is served, how a lead reaches the inbox, and how Kevin's machine is allowed to touch AWS.</p>
+  </div>
+
+  <div class="key">
+    <span><i></i> <b>solid</b> &middot; live request or data flow</span>
+    <span><i class="dotted"></i> <b>dotted</b> &middot; DNS points at, not traffic</span>
+    <span><i class="gated"></i> <b>amber</b> &middot; passes the <code>kcit-deploy</code> credential</span>
+    <span><i class="dashed"></i> <b>dashed with &times;</b> &middot; blocked, does not work</span>
+  </div>
+
+  <!-- ============================ FIGURE 1 ============================ -->
+  <section>
+    <h2><em>View 1</em> How a request is served</h2>
+    <figure>
+      <div class="frame">
+        <svg viewBox="0 0 1240 600" role="img" aria-label="A visitor looks up kcitsolutions.co at Namecheap DNS, whose CNAME and ALIAS records point at the CloudFront distribution. The visitor's browser then makes an HTTPS request to CloudFront, which splits on two behaviors: the default behavior serves static files from the S3 bucket, and slash api slash chat reaches the kcit-chatbot Lambda through an Origin Access Control. The Lambda calls the Anthropic API with a cached system prompt and writes per-request token counts to CloudWatch Logs.">
+          <defs>
+            <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"></path>
+            </marker>
+          </defs>
+
+          <!-- zone -->
+          <rect x="40" y="150" width="880" height="420" rx="12" fill="var(--zone)" stroke="var(--zone-edge)"></rect>
+          <text x="898" y="176" text-anchor="end" class="zl">AWS &middot; US-EAST-1 &middot; 566348718756</text>
+
+          <!-- arrows -->
+          <g stroke="var(--line)" stroke-width="1.5" fill="none">
+            <line x1="230" y1="72" x2="352" y2="72" marker-end="url(#a1)"></line>
+            <polyline points="135,104 135,235 352,235" marker-end="url(#a1)"></polyline>
+            <line x1="485" y1="104" x2="485" y2="192" stroke-dasharray="1.5,4" stroke-linecap="round" marker-end="url(#a1)"></line>
+            <polyline points="430,270 430,310 215,310 215,342" marker-end="url(#a1)"></polyline>
+            <line x1="545" y1="270" x2="545" y2="342" marker-end="url(#a1)"></line>
+            <line x1="690" y1="386" x2="972" y2="386" marker-end="url(#a1)"></line>
+            <polyline points="545,440 545,462 760,462 760,478" marker-end="url(#a1)"></polyline>
+          </g>
+
+          <!-- nodes -->
+          <g>
+            <rect x="40" y="40" width="190" height="64" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <rect x="360" y="40" width="250" height="64" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <rect x="360" y="200" width="280" height="70" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect>
+            <rect x="90" y="350" width="250" height="72" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <rect x="400" y="350" width="290" height="90" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect>
+            <rect x="620" y="486" width="280" height="72" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <rect x="980" y="350" width="220" height="72" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+          </g>
+
+          <!-- node text -->
+          <g text-anchor="middle">
+            <text x="135" y="68" class="t">Visitor</text>
+            <text x="135" y="86" class="s">customer / prospect</text>
+
+            <text x="485" y="68" class="t">Namecheap DNS</text>
+            <text x="485" y="86" class="s mono">CNAME www &middot; ALIAS @</text>
+
+            <text x="500" y="228" class="t">CloudFront</text>
+            <text x="500" y="246" class="s mono">ENS0UT1SINC8O</text>
+            <text x="500" y="261" class="s">two behaviors</text>
+
+            <text x="215" y="378" class="t">Amazon S3</text>
+            <text x="215" y="396" class="s mono">kcitsolutions.co</text>
+            <text x="215" y="412" class="s">files/ is the site, no build step</text>
+
+            <text x="545" y="378" class="t">AWS Lambda</text>
+            <text x="545" y="396" class="s mono">kcit-chatbot</text>
+            <text x="545" y="412" class="s">multi-tenant, one JSON per client</text>
+            <text x="545" y="428" class="s mono">Function URL: AWS_IAM only</text>
+
+            <text x="760" y="514" class="t">CloudWatch Logs</text>
+            <text x="760" y="532" class="s mono">/aws/lambda/kcit-chatbot</text>
+            <text x="760" y="548" class="s">token counts, JSON lines</text>
+
+            <text x="1090" y="378" class="t">Anthropic API</text>
+            <text x="1090" y="396" class="s mono">claude-opus-5</text>
+            <text x="1090" y="412" class="s">cached system prompt</text>
+          </g>
+
+          <!-- arrow labels, drawn last -->
+          <g class="lbl">
+            <text x="291" y="62" text-anchor="middle">kcitsolutions.co</text>
+            <text x="247" y="225" text-anchor="middle">HTTPS request</text>
+            <text x="495" y="158" text-anchor="start">points at</text>
+            <text x="322" y="300" text-anchor="middle">default behavior</text>
+            <text x="556" y="300" text-anchor="start">/api/chat</text>
+            <text x="556" y="316" text-anchor="start">through the OAC</text>
+            <text x="831" y="376" text-anchor="middle">calls the model</text>
+            <text x="652" y="454" text-anchor="middle">per-request token usage</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption>DNS only points; the browser does the connecting. Everything a visitor sees comes out of one CloudFront distribution, which decides on path: <code>/api/chat</code> goes to the Lambda through an Origin Access Control, everything else comes straight off S3. The Lambda's own Function URL is <code>AWS_IAM</code>-only, so nothing but CloudFront can invoke it.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============================ FIGURE 2 ============================ -->
+  <section>
+    <h2><em>View 2</em> How a lead reaches the inbox</h2>
+    <figure>
+      <div class="frame">
+        <svg viewBox="0 0 1260 440" role="img" aria-label="The Lambda cannot post a lead to Web3Forms because Cloudflare blocks AWS datacenter IP addresses. Instead the visitor's browser sends a chat message to the Lambda, the Lambda hands back a ready-to-send payload, and the visitor's own browser posts it to Web3Forms. The static contact form posts to Web3Forms the same way with no Lambda involved. Web3Forms then emails the lead to the Outlook inbox.">
+          <defs>
+            <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"></path>
+            </marker>
+          </defs>
+
+          <rect x="420" y="30" width="340" height="112" rx="12" fill="var(--zone)" stroke="var(--zone-edge)"></rect>
+          <text x="742" y="50" text-anchor="end" class="zl">AWS</text>
+
+          <!-- arrows -->
+          <g stroke="var(--line)" stroke-width="1.5" fill="none">
+            <polyline points="180,240 180,92 436,92" marker-end="url(#a2)"></polyline>
+            <polyline points="590,122 590,196 240,196 240,232" marker-end="url(#a2)"></polyline>
+            <line x1="320" y1="262" x2="872" y2="262" marker-end="url(#a2)"></line>
+            <line x1="320" y1="300" x2="872" y2="300" marker-end="url(#a2)"></line>
+            <line x1="995" y1="316" x2="995" y2="348" marker-end="url(#a2)"></line>
+          </g>
+          <!-- blocked edge -->
+          <g stroke="var(--muted)" stroke-width="1.5" fill="none" stroke-dasharray="6,5">
+            <polyline points="736,92 995,92 995,232"></polyline>
+          </g>
+          <circle cx="995" cy="166" r="13" fill="var(--panel)" stroke="none"></circle>
+          <g stroke="var(--muted)" stroke-width="2" stroke-linecap="round">
+            <line x1="988" y1="159" x2="1002" y2="173"></line>
+            <line x1="1002" y1="159" x2="988" y2="173"></line>
+          </g>
+
+          <!-- nodes -->
+          <g>
+            <rect x="444" y="62" width="292" height="60" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect>
+            <rect x="40" y="240" width="280" height="76" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect>
+            <rect x="880" y="240" width="230" height="76" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <rect x="880" y="356" width="230" height="60" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+          </g>
+
+          <g text-anchor="middle">
+            <text x="590" y="88" class="t">AWS Lambda</text>
+            <text x="590" y="106" class="s mono">kcit-chatbot</text>
+
+            <text x="180" y="274" class="t">Visitor's browser</text>
+            <text x="180" y="294" class="s">the only thing that can reach Web3Forms</text>
+
+            <text x="995" y="268" class="t">Web3Forms</text>
+            <text x="995" y="288" class="s">lead delivery</text>
+            <text x="995" y="304" class="s">sits behind Cloudflare</text>
+
+            <text x="995" y="382" class="t">Outlook inbox</text>
+            <text x="995" y="402" class="s mono">KC.ITSolutions@outlook.com</text>
+          </g>
+
+          <!-- labels last -->
+          <g class="lbl">
+            <text x="310" y="82" text-anchor="middle"><tspan class="step">1</tspan> chat message</text>
+            <text x="415" y="186" text-anchor="middle"><tspan class="step">2</tspan> hands back a ready-to-send payload</text>
+            <text x="596" y="252" text-anchor="middle"><tspan class="step">3</tspan> the browser posts the lead itself</text>
+            <text x="596" y="318" text-anchor="middle">the static contact form posts here the same way, no Lambda</text>
+            <text x="1018" y="160" text-anchor="start">Cloudflare blocks</text>
+            <text x="1018" y="176" text-anchor="start">AWS datacenter IPs</text>
+            <text x="1008" y="340" text-anchor="start">emails the lead</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption>This is the one genuinely non-obvious thing in the system. The Lambda is never allowed to deliver a lead itself, so it builds the payload and hands it back down to the visitor's browser, which posts it over the visitor's own connection rather than an AWS one. The plain contact form on the static site has always worked this way; the chatbot just borrows the same exit.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============================ FIGURE 3 ============================ -->
+  <section>
+    <h2><em>View 3</em> How Kevin's machine reaches AWS</h2>
+    <figure>
+      <div class="frame">
+        <svg viewBox="0 0 1400 750" role="img" aria-label="Kevin's Windows machine holds two git repositories split by trust level: kc.IT with the site and chatbot source and no git remote at all, and kcit, the Obsidian ops vault, which pushes and pulls to GitHub. The Claude Code CLI runs four agents that read and write the vault, and client-onboarder runs the deploy scripts. The AI Ops dashboard pulls usage logs, prices them, stores them in a local SQLite file and serves them. Every AWS-touching action leaves through one narrowly scoped IAM user, kcit-deploy, which can only touch kcit-star Lambdas, kcit-lambda-star roles, one CloudFront distribution and read-only log events. Kevin reaches the dashboard locally, and his phone or laptop reaches it over Tailscale at 100.87.11.96 port 7417.">
+          <defs>
+            <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"></path>
+            </marker>
+            <marker id="g3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--signal)"></path>
+            </marker>
+          </defs>
+
+          <!-- zones -->
+          <rect x="30" y="56" width="590" height="660" rx="12" fill="var(--zone)" stroke="var(--zone-edge)"></rect>
+          <text x="52" y="80" class="zl">KEVIN'S MACHINE &middot; LOCAL, WINDOWS</text>
+
+          <rect x="1000" y="110" width="340" height="340" rx="12" fill="var(--zone)" stroke="var(--zone-edge)"></rect>
+          <text x="1320" y="134" text-anchor="end" class="zl">AWS &middot; US-EAST-1</text>
+
+          <!-- the credential band -->
+          <rect x="700" y="100" width="160" height="400" rx="12" fill="var(--signal-soft)" stroke="var(--signal)" stroke-width="1.8"></rect>
+
+          <!-- arrows -->
+          <g stroke="var(--line)" stroke-width="1.5" fill="none">
+            <polyline points="466,100 466,40 692,40" marker-end="url(#a3)"></polyline>
+            <line x1="184" y1="236" x2="184" y2="200" marker-end="url(#a3)"></line>
+            <line x1="466" y1="236" x2="466" y2="200" marker-end="url(#a3)" marker-start="url(#a3)"></line>
+            <polyline points="184,610 184,590 440,590 440,576" marker-end="url(#a3)"></polyline>
+            <line x1="500" y1="610" x2="500" y2="576" marker-end="url(#a3)"></line>
+            <line x1="992" y1="648" x2="606" y2="648" marker-end="url(#a3)" marker-start="url(#a3)"></line>
+            <line x1="230" y1="501" x2="241" y2="501" marker-end="url(#a3)"></line>
+            <line x1="405" y1="501" x2="416" y2="501" marker-end="url(#a3)"></line>
+          </g>
+
+          <!-- gated flows -->
+          <g stroke="var(--signal)" stroke-width="1.8" fill="none">
+            <polyline points="598,360 940,360 940,183 1012,183" marker-end="url(#g3)"></polyline>
+            <polyline points="940,257 1012,257" marker-end="url(#g3)"></polyline>
+            <polyline points="940,331 1012,331" marker-end="url(#g3)"></polyline>
+            <polyline points="598,460 960,460 960,405 1012,405" marker-end="url(#g3)"></polyline>
+          </g>
+
+          <!-- band contents -->
+          <g>
+            <rect x="766" y="126" width="28" height="20" rx="3" fill="none" stroke="var(--signal)" stroke-width="2"></rect>
+            <path d="M772,126 V120 a8,8 0 0 1 16,0 V126" fill="none" stroke="var(--signal)" stroke-width="2"></path>
+            <text x="780" y="168" text-anchor="middle" class="gate-t">kcit-deploy</text>
+            <text x="780" y="184" text-anchor="middle" class="gate-s">IAM user</text>
+            <line x1="718" y1="196" x2="842" y2="196" stroke="var(--signal)" stroke-width="1" opacity="0.45"></line>
+            <text x="780" y="212" text-anchor="middle" class="gate-eyebrow">SCOPED TO</text>
+            <text x="780" y="230" text-anchor="middle" class="gate-s">kcit-* Lambdas</text>
+            <text x="780" y="246" text-anchor="middle" class="gate-s">kcit-lambda-* roles</text>
+            <text x="780" y="262" text-anchor="middle" class="gate-s">1 CloudFront dist</text>
+            <text x="780" y="278" text-anchor="middle" class="gate-s">logs:FilterLogEvents</text>
+            <text x="780" y="294" text-anchor="middle" class="gate-s">read only</text>
+            <line x1="718" y1="306" x2="842" y2="306" stroke="var(--signal)" stroke-width="1" opacity="0.45"></line>
+            <text x="780" y="324" text-anchor="middle" class="gate-eyebrow">NEVER</text>
+            <text x="780" y="342" text-anchor="middle" class="gate-s">no EC2, no billing</text>
+          </g>
+
+          <!-- machine nodes -->
+          <g>
+            <rect x="52" y="100" width="264" height="100" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <rect x="334" y="100" width="264" height="100" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <rect x="52" y="236" width="546" height="140" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect>
+            <rect x="52" y="412" width="546" height="164" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect>
+            <rect x="52" y="610" width="264" height="76" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <rect x="334" y="610" width="264" height="76" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <!-- agent chips -->
+            <rect x="70" y="300" width="250" height="32" rx="5" fill="var(--panel-2)" stroke="var(--border)"></rect>
+            <rect x="330" y="300" width="250" height="32" rx="5" fill="var(--panel-2)" stroke="var(--border)"></rect>
+            <rect x="70" y="338" width="250" height="32" rx="5" fill="var(--panel-2)" stroke="var(--border)"></rect>
+            <rect x="330" y="338" width="250" height="32" rx="5" fill="var(--panel-2)" stroke="var(--border)"></rect>
+            <!-- dashboard chips -->
+            <rect x="70" y="474" width="160" height="54" rx="5" fill="var(--panel-2)" stroke="var(--border)"></rect>
+            <rect x="245" y="474" width="160" height="54" rx="5" fill="var(--panel-2)" stroke="var(--border)"></rect>
+            <rect x="420" y="474" width="160" height="54" rx="5" fill="var(--panel-2)" stroke="var(--border)"></rect>
+          </g>
+
+          <!-- external nodes -->
+          <g>
+            <rect x="700" y="8" width="280" height="64" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <rect x="1020" y="152" width="300" height="62" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <rect x="1020" y="226" width="300" height="62" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <rect x="1020" y="300" width="300" height="62" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <rect x="1020" y="374" width="300" height="62" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <rect x="1000" y="608" width="340" height="80" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+          </g>
+
+          <!-- node text -->
+          <g text-anchor="middle">
+            <text x="184" y="128" class="t mono">kc.IT</text>
+            <text x="184" y="148" class="s">site + chatbot source</text>
+            <text x="184" y="164" class="s mono">deploy.ps1 &middot; wire-cloudfront.ps1</text>
+            <text x="184" y="184" class="s">no git remote at all</text>
+
+            <text x="466" y="128" class="t mono">kcit</text>
+            <text x="466" y="148" class="s">the ops repo, an Obsidian vault</text>
+            <text x="466" y="164" class="s">pricing &middot; prospects &middot; clients</text>
+            <text x="466" y="184" class="s">remote on GitHub</text>
+
+            <text x="325" y="264" class="t">Claude Code CLI</text>
+            <text x="325" y="283" class="s mono">kcit/.claude/agents/</text>
+            <text x="195" y="320" class="s mono">prospect-scout</text>
+            <text x="455" y="320" class="s mono">follow-up</text>
+            <text x="195" y="358" class="s mono">client-onboarder</text>
+            <text x="455" y="358" class="s mono">executive-assistant</text>
+
+            <text x="325" y="440" class="t">AI Ops Dashboard</text>
+            <text x="325" y="459" class="s mono">kcit/dashboard/</text>
+            <text x="150" y="496" class="s mono">cost-report.mjs</text>
+            <text x="150" y="512" class="s">pull + price</text>
+            <text x="325" y="496" class="s mono">costs.db</text>
+            <text x="325" y="512" class="s">local SQLite</text>
+            <text x="500" y="496" class="s mono">server.mjs</text>
+            <text x="500" y="512" class="s">serves :7417</text>
+            <text x="325" y="552" class="s">pull the usage logs &middot; price them &middot; store &middot; serve</text>
+
+            <text x="184" y="638" class="t">Kevin</text>
+            <text x="184" y="660" class="s">local browser</text>
+
+            <text x="466" y="636" class="t mono">Tailscale</text>
+            <text x="466" y="656" class="s mono">100.87.11.96</text>
+            <text x="466" y="674" class="s">live and verified</text>
+
+            <text x="840" y="34" class="t mono">GitHub</text>
+            <text x="840" y="56" class="s mono">kevinchavez42069-afk/kcit</text>
+
+            <text x="1170" y="178" class="t mono">AWS Lambda</text>
+            <text x="1170" y="198" class="s">update kcit-chatbot code</text>
+
+            <text x="1170" y="252" class="t mono">Amazon S3</text>
+            <text x="1170" y="272" class="s">upload files/ to the bucket</text>
+
+            <text x="1170" y="326" class="t mono">CloudFront</text>
+            <text x="1170" y="346" class="s">invalidate ENS0UT1SINC8O</text>
+
+            <text x="1170" y="400" class="t mono">CloudWatch Logs</text>
+            <text x="1170" y="420" class="s">read usage log events</text>
+
+            <text x="1170" y="640" class="t">Kevin's phone / laptop</text>
+            <text x="1170" y="662" class="s">away from the desk</text>
+          </g>
+
+          <!-- arrow labels last -->
+          <g class="lbl">
+            <text x="583" y="30" text-anchor="middle">push / pull</text>
+            <text x="194" y="222" text-anchor="start">runs deploy scripts</text>
+            <text x="476" y="222" text-anchor="start">reads + writes</text>
+            <text x="312" y="580" text-anchor="middle">opens :7417</text>
+            <text x="512" y="592" text-anchor="start">binds 0.0.0.0</text>
+            <text x="799" y="638" text-anchor="middle">http://100.87.11.96:7417</text>
+            <text x="659" y="352" text-anchor="middle" fill="var(--signal)">deploys</text>
+            <text x="659" y="452" text-anchor="middle" fill="var(--signal)">reads logs</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption>Two repos split by trust level, one agent fleet, one dashboard, and exactly one way out to AWS. Both amber flows (<code>client-onboarder</code> running the deploy scripts, and <code>cost-report.mjs</code> pulling usage logs) go through <code>kcit-deploy</code> and can only land on the four resources listed inside it. The Tailscale path is live: it goes straight from Kevin's phone or laptop to <code>server.mjs</code> and never touches AWS.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============================ NOTES ============================ -->
+  <div class="notes">
+    <h2><em>Context</em> Worth knowing</h2>
+    <dl>
+      <div>
+        <dt>The chatbot cannot send its own leads.</dt>
+        <dd>Web3Forms sits behind Cloudflare, which blocks requests from AWS datacenter IP addresses outright. The Lambda therefore builds a ready-to-send payload and hands it back to the visitor's browser, and that browser does the submitting. It is the same mechanism the plain static contact form already used, which posts to Web3Forms directly with no Lambda involved. Both paths end at Web3Forms, which emails the lead to <code>KC.ITSolutions@outlook.com</code>.</dd>
+      </div>
+      <div>
+        <dt>One IAM user gates every AWS action from this machine.</dt>
+        <dd><code>kcit-deploy</code> is deliberately narrow: only <code>kcit-*</code> Lambda functions, only <code>kcit-lambda-*</code> IAM roles, only the one CloudFront distribution, plus read-only <code>logs:FilterLogEvents</code> on <code>kcit-*</code> log groups, that last one confirmed working directly rather than assumed. No EC2, no billing, nothing that can spend money outside that box. An <code>AccessDenied</code> from it is the policy doing its job.</dd>
+      </div>
+      <div>
+        <dt>Two repos, two trust levels.</dt>
+        <dd><code>kc.IT</code> holds the site and chatbot source (<code>deploy.ps1</code>, <code>chatbot/deploy-chatbot.ps1</code>, <code>chatbot/wire-cloudfront.ps1</code>, <code>chatbot/clients/*.json</code>) and has no git remote at all, local only. <code>kcit</code> is the operations repo: the Obsidian vault of business knowledge plus <code>.claude/agents/*.md</code>, with a remote on GitHub at <code>kevinchavez42069-afk/kcit</code>. Nothing from <code>kc.IT</code> is on GitHub.</dd>
+      </div>
+      <div>
+        <dt>One Lambda serves every client.</dt>
+        <dd><code>kcit-chatbot</code> is multi-tenant. Each client is a single JSON file under <code>chatbot/clients/</code>, currently <code>kc-it-solutions.json</code> and <code>sample-plumbing.json</code>, all sharing one prompt template. Adding a client is adding a file, not a function. Its Function URL is <code>AWS_IAM</code>-only and not publicly invokable; CloudFront reaches it through an Origin Access Control.</dd>
+      </div>
+      <div>
+        <dt>The dashboard is reachable off this machine as of today.</dt>
+        <dd>The Lambda writes per-request input, output, cache-read and cache-write token counts as JSON lines to <code>/aws/lambda/kcit-chatbot</code>. <code>cost-report.mjs</code> pulls those through <code>kcit-deploy</code>, prices them and stores the result in <code>costs.db</code>, a local SQLite file that syncs nowhere; <code>server.mjs</code> serves it. Tailscale was installed and logged in today, <code>server.mjs</code> now binds on all interfaces, and the dashboard is verified reachable at <code>http://100.87.11.96:7417</code>.</dd>
+      </div>
+    </dl>
+  </div>
+
+</div>
