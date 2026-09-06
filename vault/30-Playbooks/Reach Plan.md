@@ -1,6 +1,6 @@
 ---
 title: Reach Plan
-status: current
+status: reference
 source: Notion
 notion_id: 3ce5da8c-0d78-81e4-bc26-eb7f48e2327b
 written: 2026-09-01

@@ -1,16 +1,23 @@
 ---
 title: Migration Status
-status: in-progress
+status: reference
 migrated: 2026-09-06
 tags: [meta]
 ---
 
 # Migration Status
 
-Notion -> Obsidian. **Notion is left fully intact as a read-only fallback**
-until this vault is confirmed complete. Nothing has been deleted there.
+Notion -> Obsidian. **Complete: 18 of 19 pages.** Notion is left fully intact
+as a fallback. Nothing has been deleted there.
 
-## Migrated (11)
+## How to read these notes
+
+**Reference material, not law.** They started as working notes: thinking out
+loud, half-decided, written at different times, contradicting each other in
+places. Useful background on how the business got here. Not a rulebook, and
+they do not outrank Kevin.
+
+## Migrated
 
 | Note | Folder |
 |---|---|
@@ -20,49 +27,54 @@ until this vault is confirmed complete. Nothing has been deleted there.
 | [[Serving Hispanic-Owned Businesses]] | 10-Strategy |
 | [[Pricing and Unit Economics]] | 20-Money-and-Terms |
 | [[Business Terms and Decisions]] | 20-Money-and-Terms |
+| [[What We Sell]] | 20-Money-and-Terms |
 | [[Plan of Action]] | 30-Playbooks |
 | [[Reach Plan]] | 30-Playbooks |
+| [[Google Business Profile Setup]] | 30-Playbooks |
+| [[Client Documents]] | 40-Client-Documents |
+| [[Service Sheet]] | 40-Client-Documents |
+| [[Discovery Questions]] | 40-Client-Documents |
+| [[Proposal Template]] | 40-Client-Documents |
+| [[Founding Client Agreement]] | 40-Client-Documents |
+| [[Content Questionnaire]] | 40-Client-Documents |
 | [[Technical Reference]] | 50-Workspace |
 | [[Security Architecture]] | 50-Workspace |
 | [[Marketing Automation Design]] | 50-Workspace |
+| [[Backlog - Not Now]] | 50-Workspace |
 
-## Still to pull (8)
+## Not migrated
 
-- Google Business Profile Setup -> 30-Playbooks
-- What We Sell -> 20-Money-and-Terms
-- Backlog - Not Now -> 50-Workspace
-- Weekly Schedule -> 50-Workspace
-- Client Documents: Service Sheet, Founding Client Agreement, Content
-  Questionnaire, and one more -> 40-Client-Documents
+**Weekly Schedule.** Empty in Notion, nothing to bring across.
 
-Folder index pages from Notion are **not** being copied. Obsidian's folder
-view and graph replace them.
+Folder index pages from Notion were not copied. Obsidian's folder view and
+graph replace them, except [[Client Documents]], which carries the
+document-order table and so was kept.
 
 ## Changes made during migration
 
 Not a verbatim copy. Deliberate edits:
 
-1. **Live overrides marked inline.** Where a Notion page conflicts with a
-   current decision, the note carries a callout saying so rather than being
-   silently rewritten. Affected: [[Go-to-Market Strategy]] (trades-only niche
-   dropped, any business is now a valid target), [[Serving Hispanic-Owned
-   Businesses]] (demoted from "the moat" to one advantage among several),
-   [[The Plan]] (niche reasoning marked as history).
+1. **Live overrides marked inline** rather than silently applied, so you can
+   see what changed. Affected: [[Go-to-Market Strategy]] and [[The Plan]]
+   (trades-only niche dropped, any business is now valid),
+   [[Serving Hispanic-Owned Businesses]] (demoted from "the moat" to one
+   advantage among several), [[Service Sheet]] ("trades" widened to
+   "businesses").
 
-2. **The follow-up script lost its em dash.** The original read "it's Kevin [dash] stopped by...". Now a period, per [[voice]]. The vault should not
-   ship an example that breaks its own style rule.
+2. **Em dashes removed throughout**, per [[voice]]. Commas in prose, colons in
+   headings. The follow-up script template lost its em dash too. It would be
+   absurd for the vault to ban them and then use them.
 
-3. **Structural sections dropped** where an agent or template now covers them,
-   e.g. the CRM design in [[Marketing Automation Design]], which is replaced by
-   prospect and client notes with frontmatter.
+3. **Continuous renumbering** in [[Discovery Questions]] and
+   [[Content Questionnaire]]. Notion restarted the count in each section, which
+   broke the callouts referencing "question 8" and "question 14".
 
-## Known unresolved
+4. **Sections dropped** where an agent or template now covers them, such as the
+   CRM design in [[Marketing Automation Design]], replaced by prospect and
+   client notes with frontmatter.
 
-> [!warning] Who writes the website copy?
-> [[Start Here]] says the client supplies it. [[Business Terms and Decisions]]
-> says Kevin writes it from their questionnaire answers. These are materially
-> different commitments, and the turnaround promise depends on which is true.
-> Agents currently follow the Business Terms version. **Needs a ruling.**
+5. **Backlog items marked done**: the `/onboard-client` skill and reusable
+   subagent definitions both exist now, as `.claude/agents/`.
 
 ## Verified against the live site (2026-09-06)
 

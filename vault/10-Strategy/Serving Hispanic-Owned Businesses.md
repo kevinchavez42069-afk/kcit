@@ -1,6 +1,6 @@
 ---
 title: Serving Hispanic-Owned Businesses
-status: current
+status: reference
 source: Notion
 notion_id: 3d05da8c-0d78-81ec-bb83-f09b58bc337d
 migrated: 2026-09-06

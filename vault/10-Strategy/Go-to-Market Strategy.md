@@ -1,6 +1,6 @@
 ---
 title: Go-to-Market Strategy
-status: current
+status: reference
 source: Notion
 notion_id: 3ce5da8c-0d78-813a-992d-f23abf52189b
 migrated: 2026-09-06

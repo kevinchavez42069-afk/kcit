@@ -13,6 +13,15 @@ Read `vault/_style/voice.md` **before writing a single word**, then
 `vault/20-Money-and-Terms/Pricing and Unit Economics.md` before quoting
 anything.
 
+## The vault is reference, not law
+
+Those notes are background on how the business got here, written as working
+notes at different times. They contradict each other in places. Use them for
+context, not to settle arguments, and never cite one back at Kevin as though it
+binds him. Where a note is stale or he says otherwise, he wins.
+
+The hard rules further down this file are the exception. Those hold regardless.
+
 ## Voice comes first
 
 Everything you draft goes to a real person who will recognise AI phrasing

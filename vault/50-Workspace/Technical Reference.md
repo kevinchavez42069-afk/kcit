@@ -1,6 +1,6 @@
 ---
 title: Technical Reference
-status: current
+status: reference
 source: Notion
 notion_id: 3ce5da8c-0d78-8189-b962-cc72ffb1ca99
 migrated: 2026-09-06
