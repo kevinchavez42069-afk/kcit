@@ -28,9 +28,24 @@ improving the template improves every client's assistant at once.
 2. **Confirm the prompt builds from the shared template.** Do not fork the
    template per client. A client-specific need is a template parameter, not a
    copy.
-3. **Deploy**, then **invalidate CloudFront**.
+3. **Deploy the Lambda** with `chatbot\deploy-chatbot.ps1` — this alone makes
+   the new client's config live. **No CloudFront invalidation is needed for
+   this step**: `/api/chat` runs on `Managed-CachingDisabled`, so nothing
+   there is ever cached (confirmed in `wire-cloudfront.ps1`).
+   If the widget's `<script data-client="...">` tag is going onto a page
+   under `files/` (true for the demo tenant, e.g. `demo.html`), that page
+   change ships through the **separate** `.\deploy.ps1`, and *that* deploy's
+   CloudFront invalidation is the mandatory one — it clears the 5-minute HTML
+   cache, not anything chatbot-related. A brand-new real client's own site is
+   a different question this repo doesn't yet answer: today only
+   `kcitsolutions.co` itself is served from this S3 bucket/CloudFront
+   distribution.
 4. **Verify** the widget answers on the client's real domain, captures a lead,
-   and falls back to the phone number on every error path.
+   and falls back to the phone number on every error path. Confirmed live and
+   working end to end for `sample-plumbing` on 2026-09-06: correct pricing
+   quoted, an unauthorized origin gets rejected with the phone number, and an
+   unknown `clientId` fails gracefully. Test with the curl recipe in the site
+   repo's `HANDOFF.md`, swapping in the target `clientId`.
 
 Adding the widget to a client site is one script tag carrying
 `data-client="<id>"`.
@@ -55,9 +70,13 @@ These are not style preferences. Each one exists because of a specific failure.
   readable in any page's source, so without the origin check someone can point
   their own site at the endpoint and spend Kevin's API budget. CORS is a
   browser convention, not a server-side control.
-- **Do not reintroduce 4xx status codes in the chat Lambda.** CloudFront's
-  error pages are distribution-wide and would rewrite them into the site's HTML
-  404, turning a visible config error into a confusing network error.
+- **Do not reintroduce 403 or 404 from the chat Lambda.** CloudFront's
+  403/404 error pages are distribution-wide and rewrite them into the site's
+  HTML 404, turning a visible config error into a confusing network error.
+  That's why `index.mjs` answers unknown-client and origin-rejection cases
+  with `200` and an error body instead. Other 4xx/429 (bad JSON, wrong
+  method, rate limit) are fine as-is and already in the code — they aren't
+  in CloudFront's error-response map, so they pass through untouched.
 - **Never paste credentials into a chat window.** Enter them directly into the
   target system. This has happened once already and the key had to be rotated.
 
