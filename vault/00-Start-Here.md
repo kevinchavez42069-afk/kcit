@@ -23,7 +23,7 @@ either sales or a form to fill in.
 
 | | |
 |---|---|
-| **Website** | 17 pages at kcitsolutions.co, 9 English and 8 Spanish. Both `kcitsolutions.co` and `www.` resolve |
+| **Website** | 14 indexed pages at kcitsolutions.co, 7 English and 7 Spanish, plus 2 non-indexed thank-you pages. Both `kcitsolutions.co` and `www.` resolve |
 | **Spanish site** | Full coverage, reciprocal hreflang, language toggle on every page. See [[Serving Hispanic-Owned Businesses]] |
 | **Contact form** | Delivers to KC.ITSolutions@outlook.com. Verified with real submissions |
 | **AI assistant** | Live on every page and bilingual. Mirrors the visitor's language, answers pricing, qualifies, captures name and number, emails the lead |

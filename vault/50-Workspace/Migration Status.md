@@ -64,10 +64,24 @@ Not a verbatim copy. Deliberate edits:
 > different commitments, and the turnaround promise depends on which is true.
 > Agents currently follow the Business Terms version. **Needs a ruling.**
 
-## Not yet verified against the live site
+## Verified against the live site (2026-09-06)
 
-The migrated content describes the site as of the Notion pages' last edit
-(2026-09-01 to 09-03). Nothing here has been checked against
-`kcitsolutions.co` itself, because this session's network policy blocks the
-domain. Once the site repo is available, reconcile pricing, page count, and
-service descriptions before the agents quote anything to a real prospect.
+Reconciled against `C:\Users\PC USER\Downloads\kc.IT` (site + chatbot source)
+and the live `kcitsolutions.co`. Findings:
+
+- **Page count was wrong.** [[Start Here]] said 17 pages (9 English, 8
+  Spanish). `sitemap.xml` lists 14 indexed pages, 7 English + 7 Spanish, plus
+  2 non-indexed thank-you pages (`thanks.html` / `gracias.html`). Fixed.
+- **Live chatbot bug, not a vault error.** `chatbot/clients/kc-it-solutions.json`
+  had `"audience": "people who run trades, shops, and restaurants, not IT
+  departments"` — that string is injected verbatim into the production system
+  prompt, so the assistant could tell a real visitor it only serves trades,
+  contradicting the any-business decision below. Fixed in the JSON
+  (2026-09-06); **needs a chatbot redeploy to take effect** —
+  `chatbot\deploy-chatbot.ps1` has not been run for this change yet.
+- **Pricing, bilingual behavior, and the demo tenant's honesty rules all check
+  out** against the live code — no drift.
+- **The $149/month plan is decided but not live anywhere** — not on the
+  pricing page, not in the chatbot's config. The "unpriced cliff" after
+  included hosting expires ([[Pricing and Unit Economics]]) is still
+  genuinely unresolved on the live site, not just in the docs.
