@@ -21,12 +21,35 @@ import { readFileSync, existsSync } from "fs";
 import { extname, join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { randomBytes, timingSafeEqual } from "crypto";
+import { execFileSync } from "child_process";
 import { openDb, summaryByClient } from "./db.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const VAULT = join(here, "..", "vault");
 const PUBLIC = join(here, "public");
 const PORT = process.env.PORT ? Number(process.env.PORT) : 7417;
+
+// 0.0.0.0 by default: the actual access boundary is Tailscale (only
+// devices on Kevin's tailnet can route to this machine at all) plus the
+// Basic Auth below, not the bind address. Override with HOST=127.0.0.1
+// to go back to localhost-only if Tailscale isn't set up yet.
+const HOST = process.env.HOST || "0.0.0.0";
+
+// The Windows installer doesn't put tailscale.exe on PATH, so a bare
+// "tailscale" lookup fails even when it's running - try PATH first, then
+// the default install location, before giving up.
+const TAILSCALE_CANDIDATES = ["tailscale", "C:\\Program Files\\Tailscale\\tailscale.exe"];
+
+function tailscaleIp() {
+  for (const bin of TAILSCALE_CANDIDATES) {
+    try {
+      return execFileSync(bin, ["ip", "-4"], { encoding: "utf8" }).trim();
+    } catch {
+      // try the next candidate
+    }
+  }
+  return null; // not installed, or installed somewhere else - not fatal, just skip the hint
+}
 
 // --- Auth --------------------------------------------------------------
 // Never ship a default credential. If DASHBOARD_USER/PASS aren't set,
@@ -159,10 +182,17 @@ const server = createServer((req, res) => {
   serveStatic(req, res);
 });
 
-server.listen(PORT, "127.0.0.1", () => {
-  console.log(`\nKC IT Ops Dashboard (phase 2, read-only) — http://localhost:${PORT}`);
-  console.log(`Bound to localhost only. Reach it remotely through a private tunnel`);
-  console.log(`(Tailscale recommended), never by port-forwarding this to the internet.\n`);
+server.listen(PORT, HOST, () => {
+  console.log(`\nKC IT Ops Dashboard (phase 2, read-only)`);
+  console.log(`Local:      http://localhost:${PORT}`);
+  const tsIp = tailscaleIp();
+  if (tsIp) {
+    console.log(`Tailscale:  http://${tsIp}:${PORT}  (reachable from any device on your tailnet)`);
+  } else if (HOST === "0.0.0.0") {
+    console.log(`Tailscale not detected — this is listening on all interfaces but only`);
+    console.log(`reachable from this machine or your home network until Tailscale is up.`);
+  }
+  console.log(`Never port-forward this port to the public internet.\n`);
   console.log(`Login: ${AUTH_USER} / ${AUTH_PASS}`);
   if (generatedPassword) {
     console.log(`(generated for this run — set DASHBOARD_USER/DASHBOARD_PASS to fix it)\n`);

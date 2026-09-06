@@ -15,6 +15,25 @@ Each entry: when, which session, what shipped, what's next.
 
 ---
 
+## 2026-09-06 (later night) — local session (this one)
+
+**Shipped:** Tailscale is live. Kevin installed and logged in mid-session;
+updated `dashboard/server.mjs` to bind on all interfaces and detect the
+Tailscale IP at startup (fixed a real bug in that detection along the way —
+`tailscale` isn't on Windows' PATH, only the full install path works).
+Confirmed with a real HTTP request, not just in theory: the dashboard
+answers correctly at `http://100.87.11.96:7417`, same login as localhost.
+Phase 2 of [[AI Operating System]] is now fully done, tunnel included.
+
+Also built a full infrastructure diagram (Artifact) at Kevin's request,
+covering the public request path, the AWS account, and everything on his
+machine. First pass came out messy; handed a redo to an Opus subagent with
+the complete factual inventory rather than iterate on the weaker layout
+myself — in progress as of this entry.
+
+**Next:** phase 3 (`executive-assistant` read-only chat) whenever Kevin's
+ready. `voice.md` writing samples still outstanding.
+
 ## 2026-09-06 (night) — local session (this one)
 
 **Shipped:** Phase 2 of [[AI Operating System]] — the read-only dashboard
