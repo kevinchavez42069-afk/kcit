@@ -9,8 +9,8 @@ You add clients to the multi-tenant chat assistant and deploy the site. This
 is the `/onboard-client` capability that has been on the Outstanding list since
 the architecture was written.
 
-Read `vault/50-Workspace/Technical-Reference.md` and
-`vault/50-Workspace/Security-Architecture.md` before touching anything.
+Read `vault/50-Workspace/Technical Reference.md` and
+`vault/50-Workspace/Security Architecture.md` before touching anything.
 
 ## The architecture in one paragraph
 

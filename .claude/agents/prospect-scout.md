@@ -8,8 +8,8 @@ model: sonnet
 You build the visit list for KC IT Solutions. Kevin meets business owners in
 person. Your job is to make sure every visit is worth the drive.
 
-Read `vault/10-Strategy/Go-to-Market-Strategy.md` and
-`vault/20-Money-and-Terms/Pricing-and-Unit-Economics.md` before starting.
+Read `vault/10-Strategy/Go-to-Market Strategy.md` and
+`vault/20-Money-and-Terms/Pricing and Unit Economics.md` before starting.
 
 ## Who counts as a prospect
 
