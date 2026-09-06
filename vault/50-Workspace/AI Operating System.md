@@ -161,15 +161,41 @@ boundary, not the bind address) and detects the Tailscale IP at startup —
 **Confirmed live**: reachable and authenticating correctly at
 `http://100.87.11.96:7417` from outside localhost, not just in theory.
 
-**Phase 3 — chat with `executive-assistant` only, read-only.** EA already
-only reads files and never acts for the other agents (its own "never write
-for other agents" rule), so it's the lowest-risk agent to wire to live chat
-first. Validates the Agent SDK integration against a real agent definition
-before the higher-stakes ones.
+**Phase 3 — chat with `executive-assistant` only, read-only. Code done,
+2026-09-06; blocked on one thing only Kevin can provide.** New files:
+`dashboard/agents.mjs` (parses `.claude/agents/*.md` directly — same source
+of truth Claude Code reads, nothing forked), `dashboard/chat.mjs` (calls the
+Agent SDK with EA's real system prompt), and `POST /api/chat` plus a chat
+panel in the frontend. Deliberately stricter than EA's own file: EA's
+frontmatter lists Write/Edit (it uses those for `Daily Digest.md` on Claude
+Code), but this phase locks `allowedTools` to `Read`/`Glob`/`Grep` only,
+regardless — "read-only" is a promise this phase keeps by construction, not
+by trusting EA's own restraint. Verified everything that doesn't need a
+live API call: server starts clean, existing endpoints unaffected, chat
+returns a clear error instead of crashing when the key is missing, empty
+messages get rejected, and the new per-IP auth lockout (added the same
+session, 8 failures / 5 min) actually trips at the 9th bad login.
+
+**The blocker:** the Agent SDK makes its own Anthropic API calls and
+cannot reuse Claude Code's own session credentials — Anthropic's terms
+require real API-key auth for third-party agent products, not reuse of
+claude.ai/Claude Code login. `dashboard/chat.mjs` needs `ANTHROPIC_API_KEY`
+in the environment to do anything; nothing else on the dashboard needs it.
+Kevin needs to supply a key (new or existing) before phase 3 can be
+exercised end to end. Everything is written against the SDK's real shipped
+type definitions (`node_modules/@anthropic-ai/claude-agent-sdk/entrypoints/sdk/*.d.ts`,
+checked directly rather than guessed from docs), so it should work once a
+key is set, but it is genuinely untested until then.
 
 **Phase 4 — full agentic chat for `prospect-scout`, `follow-up`,
 `client-onboarder`.** The capability Kevin actually asked for. Ship the
-confirm-step and concurrent-editor check alongside this, not after.
+confirm-step and concurrent-editor check alongside this, not after. The
+Agent SDK's `canUseTool` callback (confirmed present in the shipped types)
+is the real mechanism for the confirm-step: it can pause before a specific
+tool call and wait on a decision, which is exactly "review and confirm
+before this one executes" rather than a blanket restriction. Needs a way
+to get that decision from the browser mid-request (Server-Sent Events or
+polling) — not yet designed further than that.
 
 **Phase 5 — agent-fleet usage tracking.** Falls out of phase 4's backend
 logging its own `usage` objects. Add the `agent_runs` rollup once phase 4 is

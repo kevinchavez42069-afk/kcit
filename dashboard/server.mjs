@@ -1,19 +1,23 @@
 // =====================================================================
-//  AI Operating System dashboard - Phase 2, read-only MVP.
+//  AI Operating System dashboard - phases 1-3.
 //  See vault/50-Workspace/AI Operating System.md for the full roadmap.
 //
 //  Run:  node server.mjs
 //  Then open http://localhost:7417 (or the printed URL/credentials).
 //
-//  Read-only on purpose - this phase proves out hosting and access
-//  control before phase 4 adds anything that can write vault files,
-//  commit, deploy, or touch AWS. No chat yet, no tool execution.
+//  Phase 2's status/cost endpoints are read-only. Phase 3 adds one live
+//  chat endpoint, scoped to executive-assistant only and to read-only
+//  tools even though EA's own file grants more (see chat.mjs) - the
+//  other three agents get real write/deploy/AWS power in phase 4, not
+//  yet built. Needs ANTHROPIC_API_KEY in the environment for phase 3 to
+//  work at all; without it, everything else on this page still works,
+//  chat alone returns a clear error.
 //
-//  Access model: this process binds to localhost only. Reaching it from
-//  a phone/laptop elsewhere means putting it on a private tunnel
-//  (Tailscale recommended - see the design doc) rather than opening it
-//  to the public internet. HTTP Basic Auth below is defense in depth on
-//  top of that, not a substitute for it - don't port-forward this.
+//  Access model: reachable over Tailscale plus HTTP Basic Auth with a
+//  per-IP lockout after repeated failures (see requireAuth below) - that
+//  pairing is what's allowed to gate real tool execution once phase 4
+//  lands, so it isn't loosened here. Never port-forward this to the
+//  public internet regardless.
 // =====================================================================
 
 import { createServer } from "http";
@@ -23,6 +27,7 @@ import { fileURLToPath } from "url";
 import { randomBytes, timingSafeEqual } from "crypto";
 import { execFileSync } from "child_process";
 import { openDb, summaryByClient } from "./db.mjs";
+import { chatWithAgent } from "./chat.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const VAULT = join(here, "..", "vault");
@@ -75,8 +80,39 @@ function checkAuth(req) {
   return safeEqual(user, AUTH_USER) && safeEqual(pass, AUTH_PASS);
 }
 
+// Basic Auth has no built-in lockout, and this endpoint is about to start
+// gating real write/deploy power (phase 4) behind it - a few bad guesses
+// shouldn't be free. Per-IP, in-memory, best-effort (same honestly-labeled
+// limitation as the chatbot Lambda's rate limiter: it slows a casual
+// attacker, not a determined one on a botnet, but there is no determined
+// botnet on a Tailscale-only surface - the real threat here is a guessed
+// password from casual local-network access, which this stops cold).
+const FAILED_AUTH_LIMIT = 8;
+const FAILED_AUTH_WINDOW_MS = 5 * 60_000;
+const failedAuth = new Map();
+
+function isLockedOut(ip) {
+  const recent = (failedAuth.get(ip) ?? []).filter((t) => t > Date.now() - FAILED_AUTH_WINDOW_MS);
+  failedAuth.set(ip, recent);
+  return recent.length >= FAILED_AUTH_LIMIT;
+}
+
+function recordFailedAuth(ip) {
+  const recent = failedAuth.get(ip) ?? [];
+  recent.push(Date.now());
+  failedAuth.set(ip, recent);
+  if (failedAuth.size > 500) failedAuth.clear(); // crude memory bound
+}
+
 function requireAuth(req, res) {
+  const ip = req.socket.remoteAddress ?? "unknown";
+  if (isLockedOut(ip)) {
+    res.writeHead(429, { "Retry-After": "300" });
+    res.end("Too many failed logins. Try again in a few minutes.");
+    return false;
+  }
   if (checkAuth(req)) return true;
+  recordFailedAuth(ip);
   res.writeHead(401, { "WWW-Authenticate": 'Basic realm="KC IT Ops Dashboard"' });
   res.end("Authentication required.");
   return false;
@@ -143,6 +179,18 @@ function jsonResponse(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let data = "";
+    req.on("data", (chunk) => {
+      data += chunk;
+      if (data.length > 10_000) req.destroy(); // one chat message shouldn't be an essay
+    });
+    req.on("end", () => resolve(data));
+    req.on("error", reject);
+  });
+}
+
 const MIME = { ".html": "text/html", ".css": "text/css", ".js": "text/javascript", ".json": "application/json" };
 
 function serveStatic(req, res) {
@@ -159,7 +207,7 @@ function serveStatic(req, res) {
 
 // --- Server ----------------------------------------------------------
 
-const server = createServer((req, res) => {
+const server = createServer(async (req, res) => {
   if (!requireAuth(req, res)) return;
 
   if (req.url === "/api/activity") {
@@ -179,11 +227,35 @@ const server = createServer((req, res) => {
     return jsonResponse(res, 200, { clients: rows });
   }
 
+  // Phase 3: chat with executive-assistant, strictly read-only (see
+  // chat.mjs - it enforces this even if the agent's own file grants more).
+  if (req.url === "/api/chat" && req.method === "POST") {
+    let body;
+    try {
+      body = JSON.parse(await readBody(req));
+    } catch {
+      return jsonResponse(res, 400, { error: "Invalid JSON body." });
+    }
+    if (typeof body.message !== "string" || !body.message.trim()) {
+      return jsonResponse(res, 400, { error: "Expected a non-empty \"message\" string." });
+    }
+    try {
+      const { text, usage, costUsd } = await chatWithAgent("executive-assistant", body.message);
+      return jsonResponse(res, 200, { reply: text, usage, costUsd });
+    } catch (err) {
+      console.error("Chat error:", err);
+      return jsonResponse(res, 500, { error: err.message });
+    }
+  }
+
   serveStatic(req, res);
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`\nKC IT Ops Dashboard (phase 2, read-only)`);
+  console.log(`\nKC IT Ops Dashboard (phases 1-3)`);
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.log(`ANTHROPIC_API_KEY not set - everything works except chat.`);
+  }
   console.log(`Local:      http://localhost:${PORT}`);
   const tsIp = tailscaleIp();
   if (tsIp) {

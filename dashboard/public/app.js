@@ -73,6 +73,53 @@ async function loadActivity() {
   }
 }
 
+function appendChatMessage(role, text) {
+  const log = document.getElementById("chat-log");
+  const el = document.createElement("div");
+  el.className = `chat-msg ${role}`;
+  el.textContent = text;
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+  return el;
+}
+
+function initChat() {
+  const form = document.getElementById("chat-form");
+  const input = document.getElementById("chat-input");
+  const button = form.querySelector("button");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const message = input.value.trim();
+    if (!message) return;
+
+    appendChatMessage("user", message);
+    input.value = "";
+    input.disabled = true;
+    button.disabled = true;
+    const pending = appendChatMessage("agent", "Thinking…");
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      pending.textContent = data.reply;
+    } catch (err) {
+      pending.className = "chat-msg error";
+      pending.textContent = `Couldn't reach executive-assistant: ${err.message}`;
+    } finally {
+      input.disabled = false;
+      button.disabled = false;
+      input.focus();
+    }
+  });
+}
+
 loadDigest();
 loadCosts();
 loadActivity();
+initChat();

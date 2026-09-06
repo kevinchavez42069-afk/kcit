@@ -15,6 +15,26 @@ Each entry: when, which session, what shipped, what's next.
 
 ---
 
+## 2026-09-06 (still going) — local session (this one)
+
+**Shipped:** Phase 3 code — live chat with `executive-assistant`, read-only
+by construction (`allowedTools` locked to Read/Glob/Grep regardless of
+EA's own file). New `dashboard/agents.mjs` (parses `.claude/agents/*.md`
+directly) and `dashboard/chat.mjs` (Agent SDK integration), plus a chat
+panel in the frontend. Also hardened the dashboard's auth with a per-IP
+lockout after repeated failed logins, ahead of it gating real power in
+phase 4 — verified it actually trips.
+
+**Genuinely blocked, not a design choice:** the Agent SDK needs its own
+`ANTHROPIC_API_KEY` — it cannot reuse Claude Code's own session auth.
+Everything is verified except the one thing that actually needs a live API
+call. Asked Kevin how he wants to supply a key.
+
+**Next:** get the API key sorted, verify phase 3 end to end, then phase 4
+(full agentic chat for the other three agents — the `canUseTool` callback
+confirmed present in the SDK is the real mechanism for the confirm-step).
+`voice.md` writing samples still outstanding.
+
 ## 2026-09-06 (later night) — local session (this one)
 
 **Shipped:** Tailscale is live. Kevin installed and logged in mid-session;

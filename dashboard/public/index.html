@@ -9,10 +9,19 @@
 <body>
 <header>
   <h1>KC IT Ops Dashboard</h1>
-  <p class="subtitle">Phase 2 &mdash; read-only. No chat, no writes, no deploys from here yet.</p>
+  <p class="subtitle">Chat with executive-assistant is read-only. No writes, no deploys from here yet &mdash; that's phase 4.</p>
 </header>
 
 <main>
+  <section class="panel" id="chat-panel">
+    <h2>Chat with executive-assistant</h2>
+    <div id="chat-log" class="chat-log"></div>
+    <form id="chat-form" class="chat-form">
+      <input id="chat-input" type="text" placeholder="Ask about status, prospects, findings&hellip;" autocomplete="off">
+      <button type="submit">Send</button>
+    </form>
+  </section>
+
   <section class="panel" id="digest-panel">
     <h2>Digest</h2>
     <div id="digest-content" class="loading">Loading&hellip;</div>
