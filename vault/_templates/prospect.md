@@ -16,6 +16,7 @@ tags: [prospect]
 | Phone | |
 | Area | |
 | Category | |
+| Best time to visit | |
 
 ## Current web presence
 

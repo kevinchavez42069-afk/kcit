@@ -46,6 +46,11 @@ improving the template improves every client's assistant at once.
    quoted, an unauthorized origin gets rejected with the phone number, and an
    unknown `clientId` fails gracefully. Test with the curl recipe in the site
    repo's `HANDOFF.md`, swapping in the target `clientId`.
+5. **Write or update the vault record.** For a real client (not the demo
+   tenant), create `vault/70-Clients/<business>.md` from
+   `vault/_templates/client.md` and check off Delivery items as you complete
+   them. Nothing else in this vault records that a client exists — skipping
+   this step leaves onboarding invisible to `follow-up` and to Kevin.
 
 Adding the widget to a client site is one script tag carrying
 `data-client="<id>"`.
