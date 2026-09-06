@@ -60,6 +60,10 @@ improving the template improves every client's assistant at once.
    `vault/_templates/client.md` and check off Delivery items as you complete
    them. Nothing else in this vault records that a client exists — skipping
    this step leaves onboarding invisible to `follow-up` and to Kevin.
+6. **Log it.** Append one line to `vault/50-Workspace/Activity Log.md`: what
+   you onboarded or deployed, with a `[[link]]` to the client note if one
+   exists. `executive-assistant` reads that log to build Kevin's digest, so a
+   run that never logs is a run he never hears about.
 
 Adding the widget to a client site is one script tag carrying
 `data-client="<id>"`.

@@ -69,6 +69,13 @@ One note per business in `vault/60-Prospects/`, from
 - A specific opening line referencing something real you actually found
 - Best time to walk in
 
+## Log it
+
+When you finish, append one line to `vault/50-Workspace/Activity Log.md`:
+what you added or found, with `[[links]]` to the notes. `executive-assistant`
+reads that log to build Kevin's digest, so a run that never logs is a run he
+never hears about.
+
 ## Bilingual support
 
 KC IT ships a fully bilingual site and assistant. That is a genuine advantage

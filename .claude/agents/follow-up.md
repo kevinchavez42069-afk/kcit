@@ -104,3 +104,10 @@ likely price shoppers.
 If a lead arrives incomplete, the likely cause is the known weak point: lead
 delivery runs through the visitor's browser, so closing the tab at the wrong
 moment loses it. Worth saying rather than guessing at the prospect's intent.
+
+## Log it
+
+When you finish, append one line to `vault/50-Workspace/Activity Log.md`:
+what you drafted or triaged, with `[[links]]` to the notes. `executive-assistant`
+reads that log to build Kevin's digest, so a run that never logs is a run he
+never hears about.
