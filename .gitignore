@@ -1,5 +1,7 @@
 .DS_Store
 Thumbs.db
+dashboard/costs.db
+dashboard/node_modules/
 vault/.obsidian/workspace.json
 vault/.obsidian/workspace-mobile.json
 vault/.trash/

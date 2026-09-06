@@ -126,10 +126,21 @@ it's the same key that deploys production.
 
 **Phase 0 — this doc.** Done, no code.
 
-**Phase 1 — chatbot cost pipeline.** Lowest risk, data already exists,
-nothing agentic. Add the narrow CloudWatch-read credential, write the
-aggregation job, store results in local SQLite. Useful standalone: this is
-the number a monthly-plan price should eventually be checked against.
+**Phase 1 — chatbot cost pipeline. Done, 2026-09-06.** `dashboard/cost-report.mjs`
+pulls `/aws/lambda/kcit-chatbot`'s CloudWatch logs, prices each request against
+`dashboard/pricing.mjs`, and stores per-request rows in local SQLite
+(`dashboard/costs.db`, gitignored). No new IAM credential needed —
+`kcit-deploy` already had `logs:FilterLogEvents` on `kcit-*` log groups
+(`aws-chatbot-policy.json`'s `ReadLogsForDebugging` statement), confirmed
+working directly rather than assumed. Run `node cost-report.mjs` from
+`dashboard/`; resumes incrementally after the first run. First real numbers:
+`kc-it-solutions` $0.12, `sample-plumbing` $0.05, plus some older usage under
+`riverbend-plumbing` — the demo tenant's name before it was renamed (see git
+history, `chatbot/clients/`), not a mystery client.
+
+Not yet done: running this on a schedule (currently a manual/on-demand
+script) and surfacing it anywhere but the terminal — that's what phase 2's
+dashboard is for.
 
 **Phase 2 — read-only dashboard MVP.** Local backend + tunnel + auth, serving
 the Activity Log/Daily Digest feed and the phase 1 cost widgets. No chat.

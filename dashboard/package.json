@@ -1,0 +1,10 @@
+{
+  "name": "kcit-dashboard",
+  "version": "0.1.0",
+  "description": "AI Operating System backend - phase 1 is the chatbot cost pipeline. See vault/50-Workspace/AI Operating System.md.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "cost-report": "node cost-report.mjs"
+  }
+}

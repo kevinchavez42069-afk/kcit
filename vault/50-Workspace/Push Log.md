@@ -15,6 +15,20 @@ Each entry: when, which session, what shipped, what's next.
 
 ---
 
+## 2026-09-06 (evening) — local session (this one)
+
+**Shipped, not yet pushed:** Phase 1 of [[AI Operating System]] — the chatbot
+cost pipeline. New `dashboard/` folder: `cost-report.mjs` pulls
+`kcit-chatbot`'s CloudWatch usage logs, prices them via `pricing.mjs`
+(Opus 5: $5/$25 per MTok, cache read $0.50, cache write $6.25 at the default
+5-minute TTL), and stores per-request rows in local SQLite. No new AWS
+credential needed — `kcit-deploy` already had the read permission, verified
+directly. Ran it for real: `kc-it-solutions` $0.12, `sample-plumbing` $0.05
+in usage so far.
+
+**Next:** phase 2 of the AI Operating System (read-only dashboard MVP) when
+Kevin's ready; `voice.md` writing samples still outstanding.
+
 ## 2026-09-06 (later) — local session (this one)
 
 **Pushed:** `0c1fd04` to `origin/main`, batched with `pc-user-c2`'s `ad74cf3`
