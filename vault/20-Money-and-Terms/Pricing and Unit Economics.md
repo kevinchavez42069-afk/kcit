@@ -1,6 +1,6 @@
 ---
 title: Pricing and Unit Economics
-status: current
+status: reference
 source: Notion
 notion_id: 3ce5da8c-0d78-81de-9129-f85657d8faff
 migrated: 2026-09-06

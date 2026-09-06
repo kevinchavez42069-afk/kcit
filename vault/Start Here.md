@@ -1,6 +1,6 @@
 ---
 title: Start Here
-status: current
+status: reference
 source: Notion
 notion_id: 3ce5da8c-0d78-813e-84cd-d9fad24ea209
 migrated: 2026-09-06

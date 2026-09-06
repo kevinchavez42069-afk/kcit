@@ -1,6 +1,6 @@
 ---
 title: Business Terms and Decisions
-status: current
+status: reference
 source: Notion
 notion_id: 3ce5da8c-0d78-8182-8381-df77ec0b08d7
 migrated: 2026-09-06
@@ -67,12 +67,10 @@ Not "the client supplies polished text," they never do and the project stalls.
 Not "Kevin invents it from nothing," he doesn't know their business. The client
 answers specific questions; Kevin turns those answers into the words.
 
-> [!warning] Unresolved conflict
-> [[Start Here]] records this decision as *"Client supplies it, guided by a
-> questionnaire"*, which is a materially different commitment. This page is the
-> dedicated terms page and is more specific, so agents currently follow the
-> version above. **Kevin needs to rule on which is correct**, because the
-> turnaround promise depends on it.
+> [!note] The notes disagree here
+> [[Start Here]] says the client supplies the copy. These were working notes
+> written at different times, so the disagreement is not significant in itself.
+> Agents follow the version above by default. Kevin overrides either way.
 
 ## Turnaround
 

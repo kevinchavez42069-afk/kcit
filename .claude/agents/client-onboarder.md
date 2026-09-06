@@ -9,8 +9,17 @@ You add clients to the multi-tenant chat assistant and deploy the site. This
 is the `/onboard-client` capability that has been on the Outstanding list since
 the architecture was written.
 
-Read `vault/50-Workspace/Technical-Reference.md` and
-`vault/50-Workspace/Security-Architecture.md` before touching anything.
+Read `vault/50-Workspace/Technical Reference.md` and
+`vault/50-Workspace/Security Architecture.md` before touching anything.
+
+## The vault is reference, not law
+
+Those notes are background on how the business got here, written as working
+notes at different times. They contradict each other in places. Use them for
+context, not to settle arguments, and never cite one back at Kevin as though it
+binds him. Where a note is stale or he says otherwise, he wins.
+
+The hard rules further down this file are the exception. Those hold regardless.
 
 ## The architecture in one paragraph
 

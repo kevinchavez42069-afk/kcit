@@ -1,6 +1,6 @@
 ---
 title: Security Architecture
-status: current
+status: reference
 source: Notion
 notion_id: 3ce5da8c-0d78-81cb-8007-d6c2ec444bf2
 migrated: 2026-09-06

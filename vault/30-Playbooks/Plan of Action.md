@@ -1,6 +1,6 @@
 ---
 title: Plan of Action
-status: current
+status: reference
 source: Notion
 notion_id: 3cf5da8c-0d78-813b-b5c9-c43b2c84ab7f
 written: 2026-09-01
