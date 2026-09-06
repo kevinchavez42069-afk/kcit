@@ -15,11 +15,11 @@ Each entry: when, which session, what shipped, what's next.
 
 ---
 
-## 2026-09-06 (pending) — local session (this one)
+## 2026-09-06 (later) — local session (this one)
 
-**Not pushed yet** — batched with `pc-user-c2`'s `ad74cf3`
-(executive-assistant + Activity Log), pending together per Kevin's own
-request to batch rather than push one commit at a time.
+**Pushed:** `0c1fd04` to `origin/main`, batched with `pc-user-c2`'s `ad74cf3`
+(executive-assistant + Activity Log) per Kevin's request to batch rather than
+push one commit at a time.
 
 - Added [[AI Operating System]]: design doc + phased roadmap for a dashboard
   where Kevin chats directly with the agent fleet, sees usage/cost, and sees
@@ -29,11 +29,16 @@ request to batch rather than push one commit at a time.
   or credentials. Five phases, starting with the customer chatbot's
   already-logged CloudWatch cost data (phase 1) and read-only dashboard
   access (phase 2) before any browser-triggered agentic writes (phase 4).
-  No code shipped — planning only.
+  No code shipped in this entry — planning only.
 
-**Next:** phase 1 of the AI Operating System roadmap (chatbot cost
-aggregation) whenever Kevin wants to start; otherwise unchanged from the
-previous entry below (chatbot redeploy, `voice.md` writing samples).
+**Also done, separate repo:** deployed the `kc.IT` chatbot audience fix
+(commit `80d060b`, `chatbot\deploy-chatbot.ps1`). Verified live — asked the
+real bot on `kcitsolutions.co` "do you only work with trades businesses" and
+it correctly answered with the any-business positioning.
+
+**Next:** starting phase 1 of the AI Operating System roadmap (chatbot cost
+aggregation) now. `voice.md` writing samples still outstanding, Kevin's
+whenever.
 
 ## 2026-09-06 19:25 UTC — local session (this one)
 
