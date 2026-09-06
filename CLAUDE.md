@@ -43,4 +43,4 @@ the moat.
 ## Migration status
 
 Migrated from Notion. Notion is left intact as a read-only fallback until the
-vault is confirmed complete. See `vault/50-Workspace/Migration-Status.md`.
+vault is confirmed complete. See `vault/50-Workspace/Migration Status.md`.
