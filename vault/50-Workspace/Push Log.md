@@ -9,11 +9,31 @@ tags: [meta]
 A running record of pushes to this repo's `origin/main`, kept because multiple
 Claude Code sessions (cloud and local, sometimes concurrent) work in here.
 Newest entry first. Not for business activity (leads, prospects, clients) —
-see [[Activity Log]] for that once it exists.
+see [[Activity Log]] for that.
 
 Each entry: when, which session, what shipped, what's next.
 
 ---
+
+## 2026-09-06 (pending) — local session (this one)
+
+**Not pushed yet** — batched with `pc-user-c2`'s `ad74cf3`
+(executive-assistant + Activity Log), pending together per Kevin's own
+request to batch rather than push one commit at a time.
+
+- Added [[AI Operating System]]: design doc + phased roadmap for a dashboard
+  where Kevin chats directly with the agent fleet, sees usage/cost, and sees
+  findings, with `executive-assistant` overseeing the other three. Full
+  agentic chat from the browser, running locally on Kevin's machine behind a
+  private tunnel (Tailscale by default), not a cloud-hosted copy of the repo
+  or credentials. Five phases, starting with the customer chatbot's
+  already-logged CloudWatch cost data (phase 1) and read-only dashboard
+  access (phase 2) before any browser-triggered agentic writes (phase 4).
+  No code shipped — planning only.
+
+**Next:** phase 1 of the AI Operating System roadmap (chatbot cost
+aggregation) whenever Kevin wants to start; otherwise unchanged from the
+previous entry below (chatbot redeploy, `voice.md` writing samples).
 
 ## 2026-09-06 19:25 UTC — local session (this one)
 
