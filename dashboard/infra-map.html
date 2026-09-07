@@ -208,9 +208,9 @@
 <div class="wrap">
 
   <div class="masthead">
-    <p class="stamp">As of 2026-09-06 &middot; internal reference</p>
+    <p class="stamp">As of 2026-09-07 &middot; internal reference</p>
     <h1>KC IT Infrastructure Map</h1>
-    <p class="standfirst">Every live piece behind kcitsolutions.co and the ops fleet that runs the business, in three views: how a page request is served, how a lead reaches the inbox, and how Kevin's machine is allowed to touch AWS.</p>
+    <p class="standfirst">Every live piece behind kcitsolutions.co and the ops fleet that runs the business, in four views: how a page request is served, how a lead reaches the inbox, how Kevin's machine is allowed to touch AWS, and how an agent gets real tool access without a bad command running unsupervised.</p>
   </div>
 
   <div class="key">
@@ -500,6 +500,7 @@
 
             <text x="184" y="638" class="t">Kevin</text>
             <text x="184" y="660" class="s">local browser</text>
+            <text x="184" y="676" class="s">chats with agents too</text>
 
             <text x="466" y="636" class="t mono">Tailscale</text>
             <text x="466" y="656" class="s mono">100.87.11.96</text>
@@ -537,7 +538,129 @@
           </g>
         </svg>
       </div>
-      <figcaption>Two repos split by trust level, one agent fleet, one dashboard, and exactly one way out to AWS. Both amber flows (<code>client-onboarder</code> running the deploy scripts, and <code>cost-report.mjs</code> pulling usage logs) go through <code>kcit-deploy</code> and can only land on the four resources listed inside it. The Tailscale path is live: it goes straight from Kevin's phone or laptop to <code>server.mjs</code> and never touches AWS.</figcaption>
+      <figcaption>Two repos split by trust level, one agent fleet, one dashboard, and exactly one way out to AWS. Both amber flows (<code>client-onboarder</code> running the deploy scripts, and <code>cost-report.mjs</code> pulling usage logs) go through <code>kcit-deploy</code> and can only land on the four resources listed inside it. The Tailscale path is live: it goes straight from Kevin's phone or laptop to <code>server.mjs</code> and never touches AWS. What happens when Kevin actually chats with an agent through that connection is View 4.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============================ FIGURE 4 ============================ -->
+  <section>
+    <h2><em>View 4</em> How an agent gets real tool access</h2>
+    <figure>
+      <div class="frame">
+        <svg viewBox="0 0 1180 740" role="img" aria-label="Kevin's browser posts a message to server.mjs, which first checks that both local repos are current with origin, refusing to start if either is behind. The Claude Agent SDK then loads the target agent with its real tool list. Read, Write, Edit, Glob, Grep, WebSearch and WebFetch are pre-approved and run immediately, because everything they touch is git-tracked and reversible. Bash is available but never pre-approved, so every Bash call falls through to a canUseTool callback that stores a pending confirmation. The browser polls for that pending confirmation and shows it as a banner with the real command. Kevin approves or denies it: approve runs the command, deny tells the agent it was refused and the agent continues without it.">
+          <defs>
+            <marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"></path>
+            </marker>
+            <marker id="g4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--signal)"></path>
+            </marker>
+          </defs>
+
+          <!-- zone: the confirm-step, wraps the whole right column -->
+          <rect x="740" y="300" width="400" height="410" rx="12" fill="var(--signal-soft)" stroke="var(--signal)" stroke-width="1.8"></rect>
+          <text x="1120" y="316" text-anchor="end" class="gate-eyebrow">THE CONFIRM-STEP</text>
+
+          <!-- arrows: setup row -->
+          <g stroke="var(--line)" stroke-width="1.5" fill="none">
+            <line x1="260" y1="72" x2="320" y2="72" marker-end="url(#a4)"></line>
+            <line x1="540" y1="72" x2="600" y2="72" marker-end="url(#a4)"></line>
+            <line x1="720" y1="104" x2="720" y2="180" marker-end="url(#a4)"></line>
+          </g>
+
+          <!-- stale-repo refusal: a short local stub, not a return path -->
+          <g stroke="var(--muted)" stroke-width="1.5" fill="none" stroke-dasharray="5,4">
+            <line x1="840" y1="72" x2="898" y2="72"></line>
+          </g>
+          <circle cx="908" cy="72" r="11" fill="var(--panel)" stroke="none"></circle>
+          <g stroke="var(--muted)" stroke-width="1.8" stroke-linecap="round">
+            <line x1="903" y1="67" x2="913" y2="77"></line>
+            <line x1="913" y1="67" x2="903" y2="77"></line>
+          </g>
+
+          <!-- arrows: the fork -->
+          <g stroke="var(--line)" stroke-width="1.5" fill="none">
+            <polyline points="720,260 720,290 330,290 330,320" marker-end="url(#a4)"></polyline>
+            <line x1="330" y1="410" x2="330" y2="450" marker-end="url(#a4)"></line>
+          </g>
+          <g stroke="var(--signal)" stroke-width="1.8" fill="none">
+            <polyline points="720,260 720,290 940,290 940,320" marker-end="url(#g4)"></polyline>
+            <line x1="940" y1="390" x2="940" y2="420" marker-end="url(#g4)"></line>
+            <line x1="940" y1="480" x2="940" y2="520" marker-end="url(#g4)"></line>
+            <line x1="870" y1="590" x2="850" y2="628" marker-end="url(#g4)"></line>
+            <line x1="1010" y1="590" x2="1030" y2="628" marker-end="url(#g4)"></line>
+          </g>
+
+          <!-- nodes: setup row -->
+          <g>
+            <rect x="40" y="40" width="220" height="64" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <rect x="320" y="40" width="220" height="64" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <rect x="600" y="40" width="240" height="64" rx="8" fill="var(--panel)" stroke="var(--signal)" stroke-width="1.6"></rect>
+            <rect x="560" y="180" width="320" height="80" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect>
+          </g>
+
+          <!-- nodes: safe fork (left) -->
+          <g>
+            <rect x="140" y="320" width="380" height="90" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect>
+            <rect x="140" y="450" width="380" height="66" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+          </g>
+
+          <!-- nodes: Bash / confirm fork (right) -->
+          <g>
+            <rect x="760" y="320" width="360" height="70" rx="8" fill="var(--panel)" stroke="var(--signal)" stroke-width="1.6"></rect>
+            <rect x="760" y="420" width="360" height="60" rx="8" fill="var(--panel)" stroke="var(--signal)" stroke-width="1.6"></rect>
+            <rect x="760" y="520" width="360" height="70" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <rect x="760" y="628" width="170" height="66" rx="8" fill="var(--panel)" stroke="var(--signal)" stroke-width="1.4"></rect>
+            <rect x="950" y="628" width="170" height="66" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+          </g>
+
+          <!-- node text -->
+          <g text-anchor="middle">
+            <text x="150" y="64" class="t">Kevin</text>
+            <text x="150" y="82" class="s">browser, chat panel</text>
+
+            <text x="430" y="64" class="t mono">server.mjs</text>
+            <text x="430" y="82" class="s">POST /api/run</text>
+
+            <text x="720" y="64" class="gate-t">checkReposCurrent</text>
+            <text x="720" y="82" class="gate-s">fetches, compares to origin</text>
+
+            <text x="720" y="212" class="t">Claude Agent SDK</text>
+            <text x="720" y="230" class="s">query() with the agent's real system prompt</text>
+            <text x="720" y="246" class="s mono">tools: agent.tools &middot; allowedTools: tools minus Bash</text>
+
+            <text x="330" y="352" class="t">Read &middot; Write &middot; Edit</text>
+            <text x="330" y="370" class="s">Glob &middot; Grep &middot; WebSearch &middot; WebFetch</text>
+            <text x="330" y="388" class="s">pre-approved &mdash; git-tracked, reversible</text>
+            <text x="330" y="482" class="t">Tool executes</text>
+            <text x="330" y="500" class="s">immediately, reply goes back to Kevin</text>
+
+            <text x="940" y="348" class="gate-t">Bash</text>
+            <text x="940" y="366" class="gate-s">available, never pre-approved</text>
+            <text x="940" y="450" class="gate-t">Pending confirmation</text>
+            <text x="940" y="468" class="gate-s">canUseTool stores it, waits</text>
+            <text x="940" y="552" class="t">Confirm banner</text>
+            <text x="940" y="570" class="s">Kevin's browser, shows the real command</text>
+            <text x="845" y="656" class="gate-t">Approve</text>
+            <text x="845" y="674" class="gate-s">runs, replies</text>
+            <text x="1035" y="656" class="t">Deny</text>
+            <text x="1035" y="674" class="s">agent told, continues</text>
+          </g>
+
+          <!-- arrow labels, drawn last -->
+          <g class="lbl">
+            <text x="290" y="62" text-anchor="middle">1 message</text>
+            <text x="570" y="62" text-anchor="middle">2 checks both repos</text>
+            <text x="869" y="62" text-anchor="start" fill="var(--muted)">stale: refused</text>
+            <text x="735" y="150" text-anchor="middle">3 current: proceeds</text>
+            <text x="470" y="278" text-anchor="middle">safe tools</text>
+            <text x="1000" y="278" text-anchor="middle" fill="var(--signal)">4 Bash</text>
+            <text x="965" y="410" text-anchor="middle" fill="var(--signal)">5 polls GET /api/pending</text>
+            <text x="965" y="510" text-anchor="middle" fill="var(--signal)">6 Kevin decides</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption>The one line this whole mechanism rests on: Bash sits in the agent's real <code>tools</code> list (so it's available) but deliberately outside <code>allowedTools</code> (so it's never pre-approved) &mdash; confirmed by reading the Agent SDK's own source, which spawns the real Claude Code CLI and passes these as its actual <code>--tools</code> and <code>--allowedTools</code> flags. Every other tool a write-capable agent has is pre-approved and reversible through git; Bash is the only door to <code>git push</code>, a deploy script, or an <code>aws</code> call, and it never opens without Kevin looking at the actual command first.</figcaption>
     </figure>
   </section>
 
@@ -562,8 +685,12 @@
         <dd><code>kcit-chatbot</code> is multi-tenant. Each client is a single JSON file under <code>chatbot/clients/</code>, currently <code>kc-it-solutions.json</code> and <code>sample-plumbing.json</code>, all sharing one prompt template. Adding a client is adding a file, not a function. Its Function URL is <code>AWS_IAM</code>-only and not publicly invokable; CloudFront reaches it through an Origin Access Control.</dd>
       </div>
       <div>
-        <dt>The dashboard is reachable off this machine as of today.</dt>
-        <dd>The Lambda writes per-request input, output, cache-read and cache-write token counts as JSON lines to <code>/aws/lambda/kcit-chatbot</code>. <code>cost-report.mjs</code> pulls those through <code>kcit-deploy</code>, prices them and stores the result in <code>costs.db</code>, a local SQLite file that syncs nowhere; <code>server.mjs</code> serves it. Tailscale was installed and logged in today, <code>server.mjs</code> now binds on all interfaces, and the dashboard is verified reachable at <code>http://100.87.11.96:7417</code>.</dd>
+        <dt>The dashboard is reachable off this machine, and now does more than show numbers.</dt>
+        <dd>The Lambda writes per-request input, output, cache-read and cache-write token counts as JSON lines to <code>/aws/lambda/kcit-chatbot</code>. <code>cost-report.mjs</code> pulls those through <code>kcit-deploy</code>, prices them and stores the result in <code>costs.db</code>, a local SQLite file that syncs nowhere; <code>server.mjs</code> serves it over Tailscale at <code>http://100.87.11.96:7417</code>. It's also where Kevin now chats with the agent fleet directly &mdash; <code>executive-assistant</code> read-only, the other three with real tool access gated by View 4's confirm-step.</dd>
+      </div>
+      <div>
+        <dt>The confirm-step is verified live, not just written.</dt>
+        <dd>Kevin ran the actual first test: asked <code>client-onboarder</code> to check git status, watched the confirm banner appear with the real command, approved it. A second table, <code>agent_runs</code>, logs what the fleet itself costs to run &mdash; separate from <code>chatbot_usage</code>, which is customer traffic &mdash; straight from the same SDK result the reply already carries, so there's no separate pricing table to keep in sync.</dd>
       </div>
     </dl>
   </div>
