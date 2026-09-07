@@ -11,6 +11,19 @@ with the agent fleet, see usage and cost, and see findings, with
 `executive-assistant` as the agent overseeing the other three. Written
 2026-09-06, roadmap only, no code shipped yet.
 
+**Current status, 2026-09-07 end of day:** phases 1 through 9.1 are built
+and live. Six agents, not the original three (`developer` and
+`code-reviewer` joined in phase 7). `executive-assistant` has real Bash and
+real delegation, not just chat. The dashboard has a live Fleet view of what
+every agent is actually doing, a persistent always-open EA chat with a
+separate collapsible drawer for the other five, and an explicit
+auto-approve override for the confirm-step that scheduled/unattended runs
+are immune to on purpose. Read the phase entries below for the real story,
+including two things worth knowing before trusting this doc's earlier
+absolute claims: "every Bash call waits for Kevin" and "every delegated
+agent shows up correctly in Fleet" were both found to be false in practice
+and fixed, not assumed true because they were designed that way.
+
 ## Why
 
 Today the fleet (`prospect-scout`, `follow-up`, `client-onboarder`,

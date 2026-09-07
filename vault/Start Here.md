@@ -33,8 +33,8 @@ either sales or a form to fill in.
 | **Facebook** | facebook.com/KCITSolutionsRVA. 2 posts published, 2 scheduled |
 | **Instagram** | @kc.itsolutions. 5 followers, effectively dormant |
 | **Version control** | git, full history |
-| **Agent fleet** | Four Claude Code agents (`prospect-scout`, `follow-up`, `client-onboarder`, `executive-assistant`) reading this vault directly. See `.claude/agents/` |
-| **Ops dashboard** | Local, reachable over Tailscale. Status view, full agentic chat with all four agents (Bash gated by a human confirm-step), fleet cost tracking, and Pushover notifications (phases 1-6 of the roadmap, all live). See [[AI Operating System]] |
+| **Agent fleet** | Six Claude Code agents (`prospect-scout`, `follow-up`, `client-onboarder`, `executive-assistant`, `developer`, `code-reviewer`) reading this vault directly. `executive-assistant` is the hub and can delegate to the other five. See `.claude/agents/` |
+| **Ops dashboard** | Local, reachable over Tailscale. Full agentic chat with every agent, a live view of what each agent is actually doing right now, fleet cost tracking, Pushover notifications, and an explicit auto-approve override for the confirm-step (session-only, off by default). Phases 1-9.1 of the roadmap, all live. See [[AI Operating System]] |
 
 ## The chatbot is a product, not just a feature
 
