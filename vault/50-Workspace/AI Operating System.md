@@ -609,6 +609,42 @@ the confirm banner and active Fleet cards. Also added voice guidance to
 None of them had any before this, unlike `follow-up`, despite EA being the
 agent Kevin talks to constantly.
 
+**Phase 9.1, a gap found by the concurrent session, not by testing.** The
+new auto-approve flag is global, and `scheduler.mjs` calls `chatWithAgent`
+for the unattended 7am standup and weekly retro through the exact same
+path a browser chat uses. If Kevin flipped the toggle on for a fiddly
+manual task and forgot it, the next scheduled EA run would execute Bash
+with nobody watching. The red warning banner only helps while someone is
+looking at the dashboard, and 7am is precisely when he isn't. Low severity
+in practice (EA's own prompt scopes Bash to infrastructure checks, nothing
+tells it to do anything destructive) but "the prompt says it won't" is
+exactly the guarantee the confirm-step exists so nobody has to rely on.
+
+Fixed by making unattended calls immune to the toggle rather than trusting
+anyone to remember to turn it off in time. `chatWithAgent`/`runAgentFull`
+take a new `{ unattended: true }` option that a scheduler-fired call
+passes; `makeCanUseTool` gained a matching `ignoreAutoApprove` flag that
+forces the real pending/confirm flow regardless of the global setting. A
+browser-initiated call omits the option and behaves exactly as before. If
+nobody is there to approve an unattended Bash call, it now stalls waiting,
+same as it always would have without the toggle existing at all - a
+stall, not a silent execution.
+
+Verified live via a direct script, not the browser (the option only makes
+sense for a caller like the scheduler, not anything reachable from the
+dashboard's own API): with auto-approve forced on, an `unattended: true`
+call to `chatWithAgent` genuinely sat in `pending` until denied, and the
+file it tried to create was never created; a default (non-unattended)
+call in the same state ran straight through as before, confirmed by `ls`
+directly rather than trusting the reply text (a Node `fs.existsSync` check
+in the same script gave a false negative from a Windows/Git-Bash `/tmp`
+path mismatch - caught before it was reported as a real problem).
+
+Left for the scheduler side, not done here: `scheduler.mjs`'s own call
+sites need to actually pass `{ unattended: true }` on its `chatWithAgent`/
+`runAgentFull` calls to close the loop. That file belongs to the
+concurrent session's work; the flag is ready for it.
+
 ## Open items for whoever picks up each phase
 
 - Frontend framework unspecified on purpose — whatever's fastest when a

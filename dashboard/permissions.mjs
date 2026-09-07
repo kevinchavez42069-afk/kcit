@@ -104,14 +104,26 @@ export function resolvePending(id, approve) {
 // stuck. toolUseID/agentID come from the SDK's own canUseTool callback
 // (verified in runtimeTypes.d.ts - already passed in, previously discarded)
 // and are exactly the join key needed, no new bookkeeping required.
+//
+// Phase 9.1: ignoreAutoApprove, found by the concurrent session - autoApprove
+// is a single global flag, and scheduler.mjs calls chatWithAgent for the
+// unattended 7am standup/weekly retro through the exact same code path a
+// browser chat uses. If Kevin flips the toggle on for a fiddly manual task
+// and forgets it, the next scheduled run would execute Bash with nobody
+// watching - the loud red banner only works while someone's looking at the
+// dashboard, and 7am is precisely when he isn't. chat.mjs passes this true
+// for any unattended call, which means such a run always falls through to
+// the real pending/confirm flow regardless of the global toggle - if
+// nobody's there to approve it, it waits, same as it always has. That's a
+// stall, not a silent execution, which is the whole point.
 /** @returns {import("@anthropic-ai/claude-agent-sdk").CanUseTool} */
-export function makeCanUseTool(runId) {
+export function makeCanUseTool(runId, { ignoreAutoApprove = false } = {}) {
   return async (toolName, input, { toolUseID, agentID } = {}) => {
     if (AUTO_ALLOW_TOOLS.has(toolName)) {
       return { behavior: "allow", updatedInput: input };
     }
 
-    if (autoApprove) {
+    if (autoApprove && !ignoreAutoApprove) {
       return { behavior: "allow", updatedInput: input };
     }
 

@@ -239,11 +239,18 @@ async function runQueryWithMemory(agentName, phase, prompt, buildOptions) {
  * Phase 6: chat with executive-assistant, the hub. Its own real tools,
  * Bash included as of phase 6.2, plus the other three agents available as
  * real subagents it can invoke directly.
+ *
+ * Phase 9.1: pass `{ unattended: true }` for a scheduler-fired call (the
+ * daily standup, the weekly retro) - nobody is watching the dashboard for
+ * those, so they must never inherit a human's auto-approve toggle from
+ * hours earlier in an unrelated context. A browser-initiated call omits
+ * this and behaves exactly as before.
  * @param {string} agentName
  * @param {string} prompt
+ * @param {{unattended?: boolean}} [options]
  * @returns {Promise<{text: string, usage: object, costUsd: number}>}
  */
-export async function chatWithAgent(agentName, prompt) {
+export async function chatWithAgent(agentName, prompt, { unattended = false } = {}) {
   requireApiKey();
 
   const agent = getAgent(agentName);
@@ -284,21 +291,27 @@ export async function chatWithAgent(agentName, prompt) {
     tools: agent.tools,
     allowedTools: agent.tools.filter((t) => t !== "Bash"),
     agents: buildSubagents("executive-assistant"),
-    canUseTool: makeCanUseTool(runId),
+    canUseTool: makeCanUseTool(runId, { ignoreAutoApprove: unattended }),
     maxTurns: MAX_TURNS,
     ...(resume ? { resume } : {}),
   }));
 }
 
 /**
- * Phase 4: chat with any agent, using its real tools. Bash always waits
- * for confirmation via permissions.mjs; refuses to start at all if
- * either repo's local checkout is behind origin.
+ * Phase 4: chat with any agent, using its real tools. A Bash call goes
+ * through permissions.mjs's confirm-step unless auto-approve is on; refuses
+ * to start at all if either repo's local checkout is behind origin.
+ *
+ * Phase 9.1: pass `{ unattended: true }` for a scheduler-fired call (e.g.
+ * prospect-scout's Mon/Wed/Fri run) so it never inherits a human's
+ * auto-approve toggle from an unrelated context - same reasoning as
+ * chatWithAgent.
  * @param {string} agentName
  * @param {string} prompt
+ * @param {{unattended?: boolean}} [options]
  * @returns {Promise<{text: string, usage: object, costUsd: number}>}
  */
-export async function runAgentFull(agentName, prompt) {
+export async function runAgentFull(agentName, prompt, { unattended = false } = {}) {
   requireApiKey();
 
   const agent = getAgent(agentName);
@@ -330,7 +343,7 @@ export async function runAgentFull(agentName, prompt) {
     // actually enforces the confirm-step.
     tools: agent.tools,
     allowedTools: agent.tools.filter((t) => t !== "Bash"),
-    canUseTool: makeCanUseTool(runId),
+    canUseTool: makeCanUseTool(runId, { ignoreAutoApprove: unattended }),
     maxTurns: MAX_TURNS,
     ...(resume ? { resume } : {}),
   }));

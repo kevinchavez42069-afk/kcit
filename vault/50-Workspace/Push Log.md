@@ -15,6 +15,32 @@ Each entry: when, which session, what shipped, what's next.
 
 ---
 
+## 2026-09-07 (auto-approve/scheduler gap) — local session (this one)
+
+**Shipped, phase 9.1:** the concurrent session caught this, not testing.
+`autoApprove` is global and `scheduler.mjs` calls `chatWithAgent` for the
+unattended 7am standup/weekly retro through the same path a browser chat
+uses - if Kevin left the toggle on after a manual task, the next scheduled
+run would execute Bash with nobody watching, since the warning banner only
+helps while someone's looking at the dashboard.
+
+Fixed: `chatWithAgent`/`runAgentFull` take `{ unattended: true }`, threaded
+into a new `ignoreAutoApprove` flag on `makeCanUseTool` that forces the
+real confirm flow regardless of the global toggle. Verified live via a
+direct script: auto-approve forced on, an unattended call still sat in
+`pending` until denied and the file was never created; a normal call in
+the same state ran straight through as before, confirmed with `ls`
+directly after a Node `fs.existsSync` check gave a false negative from a
+Windows/Git-Bash path mismatch, caught before it went out as a false
+report.
+
+**Next:** `scheduler.mjs`'s own call sites still need to pass
+`{ unattended: true }` to actually close the loop - left to the
+concurrent session, that file is theirs. `voice.md` writing samples
+remain the oldest open item.
+
+---
+
 ## 2026-09-07 (terminal reskin, real Fleet nodes, auto-approve) — local session (this one)
 
 **Shipped, phase 9:** Kevin ran the phase 8 redesign twice and found two
