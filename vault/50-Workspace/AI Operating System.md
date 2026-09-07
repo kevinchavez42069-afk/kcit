@@ -283,9 +283,32 @@ cases directly. Not yet verified: an actual delegated run producing a real
 confirm-step — needs a live test through the running dashboard, same bar
 every prior phase was held to.
 
+**Phase 6.1 — visual redesign ("Mission Control"). Done, 2026-09-07.**
+Kevin provided six reference images for a retro-terminal / mission-control
+look and asked for three distinct mockup directions to choose from before
+committing to one — built and published as a single tabbed Artifact
+(`dashboard/mockups.html`) rather than applied directly. Kevin picked the
+"Mission Control" direction and asked for it applied as the real dashboard
+styling, with larger fonts and better layout proportions than the
+intentionally-dense mockup demo. `dashboard/public/index.html` and
+`style.css` rewritten: dark warm-amber palette, Space Mono throughout, a
+two-column layout, numbered bracket-style panel headers (`[01] Chat`
+through `[05] Recent activity`), 17px base font size (up from the
+mockup's compact sizing). Verified against a scratch mock-data server
+(not just static screenshots): chat send/receive bubbles, and — this
+caught a real bug — the confirm-step banner. `.confirm-banner`'s own
+`display: flex` had the same CSS specificity as the browser's built-in
+`[hidden] { display: none }` rule and won on source order, so the banner
+rendered as a visible empty bordered box at all times instead of staying
+hidden when there was nothing to confirm. Fixed with an explicit
+`.confirm-banner[hidden] { display: none; }` rule; re-verified the banner
+now stays hidden by default and renders correctly (title, code block,
+Approve/Deny) when a confirmation is pending, and clears cleanly on
+Approve/Deny.
+
 ## Open items for whoever picks up each phase
 
 - Frontend framework unspecified on purpose — whatever's fastest when a
   phase actually starts.
 - ~~Tailscale vs. Cloudflare Tunnel is a phase 2 decision.~~ Decided: Tailscale, live.
-- What the "confirm step" looks like in the UI is a phase 4 design question.
+- ~~What the "confirm step" looks like in the UI is a phase 4 design question.~~ Decided: phase 6.1's Mission Control redesign.

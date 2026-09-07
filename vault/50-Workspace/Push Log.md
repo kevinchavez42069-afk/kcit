@@ -15,6 +15,44 @@ Each entry: when, which session, what shipped, what's next.
 
 ---
 
+## 2026-09-07 (Mission Control redesign) — local session (this one)
+
+**Shipped:** the dashboard's visual redesign. Kevin gave six reference
+images for a retro-terminal / mission-control look and asked for three
+distinct mockup directions to pick from — built as a single tabbed
+Artifact (`dashboard/mockups.html`) rather than applied directly, so he
+could compare before committing. He picked "Mission Control" and asked
+for it executed as the real dashboard styling, with larger fonts and
+better layout proportions than the intentionally-dense mockup demo.
+`dashboard/public/index.html` and `style.css` rewritten: dark warm-amber
+palette, Space Mono, two-column layout, numbered bracket-style panel
+headers, 17px base font.
+
+Verified with a scratch mock-data server, not just static screenshots —
+this caught a real bug: `.confirm-banner`'s own `display: flex` had the
+same CSS specificity as the browser's built-in `[hidden] { display: none
+}` rule and won on source order, so the confirm-step banner rendered as a
+visible empty box at all times instead of staying hidden. Fixed with an
+explicit `.confirm-banner[hidden] { display: none; }` rule; re-verified
+hidden-by-default, populated-when-pending, and clears-on-approve/deny all
+render correctly. Also fixed a stale "phases 1-3" line in `Start Here.md`
+found along the way — the dashboard has been full agentic chat across
+four agents since phase 6, not read-only.
+
+**Also logging, not yet in this log:** commit `2ca8fce`, pushed earlier
+today — fixed the dashboard UI's own stale "EA is read-only" text and a
+real functional bug where `app.js`'s old `readOnly` flag skipped
+confirm-step polling for `executive-assistant`, meaning a Bash
+confirmation triggered via EA delegation would never have shown up.
+
+**Next:** the one remaining unverified piece of phase 6 — an actual
+delegated agent run through the live dashboard producing a real
+confirm-step banner (not the scratch mock used to verify styling here).
+`voice.md` writing samples remain the oldest open item, unrelated to this
+thread.
+
+---
+
 ## 2026-09-07 (Pushover) — local session (this one)
 
 **Verified live:** Pushover notifications. Kevin created the account and

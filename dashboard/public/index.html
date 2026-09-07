@@ -4,48 +4,65 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>KC IT Ops Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
-  <h1>KC IT Ops Dashboard</h1>
-  <p class="subtitle">All four agents run with real tools now. executive-assistant can delegate to the other three; Bash always waits for your confirmation below before anything executes.</p>
-</header>
+<div class="topbar">
+  <span><b>KC-IT-OPS</b> &sol;&sol; SESSION ACTIVE &sol;&sol; USER: KEVIN</span>
+  <span>FLEET: 4 ONLINE &middot; PHASES 1&ndash;6 LIVE</span>
+</div>
+
+<div class="masthead">
+  <h1>Agent Ops Dashboard</h1>
+  <p class="subtitle">All four agents run with real tools. executive-assistant is the hub and can delegate to the other three &mdash; Bash always waits for your confirmation below before anything executes.</p>
+</div>
 
 <main>
-  <section class="panel" id="chat-panel">
-    <div class="chat-header">
-      <h2>Chat</h2>
-      <select id="agent-select"><option value="executive-assistant">executive-assistant (hub, can delegate)</option></select>
-    </div>
-    <div id="confirm-banner" class="confirm-banner" hidden></div>
-    <div id="chat-log" class="chat-log"></div>
-    <form id="chat-form" class="chat-form">
-      <input id="chat-input" type="text" placeholder="Ask about status, prospects, findings&hellip;" autocomplete="off">
-      <button type="submit">Send</button>
-    </form>
-  </section>
+  <div class="col">
+    <section class="panel" id="chat-panel">
+      <div class="panel-head">
+        <h2>[01] Chat</h2>
+        <select id="agent-select"><option value="executive-assistant">executive-assistant (hub, can delegate)</option></select>
+      </div>
+      <div id="confirm-banner" class="confirm-banner" hidden></div>
+      <div id="chat-log" class="chat-log"></div>
+      <form id="chat-form" class="chat-form">
+        <input id="chat-input" type="text" placeholder="&gt; ask about status, prospects, findings" autocomplete="off">
+        <button type="submit">[ send ]</button>
+      </form>
+    </section>
 
-  <section class="panel" id="digest-panel">
-    <h2>Digest</h2>
-    <div id="digest-content" class="loading">Loading&hellip;</div>
-  </section>
+    <section class="panel" id="digest-panel">
+      <div class="panel-head"><h2>[02] Digest</h2></div>
+      <div id="digest-content" class="loading">loading&hellip;</div>
+    </section>
+  </div>
 
-  <section class="panel" id="costs-panel">
-    <h2>Chatbot cost by client</h2>
-    <div id="costs-content" class="loading">Loading&hellip;</div>
-  </section>
+  <div class="col">
+    <section class="panel" id="costs-panel">
+      <div class="panel-head"><h2>[03] Chatbot cost / client</h2></div>
+      <div id="costs-content" class="loading">loading&hellip;</div>
+    </section>
 
-  <section class="panel" id="agent-costs-panel">
-    <h2>Agent fleet cost (this dashboard)</h2>
-    <div id="agent-costs-content" class="loading">Loading&hellip;</div>
-  </section>
+    <section class="panel" id="agent-costs-panel">
+      <div class="panel-head"><h2>[04] Agent fleet cost</h2></div>
+      <div id="agent-costs-content" class="loading">loading&hellip;</div>
+    </section>
 
-  <section class="panel" id="activity-panel">
-    <h2>Recent activity</h2>
-    <div id="activity-content" class="loading">Loading&hellip;</div>
-  </section>
+    <section class="panel" id="activity-panel">
+      <div class="panel-head"><h2>[05] Recent activity</h2></div>
+      <div id="activity-content" class="loading">loading&hellip;</div>
+    </section>
+  </div>
 </main>
+
+<div class="topbar bottombar">
+  <span>[ AI OPERATING SYSTEM ]</span>
+  <span>dashboard&sol;server.mjs &middot; never port-forward this</span>
+</div>
 
 <script src="app.js"></script>
 </body>

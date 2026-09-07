@@ -1,0 +1,407 @@
+<title>Dashboard Mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --chrome-bg: #f4f2ed;
+    --chrome-ink: #1a1a1a;
+    --chrome-muted: #6b6b6b;
+    --chrome-border: #ddd8cc;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --chrome-bg: #17150f;
+      --chrome-ink: #f0eee6;
+      --chrome-muted: #a3a196;
+      --chrome-border: #3a372b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --chrome-bg: #17150f;
+    --chrome-ink: #f0eee6;
+    --chrome-muted: #a3a196;
+    --chrome-border: #3a372b;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--chrome-bg); color: var(--chrome-ink); font-family: -apple-system, "Segoe UI", sans-serif; }
+
+  .chrome-head {
+    padding: 1.25rem 1.5rem 1rem;
+    border-bottom: 1px solid var(--chrome-border);
+  }
+  .chrome-head h1 { margin: 0 0 0.3rem; font-size: 1.25rem; }
+  .chrome-head p { margin: 0; color: var(--chrome-muted); font-size: 0.88rem; max-width: 68ch; }
+
+  .switcher {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    flex-wrap: wrap;
+  }
+  .switcher button {
+    padding: 0.55rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--chrome-border);
+    background: transparent;
+    color: var(--chrome-ink);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .switcher button.active {
+    background: var(--chrome-ink);
+    color: var(--chrome-bg);
+    border-color: var(--chrome-ink);
+  }
+
+  .mockup { display: none; }
+  .mockup.active { display: block; }
+
+  /* =====================================================================
+     MOCKUP A - Mission Control
+     Sharp, dense, grayscale-orange, tree-connectors, maximum information
+     density. Closest to the Soyuz panel / flight-dispatch references.
+  ===================================================================== */
+  .mock-a {
+    --bg: #0a0806;
+    --panel: #120e09;
+    --ink: #ffb35c;
+    --muted: #7a5f3a;
+    --border: #4d3a1e;
+    --accent: #ff9d2e;
+    --accent-ink: #0a0806;
+    --danger: #ff5a3c;
+    font-family: "Space Mono", ui-monospace, monospace;
+    background: var(--bg);
+    color: var(--ink);
+    padding: 1.5rem;
+  }
+  .mock-a * { box-sizing: border-box; }
+  .mock-a .a-top {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 0.75rem; margin-bottom: 1.25rem;
+    border-bottom: 2px solid var(--border);
+    text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.1em; color: var(--muted);
+  }
+  .mock-a .a-top b { color: var(--accent); }
+  .mock-a .a-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 1rem; }
+  .mock-a .a-col { display: flex; flex-direction: column; gap: 1rem; }
+  .mock-a .a-panel { border: 1px solid var(--border); background: var(--panel); padding: 1rem; }
+  .mock-a .a-panel-title {
+    display: flex; justify-content: space-between; margin: -1rem -1rem 0.85rem; padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.1em; font-weight: 700;
+  }
+  .mock-a .a-panel-title span.n { color: var(--muted); }
+  .mock-a .a-tree { font-size: 0.8rem; line-height: 1.9; }
+  .mock-a .a-tree .branch { color: var(--muted); }
+  .mock-a .a-tree b { color: var(--accent); }
+  .mock-a table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  .mock-a th, .mock-a td { text-align: left; padding: 0.3rem 0.4rem; border-bottom: 1px solid var(--border); }
+  .mock-a th { color: var(--muted); text-transform: uppercase; font-size: 0.68rem; }
+  .mock-a .a-chat-log { display: flex; flex-direction: column; gap: 0.5rem; max-height: 220px; overflow: auto; margin-bottom: 0.75rem; }
+  .mock-a .a-msg { border: 1px solid var(--border); padding: 0.5rem 0.65rem; font-size: 0.8rem; max-width: 90%; }
+  .mock-a .a-msg.user { align-self: flex-end; background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .mock-a .a-confirm { border: 2px solid var(--accent); padding: 0.75rem; margin-bottom: 0.75rem; font-size: 0.8rem; }
+  .mock-a .a-confirm .t { color: var(--accent); text-transform: uppercase; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.08em; margin-bottom: 0.4rem; }
+  .mock-a .a-confirm code { display: block; background: var(--bg); border: 1px solid var(--border); padding: 0.4rem; margin: 0.4rem 0; }
+  .mock-a .a-btnrow { display: flex; gap: 0.5rem; }
+  .mock-a button.a-btn { font-family: inherit; text-transform: uppercase; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; padding: 0.4rem 0.8rem; border: 1px solid var(--border); background: transparent; color: var(--ink); cursor: pointer; }
+  .mock-a button.a-btn.go { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
+  .mock-a button.a-btn.no { border-color: var(--danger); color: var(--danger); }
+  .mock-a .a-form { display: flex; gap: 0.5rem; }
+  .mock-a .a-form input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--ink); font-family: inherit; padding: 0.5rem; font-size: 0.8rem; }
+  .mock-a .a-activity-row { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.78rem; }
+  .mock-a .a-activity-row b { color: var(--accent); text-transform: uppercase; }
+  .mock-a .a-digest { font-size: 0.8rem; white-space: pre-wrap; }
+  .mock-a .a-digest b { color: var(--accent); }
+
+  /* =====================================================================
+     MOCKUP B - Cyberspace App
+     Calmer, more spacious, rounded, "everyday tool" leaning. Closest to
+     the working cyberspace.online app screenshot.
+  ===================================================================== */
+  .mock-b {
+    --bg: #120e09;
+    --panel: #1b150d;
+    --panel-2: #241b10;
+    --ink: #f2e6cf;
+    --muted: #8f7a55;
+    --border: #382c1a;
+    --accent: #f0a531;
+    --accent-ink: #1a1004;
+    --danger: #ef6d4f;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    background: var(--bg);
+    color: var(--ink);
+    padding: 1.5rem;
+  }
+  .mock-b * { box-sizing: border-box; }
+  .mock-b .b-top {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.6rem 1rem; margin-bottom: 1.25rem; border-radius: 8px;
+    background: var(--panel); border: 1px solid var(--border);
+    font-size: 0.74rem; color: var(--muted);
+  }
+  .mock-b .b-top .brand { color: var(--accent); font-weight: 700; letter-spacing: 0.04em; }
+  .mock-b .b-top .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent); margin-right: 0.5rem; }
+  .mock-b .b-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 1rem; }
+  .mock-b .b-col { display: flex; flex-direction: column; gap: 1rem; }
+  .mock-b .b-panel { border: 1px solid var(--border); background: var(--panel); padding: 1.1rem 1.25rem; border-radius: 10px; }
+  .mock-b .b-panel-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.9rem; }
+  .mock-b .b-panel-title h3 { margin: 0; font-size: 0.85rem; color: var(--ink); display: flex; align-items: center; gap: 0.5rem; }
+  .mock-b .b-panel-title .bar { width: 3px; height: 14px; background: var(--accent); border-radius: 2px; display: inline-block; }
+  .mock-b table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .mock-b th, .mock-b td { text-align: left; padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--border); }
+  .mock-b th { color: var(--muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .mock-b .b-chat-log { display: flex; flex-direction: column; gap: 0.6rem; max-height: 220px; overflow: auto; margin-bottom: 0.85rem; }
+  .mock-b .b-msg { border-radius: 8px; padding: 0.6rem 0.8rem; font-size: 0.82rem; max-width: 88%; border: 1px solid var(--border); background: var(--panel-2); }
+  .mock-b .b-msg.user { align-self: flex-end; background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .mock-b .b-confirm { border: 1px solid var(--accent); background: var(--panel-2); border-radius: 8px; padding: 0.8rem 0.9rem; margin-bottom: 0.85rem; font-size: 0.82rem; }
+  .mock-b .b-confirm .t { color: var(--accent); font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.4rem; }
+  .mock-b .b-confirm code { display: block; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem 0.6rem; margin: 0.5rem 0; }
+  .mock-b .b-btnrow { display: flex; gap: 0.5rem; }
+  .mock-b button.b-btn { font-family: inherit; font-size: 0.74rem; font-weight: 600; padding: 0.4rem 0.9rem; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--ink); cursor: pointer; }
+  .mock-b button.b-btn.go { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
+  .mock-b button.b-btn.no { border-color: var(--danger); color: var(--danger); }
+  .mock-b .b-form { display: flex; gap: 0.5rem; }
+  .mock-b .b-form input { flex: 1; background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; color: var(--ink); font-family: inherit; padding: 0.55rem 0.7rem; font-size: 0.82rem; }
+  .mock-b button.b-send { font-family: inherit; font-weight: 700; padding: 0.55rem 1.1rem; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+  .mock-b .b-activity-row { padding: 0.55rem 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+  .mock-b .b-activity-row .agent { color: var(--accent); font-weight: 700; }
+  .mock-b .b-activity-row .date { color: var(--muted); font-size: 0.72rem; }
+  .mock-b .b-digest { font-size: 0.82rem; white-space: pre-wrap; }
+  .mock-b .b-digest b { color: var(--accent); }
+
+  /* =====================================================================
+     MOCKUP C - Cipher Bold
+     Pure black, bright yellow, oversized headers, generous whitespace,
+     "/" prefixed labels. Closest to the Cipher cybersecurity site.
+  ===================================================================== */
+  .mock-c {
+    --bg: #000000;
+    --panel: #0e0e0a;
+    --ink: #f5f2e8;
+    --muted: #7a7666;
+    --border: #2a2a1c;
+    --accent: #f5c518;
+    --accent-ink: #000000;
+    --danger: #ff6a4d;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    background: var(--bg);
+    color: var(--ink);
+    padding: 2rem;
+  }
+  .mock-c * { box-sizing: border-box; }
+  .mock-c .c-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2rem; }
+  .mock-c .c-top .brand { color: var(--accent); font-weight: 800; letter-spacing: 0.02em; }
+  .mock-c .c-top .meta { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  .mock-c h1.c-hero { font-size: 2.1rem; font-weight: 800; margin: 0 0 2rem; letter-spacing: -0.01em; }
+  .mock-c .c-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 1.5rem; }
+  .mock-c .c-col { display: flex; flex-direction: column; gap: 1.5rem; }
+  .mock-c .c-panel { border: 1px solid var(--border); background: var(--panel); padding: 1.5rem; border-radius: 4px; }
+  .mock-c .c-eyebrow { color: var(--accent); font-weight: 700; font-size: 0.78rem; margin-bottom: 0.9rem; }
+  .mock-c .c-eyebrow::before { content: "/ "; }
+  .mock-c table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .mock-c th, .mock-c td { text-align: left; padding: 0.5rem 0.5rem; border-bottom: 1px solid var(--border); }
+  .mock-c th { color: var(--muted); font-size: 0.7rem; text-transform: uppercase; }
+  .mock-c .c-chat-log { display: flex; flex-direction: column; gap: 0.7rem; max-height: 220px; overflow: auto; margin-bottom: 1rem; }
+  .mock-c .c-msg { padding: 0.65rem 0.85rem; font-size: 0.85rem; max-width: 88%; border-radius: 4px; border: 1px solid var(--border); }
+  .mock-c .c-msg.user { align-self: flex-end; background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .mock-c .c-confirm { border: 1px solid var(--accent); padding: 1rem; margin-bottom: 1rem; border-radius: 4px; }
+  .mock-c .c-confirm .t { color: var(--accent); font-weight: 700; font-size: 0.78rem; margin-bottom: 0.5rem; }
+  .mock-c .c-confirm code { display: block; background: var(--bg); border: 1px solid var(--border); padding: 0.5rem 0.6rem; margin: 0.5rem 0; border-radius: 3px; }
+  .mock-c .c-btnrow { display: flex; gap: 0.6rem; }
+  .mock-c button.c-btn { font-family: inherit; font-weight: 700; font-size: 0.78rem; padding: 0.5rem 1rem; border-radius: 3px; border: 1px solid var(--border); background: transparent; color: var(--ink); cursor: pointer; }
+  .mock-c button.c-btn.go { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
+  .mock-c button.c-btn.no { border-color: var(--danger); color: var(--danger); }
+  .mock-c .c-form { display: flex; gap: 0.6rem; }
+  .mock-c .c-form input { flex: 1; background: var(--panel); border: 1px solid var(--border); color: var(--ink); font-family: inherit; padding: 0.65rem 0.8rem; font-size: 0.85rem; border-radius: 4px; }
+  .mock-c button.c-send { font-family: inherit; font-weight: 800; padding: 0.65rem 1.4rem; border-radius: 4px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+  .mock-c .c-activity-row { padding: 0.7rem 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+  .mock-c .c-activity-row .agent { color: var(--accent); font-weight: 700; }
+  .mock-c .c-activity-row .date { color: var(--muted); font-size: 0.75rem; }
+  .mock-c .c-digest { font-size: 0.85rem; white-space: pre-wrap; }
+  .mock-c .c-digest b { color: var(--accent); }
+</style>
+
+<div class="chrome-head">
+  <h1>Dashboard mockups &mdash; three directions</h1>
+  <p>Same content (chat, digest, both cost tables, activity), styled three ways from your reference images. Pick one, or call out pieces of each to combine.</p>
+</div>
+
+<div class="switcher">
+  <button class="switch-btn active" data-target="mock-a-wrap">A &middot; Mission Control</button>
+  <button class="switch-btn" data-target="mock-b-wrap">B &middot; Cyberspace</button>
+  <button class="switch-btn" data-target="mock-c-wrap">C &middot; Cipher Bold</button>
+</div>
+
+<!-- ============================ MOCKUP A ============================ -->
+<div class="mockup active" id="mock-a-wrap">
+<div class="mock-a">
+  <div class="a-top">
+    <span><b>KC-IT-OPS</b> // SESSION 0X417 // USER: KEVIN</span>
+    <span>FLEET: 4 ONLINE &middot; PHASES 1&ndash;6 LIVE</span>
+  </div>
+  <div class="a-grid">
+    <div class="a-col">
+      <div class="a-panel">
+        <div class="a-panel-title"><span>[01] CHAT</span><span class="n">executive-assistant</span></div>
+        <div class="a-confirm">
+          <div class="t">&#9650; confirm required &mdash; bash</div>
+          <code>git status --short</code>
+          <div class="a-btnrow">
+            <button class="a-btn go">[ approve ]</button>
+            <button class="a-btn no">[ deny ]</button>
+          </div>
+        </div>
+        <div class="a-chat-log">
+          <div class="a-msg user">[executive-assistant] check git status on kcit and tell me what you find</div>
+          <div class="a-msg">&#9656; delegating to client-onboarder&hellip; awaiting confirmation above.</div>
+        </div>
+        <div class="a-form"><input placeholder="&gt; type a command"><button class="a-btn go">[ send ]</button></div>
+      </div>
+      <div class="a-panel">
+        <div class="a-panel-title"><span>[02] DIGEST</span><span class="n">2026-09-07</span></div>
+        <div class="a-digest"><b>MISSED WHILE GONE</b><br>&#9492;&#9472; nothing new since last check-in<br><br><b>NEXT STEPS</b><br>&#9492;&#9472; confirm pushover fires tomorrow AM</div>
+      </div>
+    </div>
+    <div class="a-col">
+      <div class="a-panel">
+        <div class="a-panel-title"><span>[03] CHATBOT COST</span><span class="n">/client</span></div>
+        <table><tr><th>client</th><th>req</th><th>cost</th></tr>
+        <tr><td>kc-it-solutions</td><td>16</td><td>$0.1191</td></tr>
+        <tr><td>sample-plumbing</td><td>3</td><td>$0.0511</td></tr></table>
+      </div>
+      <div class="a-panel">
+        <div class="a-panel-title"><span>[04] FLEET COST</span><span class="n">this dashboard</span></div>
+        <table><tr><th>agent</th><th>runs</th><th>cost</th></tr>
+        <tr><td>executive-assistant</td><td>3</td><td>$0.4412</td></tr></table>
+      </div>
+      <div class="a-panel">
+        <div class="a-panel-title"><span>[05] ACTIVITY</span><span class="n">latest</span></div>
+        <div class="a-activity-row"><span><b>client-onboarder</b> dry-ran demo tenant, fixed gaps</span><span>09-07</span></div>
+        <div class="a-activity-row"><span><b>follow-up</b> verification pass complete</span><span>09-06</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============================ MOCKUP B ============================ -->
+<div class="mockup" id="mock-b-wrap">
+<div class="mock-b">
+  <div class="b-top">
+    <span><span class="dot"></span><span class="brand">KC IT OPS</span> &middot; agent ops dashboard</span>
+    <span>fleet: 4 online &middot; tailscale + auth</span>
+  </div>
+  <div class="b-grid">
+    <div class="b-col">
+      <div class="b-panel">
+        <div class="b-panel-title"><h3><span class="bar"></span>Chat</h3><span style="color:var(--muted);font-size:0.75rem">executive-assistant &middot; hub</span></div>
+        <div class="b-confirm">
+          <div class="t">confirm before this runs &middot; bash</div>
+          <code>git status --short</code>
+          <div class="b-btnrow">
+            <button class="b-btn go">Approve</button>
+            <button class="b-btn no">Deny</button>
+          </div>
+        </div>
+        <div class="b-chat-log">
+          <div class="b-msg user">[executive-assistant] check git status on kcit and tell me what you find</div>
+          <div class="b-msg">Delegating to client-onboarder to check that for you &mdash; one moment.</div>
+        </div>
+        <div class="b-form"><input placeholder="ask about status, prospects, findings&hellip;"><button class="b-send">Send</button></div>
+      </div>
+      <div class="b-panel">
+        <div class="b-panel-title"><h3><span class="bar"></span>Digest</h3><span style="color:var(--muted);font-size:0.75rem">2026-09-07</span></div>
+        <div class="b-digest"><b>Missed while you were gone</b><br>Nothing new since the last check-in.<br><br><b>Next steps</b><br>&bull; Confirm the daily standup fires tomorrow morning.</div>
+      </div>
+    </div>
+    <div class="b-col">
+      <div class="b-panel">
+        <div class="b-panel-title"><h3><span class="bar"></span>Chatbot cost / client</h3></div>
+        <table><tr><th>Client</th><th>Requests</th><th>Cost</th></tr>
+        <tr><td>kc-it-solutions</td><td>16</td><td>$0.1191</td></tr>
+        <tr><td>sample-plumbing</td><td>3</td><td>$0.0511</td></tr></table>
+      </div>
+      <div class="b-panel">
+        <div class="b-panel-title"><h3><span class="bar"></span>Agent fleet cost</h3></div>
+        <table><tr><th>Agent</th><th>Runs</th><th>Cost</th></tr>
+        <tr><td>executive-assistant</td><td>3</td><td>$0.4412</td></tr></table>
+      </div>
+      <div class="b-panel">
+        <div class="b-panel-title"><h3><span class="bar"></span>Recent activity</h3></div>
+        <div class="b-activity-row"><span class="agent">client-onboarder</span> <span class="date">&middot; 2026-09-07</span><div>Dry-ran against the demo tenant, fixed onboarding gaps.</div></div>
+        <div class="b-activity-row"><span class="agent">follow-up</span> <span class="date">&middot; 2026-09-06</span><div>Verification pass complete, both agents checked out.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============================ MOCKUP C ============================ -->
+<div class="mockup" id="mock-c-wrap">
+<div class="mock-c">
+  <div class="c-top">
+    <span class="brand">KC/IT OPS</span>
+    <span class="meta">fleet 4 online &middot; phases 1&ndash;6 live</span>
+  </div>
+  <h1 class="c-hero">No blind spots,<br>only informed moves.</h1>
+  <div class="c-grid">
+    <div class="c-col">
+      <div class="c-panel">
+        <div class="c-eyebrow">chat &mdash; executive-assistant</div>
+        <div class="c-confirm">
+          <div class="t">confirm required &mdash; bash</div>
+          <code>git status --short</code>
+          <div class="c-btnrow">
+            <button class="c-btn go">Approve</button>
+            <button class="c-btn no">Deny</button>
+          </div>
+        </div>
+        <div class="c-chat-log">
+          <div class="c-msg user">[executive-assistant] check git status on kcit and tell me what you find</div>
+          <div class="c-msg">Delegating to client-onboarder &mdash; confirmation needed above.</div>
+        </div>
+        <div class="c-form"><input placeholder="ask about status, prospects, findings&hellip;"><button class="c-send">Send</button></div>
+      </div>
+      <div class="c-panel">
+        <div class="c-eyebrow">digest &mdash; 2026-09-07</div>
+        <div class="c-digest"><b>Missed while you were gone</b><br>Nothing new since the last check-in.<br><br><b>Next steps</b><br>Confirm the daily standup fires tomorrow morning.</div>
+      </div>
+    </div>
+    <div class="c-col">
+      <div class="c-panel">
+        <div class="c-eyebrow">chatbot cost / client</div>
+        <table><tr><th>Client</th><th>Req</th><th>Cost</th></tr>
+        <tr><td>kc-it-solutions</td><td>16</td><td>$0.1191</td></tr>
+        <tr><td>sample-plumbing</td><td>3</td><td>$0.0511</td></tr></table>
+      </div>
+      <div class="c-panel">
+        <div class="c-eyebrow">agent fleet cost</div>
+        <table><tr><th>Agent</th><th>Runs</th><th>Cost</th></tr>
+        <tr><td>executive-assistant</td><td>3</td><td>$0.4412</td></tr></table>
+      </div>
+      <div class="c-panel">
+        <div class="c-eyebrow">recent activity</div>
+        <div class="c-activity-row"><span class="agent">client-onboarder</span> <span class="date">&middot; 2026-09-07</span><div>Dry-ran against the demo tenant, fixed onboarding gaps.</div></div>
+        <div class="c-activity-row"><span class="agent">follow-up</span> <span class="date">&middot; 2026-09-06</span><div>Verification pass complete, both agents checked out.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+  document.querySelectorAll('.switch-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.switch-btn').forEach((b) => b.classList.remove('active'));
+      document.querySelectorAll('.mockup').forEach((m) => m.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.target).classList.add('active');
+    });
+  });
+</script>
