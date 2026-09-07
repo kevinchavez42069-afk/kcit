@@ -24,3 +24,19 @@ inventing activity.
 - **follow-up** / **prospect-scout** — Dry-run verification pass, both agents'
   claims checked out; fixed a missing field in `prospect.md` and a stale
   assumption in `client.md`. See commit fdd41e1.
+
+## 2026-09-07
+
+- **prospect-scout** — Inventory check of vault/60-Prospects/: currently empty except .gitkeep.
+- **prospect-scout** — Researched 3 real prospects across distinct categories
+  (salon, auto detailing, sandwich shop) in Midlothian/Henrico. Added
+  [[Hair Arts of Midlothian]] (documented misrouted phone number sending
+  callers to voicemail), [[Mr Hoffs Auto Detailing]] (no website, open only
+  ~24% of the week), and [[Classics Sandwiches and Subs]] (no website,
+  conflicting/missing hours across every directory listing). Rejected as
+  weak targets after verification: Bryan's Landscaping, Abuelita's, Casa
+  Tezcal, Ching Wah, Honey Bee Bakery, El Guapo, Healthy Life Yoga,
+  Bright Hope Child Care (opening soon, not yet operating), and roughly a
+  dozen more candidates across salons, barbers, gyms, cleaners, movers,
+  pest control, and retail that already had solid websites or couldn't be
+  verified. See friction notes in this run's report to Kevin.
