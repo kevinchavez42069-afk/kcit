@@ -15,6 +15,41 @@ Each entry: when, which session, what shipped, what's next.
 
 ---
 
+## 2026-09-07 (EA gets Bash + real chat memory) — local session (this one)
+
+**Shipped, commit `875bfb8`:** phase 6.2 — gave `executive-assistant` its
+own direct Bash access. Kevin tried "check git status" through the live
+dashboard; EA correctly declined to delegate it (not any of the three
+sub-agents' specialized jobs) but had no way to just do it itself. Added
+`Bash` to its frontmatter tools, rewrote the prompt's opening to state
+its role and reporting line explicitly (executive assistant for KC IT
+Solutions, reports to Kevin Chavez), and added a hard rule separating
+infrastructure visibility (EA's own job now) from specialized business
+work (still delegated). The safety-relevant part: `chat.mjs`'s
+`allowedTools` for EA was previously unfiltered, which would have made
+Bash silently pre-approved for EA specifically once added to its tools —
+fixed by filtering it out the same way the other three agents already
+work, so it still hits the confirm-step.
+
+**Shipped:** phase 6.3 — real conversation memory in chat. Kevin caught
+this immediately trying 6.2:
+asked EA a question, it asked a follow-up, he said "yes," and EA had no
+idea what "yes" answered — every `/api/chat`/`/api/run` call was
+starting a brand-new SDK session with zero memory of the message before
+it. Not the deliberate standup/retro statelessness design — a real bug.
+Fixed with the SDK's `resume` option: `chat.mjs` now keeps agent name →
+last `session_id` in memory and resumes it on the next call, falling
+back to a fresh session if resume ever throws. Verified live with a real
+two-turn test (told EA a number, asked for it back in a separate call —
+got it right), not just architecturally.
+
+**Next:** the still-open live test from 6.2 — ask EA to check git status
+through the running dashboard and confirm the banner actually appears —
+can now be done as a real multi-turn conversation instead of one-shot
+messages. `voice.md` writing samples remain the oldest open item.
+
+---
+
 ## 2026-09-07 (Mission Control redesign) — local session (this one)
 
 **Shipped:** the dashboard's visual redesign. Kevin gave six reference

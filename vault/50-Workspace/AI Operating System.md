@@ -341,6 +341,44 @@ dashboard and confirming the banner actually appears — same bar every
 prior phase was held to, next thing to test once the server picks up this
 change.
 
+**Phase 6.3 — real conversation memory in chat. Done, 2026-09-07.** Kevin
+caught this immediately on trying phase 6.2's Bash access: he asked EA
+"what's the git status," it answered, he said "yes" to a follow-up
+question it asked, and EA had no idea what "yes" was answering. This
+wasn't the deliberate "every standup/retro re-reads the vault fresh"
+design — it was `chatWithAgent`/`runAgentFull` starting a brand-new SDK
+session on every single `/api/chat` or `/api/run` call, with zero memory
+of anything said one message earlier in the same browser conversation.
+Genuinely broken chat UX, not an accepted limitation.
+
+Fixed using the Agent SDK's own `resume` option (`Options.resume`,
+verified as the stable field in `runtimeTypes.d.ts` — separate from the
+"V2 API - UNSTABLE" session functions in the same file, which weren't the
+right tool here): `query({prompt, options: {resume: sessionId}})` reloads
+a prior session's conversation history before the new prompt runs.
+`chat.mjs` now keeps an in-memory `Map` from agent name to its last
+`session_id` (same "fine for a single-user local tool" reasoning as
+`permissions.mjs`'s `pending` map), passes it as `resume` on the next
+call, and falls back to a fresh conversation if resuming ever throws
+(e.g. a pruned session file) rather than breaking the chat outright.
+`resume` only restores what was *said* — it does not change how fresh the
+vault reads are; each turn still calls `Read`/`Glob`/`Grep` against the
+live filesystem exactly as before, so the standup/retro statelessness
+decision (see above) is untouched.
+
+**Verified live**, not just read from source: a real two-turn test asked
+EA to remember a number, then in a second separate call asked what the
+number was — it answered correctly, confirming session memory actually
+works end to end, not just architecturally.
+
+Known simplifications, acceptable for now, not yet built: a server
+restart clears the memory (a new conversation starts, same as before this
+fix); the browser's own chat-log isn't persisted, so a page refresh shows
+an empty transcript while the server still remembers the conversation
+underneath it — mildly confusing but not unsafe; no explicit "start a new
+conversation" control. Revisit only if a stale multi-day conversation
+becomes a real problem in practice.
+
 ## Open items for whoever picks up each phase
 
 - Frontend framework unspecified on purpose — whatever's fastest when a
