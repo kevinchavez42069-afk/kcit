@@ -35,9 +35,66 @@ export function openDb() {
     );
     CREATE INDEX IF NOT EXISTS idx_chatbot_usage_client_time
       ON chatbot_usage (client_id, timestamp_ms);
+
+    -- Phase 5: Kevin's own agent-fleet usage, distinct from chatbot_usage
+    -- (which is customer traffic). One row per chatWithAgent/runAgentFull
+    -- call, logged straight from the SDK's own result.usage and
+    -- result.total_cost_usd - no separate pricing math to keep in sync.
+    CREATE TABLE IF NOT EXISTS agent_runs (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      agent_name      TEXT NOT NULL,
+      timestamp_ms    INTEGER NOT NULL,
+      phase           TEXT NOT NULL,
+      input_tokens    INTEGER NOT NULL,
+      output_tokens   INTEGER NOT NULL,
+      cache_read      INTEGER NOT NULL,
+      cache_write     INTEGER NOT NULL,
+      cost_usd        REAL NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_agent_runs_name_time
+      ON agent_runs (agent_name, timestamp_ms);
   `);
 
   return db;
+}
+
+/** Logs one dashboard-triggered agent run. Not idempotent by design - every
+ *  real call is a real cost, there's no "re-running the same range" concept
+ *  here the way there is for the CloudWatch aggregator. */
+export function insertAgentRun(db, row) {
+  const stmt = db.prepare(`
+    INSERT INTO agent_runs
+      (agent_name, timestamp_ms, phase, input_tokens, output_tokens, cache_read, cache_write, cost_usd)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  stmt.run(
+    row.agentName,
+    row.timestampMs,
+    row.phase,
+    row.inputTokens,
+    row.outputTokens,
+    row.cacheRead,
+    row.cacheWrite,
+    row.costUsd
+  );
+}
+
+/** Per-agent totals for rows with timestamp_ms >= sinceMs (default: all time). */
+export function summaryByAgent(db, sinceMs = 0) {
+  const stmt = db.prepare(`
+    SELECT agent_name,
+           COUNT(*) AS runs,
+           SUM(input_tokens) AS input_tokens,
+           SUM(output_tokens) AS output_tokens,
+           SUM(cache_read) AS cache_read,
+           SUM(cache_write) AS cache_write,
+           SUM(cost_usd) AS cost_usd
+    FROM agent_runs
+    WHERE timestamp_ms >= ?
+    GROUP BY agent_name
+    ORDER BY cost_usd DESC
+  `);
+  return stmt.all(sinceMs);
 }
 
 /**

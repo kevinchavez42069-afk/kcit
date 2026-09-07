@@ -51,6 +51,35 @@ async function loadCosts() {
   }
 }
 
+async function loadAgentCosts() {
+  const el = document.getElementById("agent-costs-content");
+  try {
+    const { agents } = await fetchJson("/api/agent-costs");
+    if (agents.length === 0) {
+      el.innerHTML = '<p class="empty">No dashboard chat runs yet.</p>';
+      return;
+    }
+    const totalCost = agents.reduce((sum, a) => sum + a.cost_usd, 0);
+    const rows = agents
+      .map(
+        (a) => `<tr>
+          <td>${escapeHtml(a.agent_name)}</td>
+          <td>${a.runs}</td>
+          <td class="cost-total">$${a.cost_usd.toFixed(4)}</td>
+        </tr>`
+      )
+      .join("");
+    el.innerHTML = `
+      <table>
+        <thead><tr><th>Agent</th><th>Runs</th><th>Cost</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr><th>Total</th><th></th><th class="cost-total">$${totalCost.toFixed(4)}</th></tr></tfoot>
+      </table>`;
+  } catch (err) {
+    el.textContent = `Failed to load: ${err.message}`;
+  }
+}
+
 async function loadActivity() {
   const el = document.getElementById("activity-content");
   try {
@@ -183,6 +212,7 @@ function initChat() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
       pendingMsg.textContent = data.reply;
+      loadAgentCosts(); // this run just logged a cost - refresh the panel
     } catch (err) {
       pendingMsg.className = "chat-msg error";
       pendingMsg.textContent = `Couldn't reach ${agent}: ${err.message}`;
@@ -197,6 +227,7 @@ function initChat() {
 
 loadDigest();
 loadCosts();
+loadAgentCosts();
 loadActivity();
 loadAgentSelector();
 initChat();

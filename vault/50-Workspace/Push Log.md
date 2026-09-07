@@ -15,6 +15,22 @@ Each entry: when, which session, what shipped, what's next.
 
 ---
 
+## 2026-09-07 (evening) — local session (this one)
+
+**Shipped, DB layer verified, full loop pending:** Phase 5 — agent-fleet
+usage tracking. New `agent_runs` table, both chat functions now log
+`result.usage`/`result.total_cost_usd` straight from the SDK, new
+`/api/agent-costs` endpoint and dashboard panel. Verified the DB
+functions directly (inserted a test row, confirmed the rollup, deleted
+it) but not yet the full loop — Kevin's running server predates this
+code, needs a restart and one more real chat message before this can be
+called verified at the same bar phase 4 was held to.
+
+**Next:** restart the server, send one message, confirm a row lands.
+That closes out the entire original AI Operating System roadmap
+(phases 1-5). `voice.md` writing samples remain the one open item from
+before this thread started.
+
 ## 2026-09-07 (later) — local session (this one)
 
 **Shipped and verified live:** Phase 4 — full agentic chat for

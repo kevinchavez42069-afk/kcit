@@ -219,9 +219,24 @@ capability was real — correctly, since a service that can trigger shell
 commands is not something to self-test unsupervised. Kevin ran it himself
 for exactly that reason.)
 
-**Phase 5 — agent-fleet usage tracking.** Falls out of phase 4's backend
-logging its own `usage` objects. Add the `agent_runs` rollup once phase 4 is
-live.
+**Phase 5 — agent-fleet usage tracking. Code done, DB layer verified,
+2026-09-07; full end-to-end still needs one real chat through the running
+server.** New `agent_runs` table in `dashboard/db.mjs`, alongside
+`chatbot_usage` (that one's customer traffic; this one's Kevin's own
+fleet). Every `chatWithAgent`/`runAgentFull` call now logs its
+`result.usage` and `result.total_cost_usd` straight from the SDK — no
+separate pricing math to keep in sync, exactly as planned back in phase 1.
+New `GET /api/agent-costs` and a dashboard panel next to the existing
+chatbot-cost one. A logging failure never breaks the chat reply itself —
+the run already happened, losing the log entry is better than losing the
+answer.
+
+Verified directly: inserted a throwaway row, confirmed `summaryByAgent`
+totals it correctly, deleted it, confirmed the table is clean again. Not
+yet verified: an actual chat message through the live server landing in
+the table, since Kevin's currently-running server predates this code —
+needs a restart plus one more message to close the loop, same bar phase 4
+was held to.
 
 ## Open items for whoever picks up each phase
 

@@ -23,6 +23,7 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { getAgent } from "./agents.mjs";
 import { makeCanUseTool, checkReposCurrent } from "./permissions.mjs";
+import { openDb, insertAgentRun } from "./db.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const KCIT_ROOT = join(here, "..");
@@ -38,7 +39,32 @@ function requireApiKey() {
   }
 }
 
-async function runQuery(prompt, options) {
+// Phase 5: log every dashboard-triggered run, same usage fields index.mjs
+// already logs for the customer chatbot (input/output/cache tokens), plus
+// the SDK's own total_cost_usd so there's no separate pricing table to
+// keep in sync for the agent fleet. A logging failure never breaks the
+// chat reply itself - the run already happened, losing the log entry is
+// better than losing the answer.
+function logRun(agentName, phase, usage, costUsd) {
+  try {
+    const db = openDb();
+    insertAgentRun(db, {
+      agentName,
+      phase,
+      timestampMs: Date.now(),
+      inputTokens: usage.input_tokens ?? 0,
+      outputTokens: usage.output_tokens ?? 0,
+      cacheRead: usage.cache_read_input_tokens ?? 0,
+      cacheWrite: usage.cache_creation_input_tokens ?? 0,
+      costUsd: costUsd ?? 0,
+    });
+    db.close();
+  } catch (err) {
+    console.error("Failed to log agent_runs row (chat reply still succeeded):", err.message);
+  }
+}
+
+async function runQuery(agentName, phase, prompt, options) {
   let result = null;
 
   for await (const message of query({ prompt, options })) {
@@ -52,6 +78,8 @@ async function runQuery(prompt, options) {
   if (result.subtype !== "success") {
     throw new Error(`Agent run failed: ${result.subtype}`);
   }
+
+  logRun(agentName, phase, result.usage, result.total_cost_usd);
 
   return {
     text: result.result.trim(),
@@ -80,7 +108,7 @@ export async function chatWithAgent(agentName, prompt) {
     throw new Error(`chatWithAgent only serves executive-assistant, not "${agentName}" - use runAgentFull.`);
   }
 
-  return runQuery(prompt, {
+  return runQuery(agentName, "3", prompt, {
     cwd: KCIT_ROOT,
     model: agent.model,
     systemPrompt: agent.systemPrompt,
@@ -113,7 +141,7 @@ export async function runAgentFull(agentName, prompt) {
     );
   }
 
-  return runQuery(prompt, {
+  return runQuery(agentName, "4", prompt, {
     cwd: KCIT_ROOT,
     model: agent.model,
     systemPrompt: agent.systemPrompt,

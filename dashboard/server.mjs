@@ -35,7 +35,7 @@ try {
 } catch {
   // no .env file - fine, chat just reports it's unconfigured until one exists
 }
-import { openDb, summaryByClient } from "./db.mjs";
+import { openDb, summaryByClient, summaryByAgent } from "./db.mjs";
 import { chatWithAgent, runAgentFull } from "./chat.mjs";
 import { loadAgents } from "./agents.mjs";
 import { listPending, resolvePending } from "./permissions.mjs";
@@ -236,6 +236,16 @@ const server = createServer(async (req, res) => {
     const rows = summaryByClient(db);
     db.close();
     return jsonResponse(res, 200, { clients: rows });
+  }
+
+  // Phase 5: what the agent fleet itself costs to run from this dashboard
+  // (chatWithAgent and runAgentFull both log here) - distinct from
+  // /api/costs, which is customer chatbot traffic.
+  if (req.url === "/api/agent-costs") {
+    const db = openDb();
+    const rows = summaryByAgent(db);
+    db.close();
+    return jsonResponse(res, 200, { agents: rows });
   }
 
   // Phase 3: chat with executive-assistant, strictly read-only (see
