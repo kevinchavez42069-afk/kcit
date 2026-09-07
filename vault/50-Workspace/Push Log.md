@@ -15,6 +15,26 @@ Each entry: when, which session, what shipped, what's next.
 
 ---
 
+## 2026-09-07 — local session (this one, new day)
+
+**Shipped:** Phase 3 verified live. Kevin supplied an `ANTHROPIC_API_KEY`,
+stored in `dashboard/.env` (gitignored, loaded via `process.loadEnvFile`,
+never committed, never echoed anywhere). First real chat message to
+`executive-assistant` through the dashboard worked end to end, correctly
+grounded in the real vault, and surfaced a genuinely stale line in
+[[Migration Status]] (the chatbot-redeploy note — that shipped days ago,
+fixed now) that nothing had caught until a live query actually needed it.
+
+Phases 1 through 3 of [[AI Operating System]] are now fully done and
+verified, not just built.
+
+**Next:** phase 4 — full agentic chat for `prospect-scout`, `follow-up`,
+`client-onboarder`, with the confirm-step and concurrent-editor check
+built in from the start, not bolted on after. `voice.md` writing samples
+still outstanding.
+
+---
+
 ## 2026-09-06 (still going) — local session (this one)
 
 **Shipped:** Phase 3 code — live chat with `executive-assistant`, read-only

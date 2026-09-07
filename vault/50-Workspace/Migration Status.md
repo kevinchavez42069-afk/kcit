@@ -88,9 +88,10 @@ and the live `kcitsolutions.co`. Findings:
   had `"audience": "people who run trades, shops, and restaurants, not IT
   departments"` — that string is injected verbatim into the production system
   prompt, so the assistant could tell a real visitor it only serves trades,
-  contradicting the any-business decision below. Fixed in the JSON
-  (2026-09-06); **needs a chatbot redeploy to take effect** —
-  `chatbot\deploy-chatbot.ps1` has not been run for this change yet.
+  contradicting the any-business decision below. Fixed in the JSON and
+  deployed (2026-09-06) — verified live by asking the real bot on
+  `kcitsolutions.co` whether it only serves trades businesses; it now gives
+  the correct any-business answer.
 - **Pricing, bilingual behavior, and the demo tenant's honesty rules all check
   out** against the live code — no drift.
 - **The $149/month plan is decided but not live anywhere** — not on the

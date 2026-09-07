@@ -2,6 +2,7 @@
 Thumbs.db
 dashboard/costs.db
 dashboard/node_modules/
+dashboard/.env
 vault/.obsidian/workspace.json
 vault/.obsidian/workspace-mobile.json
 vault/.trash/

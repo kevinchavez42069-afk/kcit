@@ -26,6 +26,15 @@ import { extname, join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { randomBytes, timingSafeEqual } from "crypto";
 import { execFileSync } from "child_process";
+
+// Loads dashboard/.env if present (ANTHROPIC_API_KEY lives there, gitignored,
+// never committed). A real environment variable set another way still wins -
+// loadEnvFile doesn't override existing process.env entries.
+try {
+  process.loadEnvFile(join(dirname(fileURLToPath(import.meta.url)), ".env"));
+} catch {
+  // no .env file - fine, chat just reports it's unconfigured until one exists
+}
 import { openDb, summaryByClient } from "./db.mjs";
 import { chatWithAgent } from "./chat.mjs";
 

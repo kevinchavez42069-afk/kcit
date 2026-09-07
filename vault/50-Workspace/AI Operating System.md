@@ -161,8 +161,14 @@ boundary, not the bind address) and detects the Tailscale IP at startup —
 **Confirmed live**: reachable and authenticating correctly at
 `http://100.87.11.96:7417` from outside localhost, not just in theory.
 
-**Phase 3 — chat with `executive-assistant` only, read-only. Code done,
-2026-09-06; blocked on one thing only Kevin can provide.** New files:
+**Phase 3 — chat with `executive-assistant` only, read-only. Done and
+verified live, 2026-09-06.** Kevin supplied an API key, stored in
+`dashboard/.env` (gitignored, loaded via `process.loadEnvFile`, never
+committed). First real message — "what happened recently, give me a
+status" — came back correctly grounded in the actual vault (real Activity
+Log entries, real open items), cost $0.19, and caught a genuinely stale
+line in this very file (the chatbot redeploy note, fixed above). New
+files:
 `dashboard/agents.mjs` (parses `.claude/agents/*.md` directly — same source
 of truth Claude Code reads, nothing forked), `dashboard/chat.mjs` (calls the
 Agent SDK with EA's real system prompt), and `POST /api/chat` plus a chat
@@ -176,16 +182,12 @@ returns a clear error instead of crashing when the key is missing, empty
 messages get rejected, and the new per-IP auth lockout (added the same
 session, 8 failures / 5 min) actually trips at the 9th bad login.
 
-**The blocker:** the Agent SDK makes its own Anthropic API calls and
-cannot reuse Claude Code's own session credentials — Anthropic's terms
-require real API-key auth for third-party agent products, not reuse of
-claude.ai/Claude Code login. `dashboard/chat.mjs` needs `ANTHROPIC_API_KEY`
-in the environment to do anything; nothing else on the dashboard needs it.
-Kevin needs to supply a key (new or existing) before phase 3 can be
-exercised end to end. Everything is written against the SDK's real shipped
-type definitions (`node_modules/@anthropic-ai/claude-agent-sdk/entrypoints/sdk/*.d.ts`,
-checked directly rather than guessed from docs), so it should work once a
-key is set, but it is genuinely untested until then.
+Everything was written against the SDK's real shipped type definitions
+(`node_modules/@anthropic-ai/claude-agent-sdk/entrypoints/sdk/*.d.ts`,
+checked directly rather than guessed from docs) — that paid off, the
+`result` message's exact shape (`.result` for the text, `.usage` and
+`.total_cost_usd` alongside it) came straight from reading the types, not
+from the fetched doc summary, which described a different, wrong shape.
 
 **Phase 4 — full agentic chat for `prospect-scout`, `follow-up`,
 `client-onboarder`.** The capability Kevin actually asked for. Ship the
