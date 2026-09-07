@@ -29,6 +29,10 @@ Check the change against whatever guardrails apply to the repo it's in —
 the existing patterns and conventions already in the file you're reviewing
 for anything in `kcit`.
 
+Write the verdict itself following `vault/_style/voice.md`'s "Banned
+outright" list. No em dashes, no rule-of-three lists for rhythm, no opening
+acknowledgement.
+
 ## Your verdict
 
 End with exactly one of:

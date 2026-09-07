@@ -41,7 +41,7 @@ import { openDb, summaryByClient, summaryByAgent } from "./db.mjs";
 import { chatWithAgent, runAgentFull } from "./chat.mjs";
 import { startScheduler } from "./scheduler.mjs";
 import { loadAgents } from "./agents.mjs";
-import { listPending, resolvePending } from "./permissions.mjs";
+import { listPending, resolvePending, getAutoApprove, setAutoApprove } from "./permissions.mjs";
 import { listRuns } from "./runs.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -324,6 +324,23 @@ const server = createServer(async (req, res) => {
     const ok = resolvePending(body.id, Boolean(body.approve));
     if (!ok) return jsonResponse(res, 404, { error: "No pending confirmation with that id (already resolved, or never existed)." });
     return jsonResponse(res, 200, { resolved: true });
+  }
+
+  // Phase 9: an explicit, human-flipped override, not a smarter allowlist -
+  // see permissions.mjs's own comment on why. GET so the frontend can sync
+  // state on load (in case of a page refresh or a second tab); POST to
+  // flip it. Never persisted - resets to off on every server restart.
+  if (req.url === "/api/auto-approve" && req.method === "GET") {
+    return jsonResponse(res, 200, { autoApprove: getAutoApprove() });
+  }
+  if (req.url === "/api/auto-approve" && req.method === "POST") {
+    let body;
+    try {
+      body = JSON.parse(await readBody(req));
+    } catch {
+      return jsonResponse(res, 400, { error: "Invalid JSON body." });
+    }
+    return jsonResponse(res, 200, { autoApprove: setAutoApprove(body.on) });
   }
 
   serveStatic(req, res);

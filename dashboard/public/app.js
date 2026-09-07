@@ -1,5 +1,5 @@
-async function fetchJson(url) {
-  const res = await fetch(url);
+async function fetchJson(url, options) {
+  const res = await fetch(url, options);
   if (!res.ok) throw new Error(`${url} -> ${res.status}`);
   return res.json();
 }
@@ -13,7 +13,7 @@ async function loadDigest() {
   try {
     const { digest, exists } = await fetchJson("/api/digest");
     if (!exists) {
-      el.innerHTML = '<p class="empty">No digest yet &mdash; executive-assistant hasn\'t produced one.</p>';
+      el.innerHTML = '<p class="empty">No digest yet - executive-assistant hasn\'t produced one.</p>';
       return;
     }
     el.innerHTML = `<div class="digest-body">${escapeHtml(digest)}</div>`;
@@ -102,8 +102,7 @@ async function loadActivity() {
   }
 }
 
-function appendChatMessage(role, text) {
-  const log = document.getElementById("chat-log");
+function appendChatMessage(log, role, text) {
   log.querySelector(".chat-empty")?.remove();
   const el = document.createElement("div");
   el.className = `chat-msg ${role}`;
@@ -113,20 +112,28 @@ function appendChatMessage(role, text) {
   return el;
 }
 
-async function loadAgentSelector() {
-  const select = document.getElementById("agent-select");
-  try {
-    const { agents } = await fetchJson("/api/agents");
-    for (const a of agents) {
-      if (a.name === "executive-assistant") continue; // already the default option
-      const opt = document.createElement("option");
-      opt.value = a.name;
-      opt.textContent = `${a.name} (${a.tools.includes("Bash") ? "full tools, Bash confirmed" : "full tools"})`;
-      select.appendChild(opt);
-    }
-  } catch {
-    // agent list is a nice-to-have; executive-assistant still works without it
-  }
+// --- Resizable chat column ----------------------------------------------
+
+function initResize() {
+  const chatColumn = document.getElementById("chat-column");
+  const handle = document.getElementById("resize-handle");
+  const app = document.getElementById("app");
+  let dragging = false;
+  handle.addEventListener("mousedown", (e) => {
+    dragging = true;
+    handle.classList.add("active");
+    e.preventDefault();
+  });
+  window.addEventListener("mousemove", (e) => {
+    if (!dragging) return;
+    const rect = app.getBoundingClientRect();
+    const w = Math.min(660, Math.max(320, e.clientX - rect.left));
+    chatColumn.style.width = `${w}px`;
+  });
+  window.addEventListener("mouseup", () => {
+    dragging = false;
+    handle.classList.remove("active");
+  });
 }
 
 // --- Tabs -------------------------------------------------------------
@@ -143,6 +150,42 @@ function initTabs() {
   });
 }
 
+// --- Auto-approve: an explicit, loud, human-flipped override -----------
+// Session-only, never persisted - see permissions.mjs for why this is a
+// visible toggle and not a smarter allowlist.
+
+async function initAutoApprove() {
+  const btn = document.getElementById("auto-toggle");
+  const warning = document.getElementById("auto-warning");
+
+  function render(on) {
+    btn.textContent = on ? "[ auto-approve: on ]" : "[ auto-approve: off ]";
+    btn.classList.toggle("solid", on);
+    warning.classList.toggle("show", on);
+  }
+
+  try {
+    const { autoApprove } = await fetchJson("/api/auto-approve");
+    render(autoApprove);
+  } catch {
+    // starts rendered off, matches the safe default if this fails
+  }
+
+  btn.addEventListener("click", async () => {
+    const wantOn = !btn.classList.contains("solid");
+    try {
+      const { autoApprove } = await fetchJson("/api/auto-approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ on: wantOn }),
+      });
+      render(autoApprove);
+    } catch {
+      // leave it as it was - a failed toggle should not silently claim success
+    }
+  });
+}
+
 // --- Fleet: what's running right now -----------------------------------
 // Polls independently of any in-flight chat request, because a
 // scheduler-fired run (the 7am standup, prospect-scout's Mon/Wed/Fri slot)
@@ -152,37 +195,50 @@ let fleetTimer = null;
 
 function renderRuns(runs) {
   const el = document.getElementById("fleet-content");
-  if (runs.length === 0) {
+
+  // One frame per agent that's actually doing something right now, not one
+  // per top-level run with everything else nested inside it. A tool's own
+  // `agent` field (resolved server-side in runs.mjs) already says who's
+  // really running it, whether that's the agent Kevin addressed directly
+  // or one it delegated to - grouping by that field is what separates them.
+  const byAgent = new Map();
+  for (const run of runs) {
+    if (!byAgent.has(run.agent)) byAgent.set(run.agent, { agent: run.agent, tools: [] });
+    for (const tool of run.activeTools) {
+      const key = tool.agent || run.agent;
+      if (!byAgent.has(key)) byAgent.set(key, { agent: key, tools: [] });
+      byAgent.get(key).tools.push(tool);
+    }
+  }
+
+  const groups = [...byAgent.values()];
+  if (groups.length === 0) {
     el.innerHTML = '<p class="empty">Nothing running right now.</p>';
     return;
   }
-  el.innerHTML = runs
-    .map((run) => {
-      const elapsed = Math.max(0, Math.round((Date.now() - run.startedAt) / 1000));
+
+  el.innerHTML = groups
+    .map((group) => {
+      const waiting = group.tools.some((t) => t.status === "awaiting confirmation");
+      const state = waiting ? "waiting" : "running";
+      const stateLabel = waiting ? "confirm" : "running";
       const tools =
-        run.activeTools.length === 0
-          ? '<div class="run-tool"><span class="pulse"></span><span class="run-tool-summary">Thinking&hellip;</span></div>'
-          : run.activeTools
-              .map((t) => {
-                const awaiting = t.status === "awaiting confirmation";
-                // t.agent is who's actually running this - executive-assistant
-                // for its own direct calls, or the delegated agent's name
-                // (developer, code-reviewer, ...) when this tool is running
-                // inside a Task it started. Showing the tool name alone here
-                // was the bug Kevin caught: every delegated call rendered as
-                // if EA were running it.
-                return `<div class="run-tool ${awaiting ? "awaiting" : ""}">
-                  <span class="pulse"></span>
-                  <span class="run-tool-name">${escapeHtml(t.agent)}</span>
-                  <span class="run-tool-type">${escapeHtml(t.name)}</span>
-                  <span class="run-tool-summary">${escapeHtml(t.summary)}</span>
-                </div>`;
-              })
+        group.tools.length === 0
+          ? '<div class="agent-card-tool"><span class="prompt">&gt;</span><code>thinking&hellip;</code></div>'
+          : group.tools
+              .map(
+                (t) => `<div class="agent-card-tool">
+                  <span class="prompt">&gt;</span>
+                  <span class="tool-type">${escapeHtml(t.name)}</span>
+                  <code>${escapeHtml(t.summary)}</code>
+                </div>`
+              )
               .join("");
-      return `<div class="run-card">
-        <div class="run-head">
-          <span class="run-agent">${escapeHtml(run.agent)}</span>
-          <span class="run-meta">${elapsed}s &middot; ${run.completedCount} tool call${run.completedCount === 1 ? "" : "s"} done</span>
+      return `<div class="agent-card active">
+        <span class="cb1"></span><span class="cb2"></span>
+        <div class="agent-card-head">
+          <span class="agent-card-name">${escapeHtml(group.agent)}</span>
+          <span class="agent-card-state ${state}">${stateLabel}</span>
         </div>
         ${tools}
       </div>`;
@@ -214,7 +270,8 @@ function stopFleetPoll() {
   fleetTimer = null;
 }
 
-// --- Confirm-step: polls while a phase-4 run is in flight -----------
+// --- Confirm-step: polls while a run is in flight ----------------------
+
 let pollTimer = null;
 
 function renderPending(entry) {
@@ -226,15 +283,15 @@ function renderPending(entry) {
   }
   banner.hidden = false;
   banner.innerHTML = `
-    <div class="confirm-title">Confirm before this runs: ${escapeHtml(entry.toolName)}</div>
+    <div class="confirm-title">confirm before this runs :: ${escapeHtml(entry.toolName)}</div>
     <code>${escapeHtml(JSON.stringify(entry.input, null, 2))}</code>
     <div class="confirm-actions">
-      <button class="approve" type="button">Approve</button>
-      <button class="deny" type="button">Deny</button>
+      <button class="bracket-btn solid" type="button">[ approve ]</button>
+      <button class="bracket-btn danger" type="button">[ deny ]</button>
     </div>
   `;
-  banner.querySelector(".approve").onclick = () => respondToPending(entry.id, true);
-  banner.querySelector(".deny").onclick = () => respondToPending(entry.id, false);
+  banner.querySelector(".solid").onclick = () => respondToPending(entry.id, true);
+  banner.querySelector(".danger").onclick = () => respondToPending(entry.id, false);
 }
 
 async function respondToPending(id, approve) {
@@ -267,85 +324,84 @@ function stopPendingPoll() {
   renderPending(null);
 }
 
-// --- Live status line in the chat log itself, replacing a static
-// "Thinking..." placeholder - reuses /api/runs, correlating by agent name
-// and picking the most recently started run for it (good enough for a
-// single-user tool; two runs for the same agent starting in the same
-// second isn't a real scenario here). ---------------------------------
+// --- A live "working" strip, separate from any chat bubble --------------
+// Kevin's own catch: a raw command like "code-reviewer: Running: git branch
+// -v" should never render as chat text. It's a status line above the
+// eventual reply, the way Claude's own interface shows tool use separately
+// from the answer - shown while a run is in flight, removed the moment a
+// real reply (or an error) actually arrives.
 
-let chatStatusTimer = null;
-
-function statusLineFor(run) {
-  if (!run || run.activeTools.length === 0) return "Thinking…";
+function workingLineFor(run) {
+  if (!run || run.activeTools.length === 0) return null;
   const tool = [...run.activeTools].sort((a, b) => b.startedAt - a.startedAt)[0];
-  if (tool.status === "awaiting confirmation") return "Awaiting your confirmation below…";
-  if (tool.name === "Task") return `Delegating to ${tool.summary}`;
-  // Name the actual agent running this when it's not the one Kevin
-  // addressed directly - the same distinction the Fleet tab makes, so a
-  // delegated developer/code-reviewer call doesn't read as if EA did it.
-  const who = tool.agent && tool.agent !== run.agent ? `${tool.agent}: ` : "";
-  if (tool.name === "Bash") return `${who}Running: ${tool.summary}`;
-  return `${who}${tool.name}: ${tool.summary}`;
+  if (tool.status === "awaiting confirmation") return { who: tool.agent, cmd: "awaiting your confirmation below" };
+  if (tool.name === "Task") return { who: run.agent, cmd: `delegating to ${tool.summary}` };
+  return { who: tool.agent, cmd: tool.summary || tool.name };
 }
 
-function startChatStatusPoll(agent, pendingMsg) {
-  stopChatStatusPoll();
-  chatStatusTimer = setInterval(async () => {
+function setWorking(log, who, cmd) {
+  let el = log.querySelector(".working");
+  if (!el) {
+    el = document.createElement("div");
+    el.className = "working";
+    log.appendChild(el);
+  }
+  el.innerHTML = `<span class="prompt">&gt;</span><span class="who">${escapeHtml(who)}</span><span class="cmd">${escapeHtml(cmd)}</span>`;
+  log.scrollTop = log.scrollHeight;
+}
+
+function clearWorking(log) {
+  log.querySelector(".working")?.remove();
+}
+
+function startStatusPoll(log, agent) {
+  return setInterval(async () => {
     const runs = await loadRuns();
     const mine = runs.filter((r) => r.agent === agent).sort((a, b) => b.startedAt - a.startedAt)[0];
-    pendingMsg.textContent = statusLineFor(mine);
+    const line = workingLineFor(mine);
+    if (line) setWorking(log, line.who, line.cmd);
+    else clearWorking(log);
   }, 900);
 }
 
-function stopChatStatusPoll() {
-  if (chatStatusTimer) clearInterval(chatStatusTimer);
-  chatStatusTimer = null;
-}
+// --- executive-assistant's own chat, always open ------------------------
 
 function initChat() {
   const form = document.getElementById("chat-form");
   const input = document.getElementById("chat-input");
-  const select = document.getElementById("agent-select");
   const button = form.querySelector("button");
+  const log = document.getElementById("chat-log");
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const message = input.value.trim();
     if (!message) return;
 
-    const agent = select.value;
-    // executive-assistant has its own dedicated endpoint (it gets the
-    // delegation `agents` map chat.mjs builds specially for it), but as of
-    // phase 6 it's not read-only - it has its own Bash (phase 6.2) and can
-    // also delegate to a Bash-capable agent, so it needs the same
-    // confirm-step polling as a direct phase-4 run.
-    const isEA = agent === "executive-assistant";
-
-    appendChatMessage("user", `[${agent}] ${message}`);
+    appendChatMessage(log, "user", message);
     input.value = "";
     input.disabled = true;
     button.disabled = true;
-    const pendingMsg = appendChatMessage("agent", "Thinking…");
 
     startPendingPoll();
-    startChatStatusPoll(agent, pendingMsg);
+    const statusTimer = startStatusPoll(log, "executive-assistant");
 
     try {
-      const res = await fetch(isEA ? "/api/chat" : "/api/run", {
+      const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(isEA ? { message } : { agent, message }),
+        body: JSON.stringify({ message }),
       });
       const data = await res.json();
+      clearWorking(log);
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-      pendingMsg.textContent = data.reply;
+      appendChatMessage(log, "agent", data.reply);
       loadAgentCosts(); // this run just logged a cost - refresh the panel
     } catch (err) {
-      pendingMsg.className = "chat-msg error";
-      pendingMsg.textContent = `Couldn't reach ${agent}: ${err.message}`;
+      clearWorking(log);
+      appendChatMessage(log, "error", `Couldn't reach executive-assistant: ${err.message}`);
     } finally {
+      clearInterval(statusTimer);
       stopPendingPoll();
-      stopChatStatusPoll();
       input.disabled = false;
       button.disabled = false;
       input.focus();
@@ -353,11 +409,87 @@ function initChat() {
   });
 }
 
+// --- The collapsible drawer: talk to one other agent directly -----------
+// A separate session from executive-assistant's, on purpose - picking a
+// different agent here never touches the main chat above it.
+
+async function initDrawer() {
+  const toggle = document.getElementById("drawer-toggle");
+  const body = document.getElementById("drawer-body");
+  const chips = document.getElementById("drawer-chips");
+  const log = document.getElementById("drawer-log");
+  const form = document.getElementById("drawer-form");
+  const input = document.getElementById("drawer-input");
+  let selected = null;
+
+  toggle.addEventListener("click", () => {
+    toggle.classList.toggle("open");
+    body.classList.toggle("open");
+  });
+
+  try {
+    const { agents } = await fetchJson("/api/agents");
+    for (const a of agents) {
+      if (a.name === "executive-assistant") continue;
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "agent-chip";
+      chip.textContent = a.name;
+      chip.addEventListener("click", () => {
+        selected = a.name;
+        for (const c of chips.querySelectorAll(".agent-chip")) c.classList.toggle("selected", c === chip);
+        input.placeholder = `> ask ${a.name} directly`;
+        input.disabled = false;
+      });
+      chips.appendChild(chip);
+    }
+  } catch {
+    chips.textContent = "Couldn't load the agent list.";
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!selected) return;
+    const message = input.value.trim();
+    if (!message) return;
+
+    appendChatMessage(log, "user", message);
+    input.value = "";
+    input.disabled = true;
+
+    startPendingPoll();
+    const statusTimer = startStatusPoll(log, selected);
+
+    try {
+      const res = await fetch("/api/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agent: selected, message }),
+      });
+      const data = await res.json();
+      clearWorking(log);
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      appendChatMessage(log, "agent", data.reply);
+      loadAgentCosts();
+    } catch (err) {
+      clearWorking(log);
+      appendChatMessage(log, "error", `Couldn't reach ${selected}: ${err.message}`);
+    } finally {
+      clearInterval(statusTimer);
+      stopPendingPoll();
+      input.disabled = false;
+      input.focus();
+    }
+  });
+}
+
 initTabs();
+initResize();
+initAutoApprove();
 loadDigest();
 loadCosts();
 loadAgentCosts();
 loadActivity();
-loadAgentSelector();
 startFleetPoll();
 initChat();
+initDrawer();

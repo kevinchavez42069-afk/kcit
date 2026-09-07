@@ -49,6 +49,27 @@ export const KC_IT_ROOT = "C:\\Users\\PC USER\\Downloads\\kc.IT";
 
 const AUTO_ALLOW_TOOLS = new Set(["Read", "Glob", "Grep", "WebSearch", "WebFetch", "Write", "Edit"]);
 
+// --- Auto-approve: an explicit, visible, human-flipped override --------
+// Kevin's own ask, after clicking through a real test that needed several
+// individual approvals for one conceptual task: a way to skip the
+// confirm-step for a whole session, not a smarter allowlist that tries to
+// guess which commands are safe. That guessing is exactly what the CLI's
+// own hidden allowlist above already proved unreliable - this does the
+// opposite: OFF by default, reset on every server restart (never
+// persisted), toggled only by a real click on a control that stays
+// visibly loud (red warning banner) the entire time it's on. Global, not
+// per-agent or per-run - matches the single toggle in the UI.
+let autoApprove = false;
+
+export function getAutoApprove() {
+  return autoApprove;
+}
+
+export function setAutoApprove(on) {
+  autoApprove = Boolean(on);
+  return autoApprove;
+}
+
 // --- Pending confirmations --------------------------------------------
 // One in-memory map, fine for a single-user local tool. Each entry holds
 // the resolve function for the Promise canUseTool is blocking on, so the
@@ -87,6 +108,10 @@ export function resolvePending(id, approve) {
 export function makeCanUseTool(runId) {
   return async (toolName, input, { toolUseID, agentID } = {}) => {
     if (AUTO_ALLOW_TOOLS.has(toolName)) {
+      return { behavior: "allow", updatedInput: input };
+    }
+
+    if (autoApprove) {
       return { behavior: "allow", updatedInput: input };
     }
 

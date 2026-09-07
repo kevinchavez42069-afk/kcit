@@ -542,6 +542,73 @@ happen as the literal last action before replying, verified with a second
 `git branch --show-current`, rather than something to get to after
 summarizing.
 
+**Phase 9, terminal reskin, separate Fleet nodes, a resizable/collapsible
+chat, and auto-approve. Done, 2026-09-07.** Kevin, after clicking through
+two full runs of the phase 8 redesign: the Fleet grouping was wrong (every
+delegated tool still rendered nested under one `executive-assistant` card,
+just correctly labeled now instead of mislabeled), the visual direction
+needed to go back to his original amber-on-black terminal references
+combined with what phase 8 got right structurally, and a raw command like
+`code-reviewer: Running: git branch -v` should never render as literal chat
+text. Iterated through two interactive Artifact demos first (not static
+mockups) before touching the real files, matching this repo's established
+pattern for a design decision this size.
+
+**Fleet, actually fixed this time.** `app.js`'s `renderRuns()` now groups
+every active tool by its own resolved `agent` field into one card per
+agent, not one card per top-level run with everything else nested inside
+it. `executive-assistant`'s `Task` call and `developer`'s own `Bash` call
+render as two separate frames, verified live against a real delegated run
+through the actual dashboard (not a mock), the exact scenario Kevin
+tested that surfaced the bug in the first place.
+
+**The working strip, corrected.** The prior build put a run's live status
+directly into the pending chat bubble's text, which is exactly what Kevin
+flagged: a raw shell command has no place inside a message. `app.js` now
+keeps that status in a separate `.working` element in the log, shown only
+while a run is in flight and removed the moment a real reply (or an error)
+actually arrives, closer to how Claude's own interface separates tool use
+from the answer.
+
+**A real IA split, not just a visual one.** `executive-assistant`'s chat is
+now hardcoded, always open, no agent picker on it at all. A new collapsible
+drawer holds a second, completely independent chat for talking to one of
+the other five agents directly (`/api/run`, same as before). Picking an
+agent there never touches EA's own conversation. The chat column is also
+resizable by dragging its right edge.
+
+**Auto-approve: a real backend feature, not a demo prop.** Kevin's own
+frustration, verbatim: too many individual approvals for one conceptual
+task. `permissions.mjs` gained a single module-level flag
+(`getAutoApprove`/`setAutoApprove`), off by default, never persisted
+(resets on every server restart), toggled through new `GET`/`POST
+/api/auto-approve` endpoints. Deliberately not a smarter allowlist that
+tries to guess which commands are safe. That guessing is exactly what
+this session already found unreliable in Claude Code's own built-in
+command-pattern allowlist (see phase 8's finding above). This is the
+opposite: an explicit, visible, human-flipped override, loud the entire
+time it's on (a persistent red warning banner in the chat header), global
+rather than per-agent, matching the one toggle Kevin actually clicked
+through in the demo.
+
+**Verified live, all of it, not just visually:** turned auto-approve on
+through the real endpoint and confirmed a real mutating Bash call
+(`touch`) executed with `/api/pending` staying empty the whole time and
+the file actually appearing; turned it back off and confirmed the same
+command gated normally again, then denied it and confirmed the file was
+never created. Separately, delegated a real task to `developer` and
+confirmed the Fleet tab's grouping logic produced two distinct cards from
+the real `/api/runs` data, not simulated.
+
+Visual system carried over from the earlier terminal mockup Kevin approved:
+`Martian Mono` for headers/brand, `IBM Plex Mono` for body and chat,
+amber-on-near-black tokens, sharp corners throughout, bracket-style
+buttons (`[ approve ]`, `[ auto-approve: on ]`), corner-accent frames on
+the confirm banner and active Fleet cards. Also added voice guidance to
+`executive-assistant`, `developer`, and `code-reviewer`'s own prompts.
+None of them had any before this, unlike `follow-up`, despite EA being the
+agent Kevin talks to constantly.
+
 ## Open items for whoever picks up each phase
 
 - Frontend framework unspecified on purpose — whatever's fastest when a

@@ -15,6 +15,47 @@ Each entry: when, which session, what shipped, what's next.
 
 ---
 
+## 2026-09-07 (terminal reskin, real Fleet nodes, auto-approve) — local session (this one)
+
+**Shipped, phase 9:** Kevin ran the phase 8 redesign twice and found two
+real problems, both fixed. Fleet grouped everything under one
+`executive-assistant` card no matter who was actually running it, even
+after the earlier attribution fix. `app.js`'s `renderRuns()` now groups by
+each tool's own resolved agent into a separate card per agent, verified
+against a real delegated run through the actual dashboard. And a raw
+command was landing directly in the chat bubble text, which Kevin flagged
+by name. Status now lives in a separate `.working` line, shown only while
+a run is in flight.
+
+Also new, not just a fix: `executive-assistant`'s chat is hardcoded and
+always open, with a separate collapsible drawer for talking to one of the
+other five agents directly, its own independent chat. The chat column
+resizes by dragging its edge. And a real auto-approve toggle
+(`permissions.mjs`, `GET`/`POST /api/auto-approve`), off by default, never
+persisted, explicit and loud when on rather than a smarter allowlist that
+guesses at safe commands, the exact thing that already proved unreliable
+in Claude Code's own CLI (see the prior entry below).
+
+Visual direction went back to Kevin's original amber-on-black terminal
+references, combined with phase 8's structural fixes rather than either
+alone. Iterated through two interactive Artifact demos first before
+touching real files.
+
+**Verified live, not just visually:** turned auto-approve on through the
+real endpoint, confirmed a real mutating `touch` ran with `/api/pending`
+staying empty the whole time and the file actually appearing; turned it
+off, confirmed the same command gated normally, denied it, confirmed the
+file was never created.
+
+Also added voice guidance to `executive-assistant`, `developer`, and
+`code-reviewer`, none of which had any before, unlike `follow-up`.
+
+**Next:** none of today's phase 7/8/9 work has been through a second real
+person's eyes beyond Kevin's own testing. `voice.md` writing samples
+remain the oldest open item.
+
+---
+
 ## 2026-09-07 (dev team + dashboard redesign) — local session (this one)
 
 **Shipped, phase 7:** `developer` and `code-reviewer`, a two-agent dev team

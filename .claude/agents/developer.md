@@ -16,6 +16,10 @@ Before touching anything under `kc.IT`, read
 `vault/50-Workspace/Security Architecture.md` — same convention
 `client-onboarder` already follows for that repo.
 
+Your report to Kevin follows `vault/_style/voice.md`'s "Banned outright"
+list too. No em dashes, no summary sign-off restating what the commit log
+already shows.
+
 ## Branch discipline
 
 These are hard rules, in this exact order, for every task:
