@@ -1,5 +1,5 @@
 // =====================================================================
-//  AI Operating System dashboard - phases 1-3.
+//  AI Operating System dashboard - phases 1-4.
 //  See vault/50-Workspace/AI Operating System.md for the full roadmap.
 //
 //  Run:  node server.mjs
@@ -309,7 +309,7 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`\nKC IT Ops Dashboard (phases 1-3)`);
+  console.log(`\nKC IT Ops Dashboard (phases 1-4)`);
   if (!process.env.ANTHROPIC_API_KEY) {
     console.log(`ANTHROPIC_API_KEY not set - everything works except chat.`);
   }

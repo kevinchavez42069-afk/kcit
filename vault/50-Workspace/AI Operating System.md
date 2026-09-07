@@ -190,14 +190,34 @@ checked directly rather than guessed from docs) — that paid off, the
 from the fetched doc summary, which described a different, wrong shape.
 
 **Phase 4 — full agentic chat for `prospect-scout`, `follow-up`,
-`client-onboarder`.** The capability Kevin actually asked for. Ship the
-confirm-step and concurrent-editor check alongside this, not after. The
-Agent SDK's `canUseTool` callback (confirmed present in the shipped types)
-is the real mechanism for the confirm-step: it can pause before a specific
-tool call and wait on a decision, which is exactly "review and confirm
-before this one executes" rather than a blanket restriction. Needs a way
-to get that decision from the browser mid-request (Server-Sent Events or
-polling) — not yet designed further than that.
+`client-onboarder`. Done and verified live, 2026-09-07.** The capability
+Kevin actually asked for. Confirm-step and concurrent-editor check shipped
+alongside it, not after, per the plan.
+
+Mechanism: `dashboard/permissions.mjs`'s `canUseTool` auto-allows
+Read/Glob/Grep/WebSearch/WebFetch/Write/Edit (all git-tracked, all
+reversible) and always defers Bash to a pending-confirmation record,
+polled by the frontend at `GET /api/pending` and resolved at
+`POST /api/confirm`. The split that makes this actually hold: `tools`
+(what's available to the model, mirrors each agent's real `.md` file) is
+a separate SDK option from `allowedTools` (what's pre-approved without a
+prompt) — Bash sits in the first list, deliberately excluded from the
+second. Confirmed by reading the Agent SDK's own source
+(`node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs`), which spawns the
+real Claude Code CLI and passes these as its actual `--tools` and
+`--allowedTools` flags — not assumed from type comments. `checkReposCurrent`
+fetches both repos and refuses to start a write-capable agent if either is
+behind `origin/main`, guarding the exact divergent-history failure mode
+that happened once already between two Claude sessions on 2026-09-06.
+
+**First live test, run by Kevin himself, not self-tested:** started the
+server, asked `client-onboarder` to check git status on `kcit`. The confirm
+banner appeared with the real command before anything executed. Confirmed
+working. (Worth noting honestly: even starting this server was flagged by
+the coding session's own permission classifier once Bash-execution
+capability was real — correctly, since a service that can trigger shell
+commands is not something to self-test unsupervised. Kevin ran it himself
+for exactly that reason.)
 
 **Phase 5 — agent-fleet usage tracking.** Falls out of phase 4's backend
 logging its own `usage` objects. Add the `agent_runs` rollup once phase 4 is

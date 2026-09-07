@@ -15,6 +15,23 @@ Each entry: when, which session, what shipped, what's next.
 
 ---
 
+## 2026-09-07 (later) — local session (this one)
+
+**Shipped and verified live:** Phase 4 — full agentic chat for
+`prospect-scout`, `follow-up`, `client-onboarder`, with the confirm-step
+and concurrent-editor check that were promised alongside it, not after.
+Kevin ran the actual first test himself (started the server, asked
+`client-onboarder` to check git status, saw the confirm banner and
+approved it) since even starting a Bash-capable service was something
+this session's own permission classifier correctly flagged as not
+self-testable. All four phases of [[AI Operating System]] are now done:
+1 (chatbot cost pipeline), 2 (read-only dashboard), 3 (EA chat), 4 (full
+agentic chat with a real safety mechanism, not a promised one).
+
+**Next:** phase 5 (agent-fleet usage tracking — falls out of phase 4's
+backend for free) is the one remaining item on the original roadmap.
+`voice.md` writing samples still outstanding, unrelated to this thread.
+
 ## 2026-09-07 — local session (this one, new day)
 
 **Shipped:** Phase 3 verified live. Kevin supplied an `ANTHROPIC_API_KEY`,
