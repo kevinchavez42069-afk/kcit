@@ -49,7 +49,8 @@ async function runStandup() {
   try {
     const { text } = await chatWithAgent(
       "executive-assistant",
-      "Produce today's daily standup and append it to the digest, per your instructions."
+      "Produce today's daily standup and append it to the digest, per your instructions.",
+      { unattended: true }
     );
     await sendNotification({
       title: "Daily standup",
@@ -67,7 +68,8 @@ async function runRetro() {
   try {
     const { text } = await chatWithAgent(
       "executive-assistant",
-      "Produce this week's retro and append it to EA Retro.md, per your instructions."
+      "Produce this week's retro and append it to EA Retro.md, per your instructions.",
+      { unattended: true }
     );
     await sendNotification({
       title: "Weekly retro",
@@ -122,7 +124,8 @@ async function runProspectScout() {
     await runAgentFull(
       "prospect-scout",
       "Build out today's batch of new prospects, following your own reasoning for who's worth researching " +
-        "and your own rule about not piling up more than Kevin can visit. Log what you add, as usual."
+        "and your own rule about not piling up more than Kevin can visit. Log what you add, as usual.",
+      { unattended: true }
     );
     // No separate push here - prospect-scout already appends to Activity
     // Log.md, and Kevin wants this surfaced through the next standup, not
