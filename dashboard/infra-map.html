@@ -16,177 +16,68 @@
     --accent: #0e6f68;
     --signal: #99590f;
     --signal-soft: rgba(153, 89, 15, 0.07);
+    --danger: #a3312a;
+    --danger-soft: rgba(163, 49, 42, 0.08);
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #0e1413;
-      --panel: #161e1d;
-      --panel-2: #1d2726;
-      --ink: #e6eeec;
-      --muted: #93a5a2;
-      --border: #2b3937;
-      --line: #b3c3c0;
-      --zone: rgba(120, 200, 190, 0.045);
-      --zone-edge: #33433f;
-      --accent: #55bdb0;
-      --signal: #dda45f;
-      --signal-soft: rgba(221, 164, 95, 0.1);
+      --bg: #0e1413; --panel: #161e1d; --panel-2: #1d2726; --ink: #e6eeec;
+      --muted: #93a5a2; --border: #2b3937; --line: #b3c3c0;
+      --zone: rgba(120, 200, 190, 0.045); --zone-edge: #33433f;
+      --accent: #55bdb0; --signal: #dda45f; --signal-soft: rgba(221, 164, 95, 0.1);
+      --danger: #e07a72; --danger-soft: rgba(224, 122, 114, 0.1);
     }
   }
   :root[data-theme="dark"] {
-    --bg: #0e1413;
-    --panel: #161e1d;
-    --panel-2: #1d2726;
-    --ink: #e6eeec;
-    --muted: #93a5a2;
-    --border: #2b3937;
-    --line: #b3c3c0;
-    --zone: rgba(120, 200, 190, 0.045);
-    --zone-edge: #33433f;
-    --accent: #55bdb0;
-    --signal: #dda45f;
-    --signal-soft: rgba(221, 164, 95, 0.1);
+    --bg: #0e1413; --panel: #161e1d; --panel-2: #1d2726; --ink: #e6eeec;
+    --muted: #93a5a2; --border: #2b3937; --line: #b3c3c0;
+    --zone: rgba(120, 200, 190, 0.045); --zone-edge: #33433f;
+    --accent: #55bdb0; --signal: #dda45f; --signal-soft: rgba(221, 164, 95, 0.1);
+    --danger: #e07a72; --danger-soft: rgba(224, 122, 114, 0.1);
   }
 
   * { box-sizing: border-box; }
-
   body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
+    margin: 0; background: var(--bg); color: var(--ink);
     font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     line-height: 1.5;
   }
-
-  .wrap {
-    max-width: 1320px;
-    margin: 0 auto;
-    padding: 2.5rem 1.5rem 4rem;
-    display: flex;
-    flex-direction: column;
-    gap: 2.25rem;
-  }
-
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; display: flex; flex-direction: column; gap: 2.25rem; }
   .masthead { display: flex; flex-direction: column; gap: 0.5rem; }
+  .stamp { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.11em; text-transform: uppercase; color: var(--accent); }
+  h1 { margin: 0; font-size: 1.85rem; font-weight: 600; letter-spacing: -0.015em; text-wrap: balance; }
+  .standfirst { margin: 0; color: var(--muted); font-size: 1rem; max-width: 72ch; }
 
-  .stamp {
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
-    font-size: 0.72rem;
-    font-weight: 500;
-    letter-spacing: 0.11em;
-    text-transform: uppercase;
-    color: var(--accent);
-  }
-
-  h1 {
-    margin: 0;
-    font-size: 1.85rem;
-    font-weight: 600;
-    letter-spacing: -0.015em;
-    text-wrap: balance;
-  }
-
-  .standfirst {
-    margin: 0;
-    color: var(--muted);
-    font-size: 1rem;
-    max-width: 68ch;
-  }
-
-  .key {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem 1.9rem;
-    padding: 0.85rem 1rem;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--panel);
-    font-size: 0.82rem;
-    color: var(--muted);
-  }
+  .key { display: flex; flex-wrap: wrap; gap: 0.4rem 1.9rem; padding: 0.85rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); font-size: 0.82rem; color: var(--muted); }
   .key b { color: var(--ink); font-weight: 500; }
   .key span { display: inline-flex; align-items: center; gap: 0.55rem; }
   .key i { flex: none; display: inline-block; width: 30px; height: 0; border-top: 2px solid var(--line); }
   .key i.dotted { border-top-style: dotted; }
   .key i.dashed { border-top-style: dashed; border-color: var(--muted); }
   .key i.gated { border-color: var(--signal); }
+  .key i.danger { border-color: var(--danger); border-top-width: 2.5px; }
 
-  section { display: flex; flex-direction: column; gap: 0.9rem; }
+  nav.toc { display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem; font-size: 0.86rem; }
+  nav.toc a { color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--border); }
+  nav.toc a:hover { color: var(--accent); border-color: var(--accent); }
 
-  h2 {
-    margin: 0;
-    font-size: 1.02rem;
-    font-weight: 600;
-    letter-spacing: -0.005em;
-    display: flex;
-    align-items: baseline;
-    gap: 0.7rem;
-  }
-  h2 em {
-    font-style: normal;
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.11em;
-    text-transform: uppercase;
-    color: var(--accent);
-    font-weight: 500;
-  }
+  section { display: flex; flex-direction: column; gap: 0.9rem; scroll-margin-top: 1rem; }
+  h2 { margin: 0; font-size: 1.02rem; font-weight: 600; letter-spacing: -0.005em; display: flex; align-items: baseline; gap: 0.7rem; }
+  h2 em { font-style: normal; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.68rem; letter-spacing: 0.11em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
 
   figure { margin: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+  .frame { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 0.6rem; overflow-x: auto; }
+  .frame svg { display: block; width: 100%; height: auto; min-width: 980px; }
+  figcaption { color: var(--muted); font-size: 0.875rem; max-width: 82ch; }
 
-  .frame {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0.6rem;
-    overflow-x: auto;
-  }
-
-  .frame svg {
-    display: block;
-    width: 100%;
-    height: auto;
-    min-width: 980px;
-  }
-
-  figcaption {
-    color: var(--muted);
-    font-size: 0.875rem;
-    max-width: 78ch;
-  }
-
-  .notes {
-    border-top: 1px solid var(--border);
-    padding-top: 1.6rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.1rem;
-  }
+  .notes { border-top: 1px solid var(--border); padding-top: 1.6rem; display: flex; flex-direction: column; gap: 1.1rem; }
   .notes h2 { margin-bottom: 0.2rem; }
   .notes dl { margin: 0; display: grid; gap: 1.15rem; }
-  .notes dt {
-    font-weight: 600;
-    font-size: 0.95rem;
-    margin-bottom: 0.15rem;
-  }
-  .notes dd {
-    margin: 0;
-    color: var(--muted);
-    font-size: 0.92rem;
-    max-width: 82ch;
-  }
+  .notes dt { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.15rem; }
+  .notes dd { margin: 0; color: var(--muted); font-size: 0.92rem; max-width: 84ch; }
 
-  code {
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
-    font-size: 0.88em;
-    color: var(--ink);
-    background: var(--panel-2);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 0.03em 0.32em;
-  }
+  code { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.88em; color: var(--ink); background: var(--panel-2); border: 1px solid var(--border); border-radius: 4px; padding: 0.03em 0.32em; }
 
-  /* ---- SVG typography tokens ---- */
   svg text { font-family: "IBM Plex Sans", sans-serif; fill: var(--ink); }
   svg .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
   svg .t { font-size: 14px; font-weight: 600; }
@@ -197,501 +88,618 @@
   svg .gate-s { font-size: 10.5px; fill: var(--muted); font-family: "IBM Plex Mono", ui-monospace, monospace; }
   svg .gate-eyebrow { font-size: 9px; font-weight: 600; fill: var(--signal); letter-spacing: 0.13em; }
   svg .step { font-size: 11px; fill: var(--accent); font-weight: 600; font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  svg .danger-t { font-size: 11.5px; font-weight: 600; fill: var(--danger); font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  svg .danger-s { font-size: 10px; fill: var(--danger); font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  svg .icon { stroke: var(--accent); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  svg .icon-fill { fill: var(--accent); stroke: none; }
+  svg .icon-danger { stroke: var(--danger); }
+  svg .icon-muted { stroke: var(--muted); }
 
-  @media (prefers-reduced-motion: no-preference) {
-    a { transition: color 120ms ease; }
-  }
   a { color: var(--accent); }
   a:focus-visible, .frame:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (prefers-reduced-motion: no-preference) { a { transition: color 120ms ease; } }
 </style>
 
 <div class="wrap">
 
   <div class="masthead">
-    <p class="stamp">As of 2026-09-07 &middot; internal reference</p>
+    <p class="stamp">As of 2026-09-07 &middot; internal reference &middot; rebuilt after phases 6&ndash;9.1 and the infrastructure audit</p>
     <h1>KC IT Infrastructure Map</h1>
-    <p class="standfirst">Every live piece behind kcitsolutions.co and the ops fleet that runs the business, in four views: how a page request is served, how a lead reaches the inbox, how Kevin's machine is allowed to touch AWS, and how an agent gets real tool access without a bad command running unsupervised.</p>
+    <p class="standfirst">Every live piece behind kcitsolutions.co and the six-agent ops fleet that runs the business, in five views: the whole system at a glance, how the six agents delegate to each other, what actually lives inside the dashboard's Node process, how a chatbot request and a lead are served on AWS, and exactly where the confirm-step gate sits, including the specific spots the infrastructure audit found it doesn't reach.</p>
   </div>
+
+  <nav class="toc">
+    <a href="#view1">1. The whole system</a>
+    <a href="#view2">2. The agent fleet</a>
+    <a href="#view3">3. Inside the dashboard</a>
+    <a href="#view4">4. The chatbot &amp; a lead</a>
+    <a href="#view5">5. The confirm-step, and where it doesn't reach</a>
+  </nav>
 
   <div class="key">
     <span><i></i> <b>solid</b> &middot; live request or data flow</span>
-    <span><i class="dotted"></i> <b>dotted</b> &middot; DNS points at, not traffic</span>
-    <span><i class="gated"></i> <b>amber</b> &middot; passes the <code>kcit-deploy</code> credential</span>
-    <span><i class="dashed"></i> <b>dashed with &times;</b> &middot; blocked, does not work</span>
+    <span><i class="dotted"></i> <b>dotted</b> &middot; DNS / config, not traffic</span>
+    <span><i class="gated"></i> <b>amber</b> &middot; passes through a human confirm-step</span>
+    <span><i class="danger"></i> <b>red</b> &middot; a gap the 2026-09-07 audit found</span>
   </div>
 
-  <!-- ============================ FIGURE 1 ============================ -->
-  <section>
-    <h2><em>View 1</em> How a request is served</h2>
+  <defs style="display:none">
+    <!-- shared icon symbols, referenced by <use> across every view -->
+    <svg>
+      <symbol id="ic-person" viewBox="0 0 24 24"><circle class="icon" cx="12" cy="7.5" r="3.6"></circle><path class="icon" d="M4.5 20.5c0-4.2 3.4-7 7.5-7s7.5 2.8 7.5 7"></path></symbol>
+      <symbol id="ic-phone" viewBox="0 0 24 24"><rect class="icon" x="6.5" y="2.5" width="11" height="19" rx="2.2"></rect><line class="icon" x1="10.5" y1="18.2" x2="13.5" y2="18.2"></line></symbol>
+      <symbol id="ic-lock" viewBox="0 0 24 24"><rect class="icon" x="5" y="11" width="14" height="10" rx="1.8"></rect><path class="icon" d="M8 11V7.5a4 4 0 0 1 8 0V11"></path></symbol>
+      <symbol id="ic-server" viewBox="0 0 24 24"><rect class="icon" x="3.5" y="4" width="17" height="6.5" rx="1.4"></rect><rect class="icon" x="3.5" y="13.5" width="17" height="6.5" rx="1.4"></rect><circle class="icon-fill" cx="7" cy="7.25" r="1"></circle><circle class="icon-fill" cx="7" cy="16.75" r="1"></circle></symbol>
+      <symbol id="ic-robot" viewBox="0 0 24 24"><rect class="icon" x="5" y="8" width="14" height="11" rx="2.4"></rect><line class="icon" x1="12" y1="8" x2="12" y2="4.2"></line><circle class="icon-fill" cx="12" cy="3" r="1.3"></circle><circle class="icon-fill" cx="9" cy="13" r="1.2"></circle><circle class="icon-fill" cx="15" cy="13" r="1.2"></circle><line class="icon" x1="9" y1="17" x2="15" y2="17"></line></symbol>
+      <symbol id="ic-book" viewBox="0 0 24 24"><path class="icon" d="M4.5 5.5c2.4-1.4 5-1.4 7.5 0c2.5-1.4 5.1-1.4 7.5 0v13c-2.4-1.4-5-1.4-7.5 0c-2.5-1.4-5.1-1.4-7.5 0z"></path><line class="icon" x1="12" y1="5.5" x2="12" y2="18.5"></line></symbol>
+      <symbol id="ic-cloud" viewBox="0 0 24 24"><path class="icon" d="M7 18h10.5a3.5 3.5 0 0 0 .4-6.98A5.5 5.5 0 0 0 7.2 9.6A4 4 0 0 0 7 18z"></path></symbol>
+      <symbol id="ic-db" viewBox="0 0 24 24"><ellipse class="icon" cx="12" cy="5.5" rx="7" ry="2.6"></ellipse><path class="icon" d="M5 5.5v13c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-13"></path><path class="icon" d="M5 12c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6"></path></symbol>
+      <symbol id="ic-git" viewBox="0 0 24 24"><circle class="icon" cx="7" cy="6" r="2.1"></circle><circle class="icon" cx="7" cy="18" r="2.1"></circle><circle class="icon" cx="17" cy="12" r="2.1"></circle><line class="icon" x1="7" y1="8.1" x2="7" y2="15.9"></line><path class="icon" d="M7 10c0 2.5 2 4 5 4h3"></path></symbol>
+      <symbol id="ic-bolt" viewBox="0 0 24 24"><path class="icon-fill" d="M13 2L4.5 13.5H11L10 22l9-12.5H12.5z"></path></symbol>
+      <symbol id="ic-shield" viewBox="0 0 24 24"><path class="icon" d="M12 2.8l7 2.6v6.1c0 4.7-3 8.4-7 9.7c-4-1.3-7-5-7-9.7V5.4z"></path><path class="icon" d="M9 12l2.2 2.2L15.5 9.5"></path></symbol>
+      <symbol id="ic-warn" viewBox="0 0 24 24"><path class="icon-danger" d="M12 3.5l9.5 16.5h-19z" fill="none" stroke-width="1.6"></path><line class="icon-danger" x1="12" y1="9.5" x2="12" y2="14.2"></line><circle cx="12" cy="17" r="1.05" fill="var(--danger)" stroke="none"></circle></symbol>
+      <symbol id="ic-chat" viewBox="0 0 24 24"><path class="icon" d="M4 5.5h16v10.5H9.5L5 20v-4H4z"></path></symbol>
+      <symbol id="ic-mail" viewBox="0 0 24 24"><rect class="icon" x="3.5" y="6" width="17" height="12" rx="1.6"></rect><path class="icon" d="M4 7l8 6l8-6"></path></symbol>
+      <symbol id="ic-globe" viewBox="0 0 24 24"><circle class="icon" cx="12" cy="12" r="8.2"></circle><ellipse class="icon" cx="12" cy="12" rx="3.6" ry="8.2"></ellipse><line class="icon" x1="3.8" y1="12" x2="20.2" y2="12"></line></symbol>
+      <symbol id="ic-toggle" viewBox="0 0 24 24"><rect class="icon-danger" x="3" y="8" width="18" height="8" rx="4"></rect><circle cx="16" cy="12" r="2.4" fill="var(--danger)" stroke="none"></circle></symbol>
+    </svg>
+  </defs>
+
+  <!-- ============================ VIEW 1: SYSTEM TOPOLOGY ============================ -->
+  <section id="view1">
+    <h2><em>View 1</em> The whole system, at a glance</h2>
     <figure>
       <div class="frame">
-        <svg viewBox="0 0 1240 600" role="img" aria-label="A visitor looks up kcitsolutions.co at Namecheap DNS, whose CNAME and ALIAS records point at the CloudFront distribution. The visitor's browser then makes an HTTPS request to CloudFront, which splits on two behaviors: the default behavior serves static files from the S3 bucket, and slash api slash chat reaches the kcit-chatbot Lambda through an Origin Access Control. The Lambda calls the Anthropic API with a cached system prompt and writes per-request token counts to CloudWatch Logs.">
+        <svg viewBox="0 0 1280 600" role="img" aria-label="Kevin reaches a local ops dashboard over Tailscale from his phone or laptop. The dashboard is a Node service running the six-agent fleet, which reads and writes an Obsidian vault backed up to a private GitHub repo, and calls the Anthropic API directly. Separately, the public internet reaches the kc.IT product on AWS: CloudFront, S3, and a Lambda that also calls the Anthropic API and hands leads to Web3Forms. The kc.IT repo itself lives on Kevin's machine too, but has no GitHub remote, unlike the vault repo.">
           <defs>
-            <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"></path>
-            </marker>
-          </defs>
-
-          <!-- zone -->
-          <rect x="40" y="150" width="880" height="420" rx="12" fill="var(--zone)" stroke="var(--zone-edge)"></rect>
-          <text x="898" y="176" text-anchor="end" class="zl">AWS &middot; US-EAST-1 &middot; 566348718756</text>
-
-          <!-- arrows -->
-          <g stroke="var(--line)" stroke-width="1.5" fill="none">
-            <line x1="230" y1="72" x2="352" y2="72" marker-end="url(#a1)"></line>
-            <polyline points="135,104 135,235 352,235" marker-end="url(#a1)"></polyline>
-            <line x1="485" y1="104" x2="485" y2="192" stroke-dasharray="1.5,4" stroke-linecap="round" marker-end="url(#a1)"></line>
-            <polyline points="430,270 430,310 215,310 215,342" marker-end="url(#a1)"></polyline>
-            <line x1="545" y1="270" x2="545" y2="342" marker-end="url(#a1)"></line>
-            <line x1="690" y1="386" x2="972" y2="386" marker-end="url(#a1)"></line>
-            <polyline points="545,440 545,462 760,462 760,478" marker-end="url(#a1)"></polyline>
-          </g>
-
-          <!-- nodes -->
-          <g>
-            <rect x="40" y="40" width="190" height="64" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-            <rect x="360" y="40" width="250" height="64" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-            <rect x="360" y="200" width="280" height="70" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect>
-            <rect x="90" y="350" width="250" height="72" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-            <rect x="400" y="350" width="290" height="90" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect>
-            <rect x="620" y="486" width="280" height="72" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-            <rect x="980" y="350" width="220" height="72" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-          </g>
-
-          <!-- node text -->
-          <g text-anchor="middle">
-            <text x="135" y="68" class="t">Visitor</text>
-            <text x="135" y="86" class="s">customer / prospect</text>
-
-            <text x="485" y="68" class="t">Namecheap DNS</text>
-            <text x="485" y="86" class="s mono">CNAME www &middot; ALIAS @</text>
-
-            <text x="500" y="228" class="t">CloudFront</text>
-            <text x="500" y="246" class="s mono">ENS0UT1SINC8O</text>
-            <text x="500" y="261" class="s">two behaviors</text>
-
-            <text x="215" y="378" class="t">Amazon S3</text>
-            <text x="215" y="396" class="s mono">kcitsolutions.co</text>
-            <text x="215" y="412" class="s">files/ is the site, no build step</text>
-
-            <text x="545" y="378" class="t">AWS Lambda</text>
-            <text x="545" y="396" class="s mono">kcit-chatbot</text>
-            <text x="545" y="412" class="s">multi-tenant, one JSON per client</text>
-            <text x="545" y="428" class="s mono">Function URL: AWS_IAM only</text>
-
-            <text x="760" y="514" class="t">CloudWatch Logs</text>
-            <text x="760" y="532" class="s mono">/aws/lambda/kcit-chatbot</text>
-            <text x="760" y="548" class="s">token counts, JSON lines</text>
-
-            <text x="1090" y="378" class="t">Anthropic API</text>
-            <text x="1090" y="396" class="s mono">claude-opus-5</text>
-            <text x="1090" y="412" class="s">cached system prompt</text>
-          </g>
-
-          <!-- arrow labels, drawn last -->
-          <g class="lbl">
-            <text x="291" y="62" text-anchor="middle">kcitsolutions.co</text>
-            <text x="247" y="225" text-anchor="middle">HTTPS request</text>
-            <text x="495" y="158" text-anchor="start">points at</text>
-            <text x="322" y="300" text-anchor="middle">default behavior</text>
-            <text x="556" y="300" text-anchor="start">/api/chat</text>
-            <text x="556" y="316" text-anchor="start">through the OAC</text>
-            <text x="831" y="376" text-anchor="middle">calls the model</text>
-            <text x="652" y="454" text-anchor="middle">per-request token usage</text>
-          </g>
-        </svg>
-      </div>
-      <figcaption>DNS only points; the browser does the connecting. Everything a visitor sees comes out of one CloudFront distribution, which decides on path: <code>/api/chat</code> goes to the Lambda through an Origin Access Control, everything else comes straight off S3. The Lambda's own Function URL is <code>AWS_IAM</code>-only, so nothing but CloudFront can invoke it.</figcaption>
-    </figure>
-  </section>
-
-  <!-- ============================ FIGURE 2 ============================ -->
-  <section>
-    <h2><em>View 2</em> How a lead reaches the inbox</h2>
-    <figure>
-      <div class="frame">
-        <svg viewBox="0 0 1260 440" role="img" aria-label="The Lambda cannot post a lead to Web3Forms because Cloudflare blocks AWS datacenter IP addresses. Instead the visitor's browser sends a chat message to the Lambda, the Lambda hands back a ready-to-send payload, and the visitor's own browser posts it to Web3Forms. The static contact form posts to Web3Forms the same way with no Lambda involved. Web3Forms then emails the lead to the Outlook inbox.">
-          <defs>
-            <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"></path>
-            </marker>
-          </defs>
-
-          <rect x="420" y="30" width="340" height="112" rx="12" fill="var(--zone)" stroke="var(--zone-edge)"></rect>
-          <text x="742" y="50" text-anchor="end" class="zl">AWS</text>
-
-          <!-- arrows -->
-          <g stroke="var(--line)" stroke-width="1.5" fill="none">
-            <polyline points="180,240 180,92 436,92" marker-end="url(#a2)"></polyline>
-            <polyline points="590,122 590,196 240,196 240,232" marker-end="url(#a2)"></polyline>
-            <line x1="320" y1="262" x2="872" y2="262" marker-end="url(#a2)"></line>
-            <line x1="320" y1="300" x2="872" y2="300" marker-end="url(#a2)"></line>
-            <line x1="995" y1="316" x2="995" y2="348" marker-end="url(#a2)"></line>
-          </g>
-          <!-- blocked edge -->
-          <g stroke="var(--muted)" stroke-width="1.5" fill="none" stroke-dasharray="6,5">
-            <polyline points="736,92 995,92 995,232"></polyline>
-          </g>
-          <circle cx="995" cy="166" r="13" fill="var(--panel)" stroke="none"></circle>
-          <g stroke="var(--muted)" stroke-width="2" stroke-linecap="round">
-            <line x1="988" y1="159" x2="1002" y2="173"></line>
-            <line x1="1002" y1="159" x2="988" y2="173"></line>
-          </g>
-
-          <!-- nodes -->
-          <g>
-            <rect x="444" y="62" width="292" height="60" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect>
-            <rect x="40" y="240" width="280" height="76" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect>
-            <rect x="880" y="240" width="230" height="76" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-            <rect x="880" y="356" width="230" height="60" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-          </g>
-
-          <g text-anchor="middle">
-            <text x="590" y="88" class="t">AWS Lambda</text>
-            <text x="590" y="106" class="s mono">kcit-chatbot</text>
-
-            <text x="180" y="274" class="t">Visitor's browser</text>
-            <text x="180" y="294" class="s">the only thing that can reach Web3Forms</text>
-
-            <text x="995" y="268" class="t">Web3Forms</text>
-            <text x="995" y="288" class="s">lead delivery</text>
-            <text x="995" y="304" class="s">sits behind Cloudflare</text>
-
-            <text x="995" y="382" class="t">Outlook inbox</text>
-            <text x="995" y="402" class="s mono">KC.ITSolutions@outlook.com</text>
-          </g>
-
-          <!-- labels last -->
-          <g class="lbl">
-            <text x="310" y="82" text-anchor="middle"><tspan class="step">1</tspan> chat message</text>
-            <text x="415" y="186" text-anchor="middle"><tspan class="step">2</tspan> hands back a ready-to-send payload</text>
-            <text x="596" y="252" text-anchor="middle"><tspan class="step">3</tspan> the browser posts the lead itself</text>
-            <text x="596" y="318" text-anchor="middle">the static contact form posts here the same way, no Lambda</text>
-            <text x="1018" y="160" text-anchor="start">Cloudflare blocks</text>
-            <text x="1018" y="176" text-anchor="start">AWS datacenter IPs</text>
-            <text x="1008" y="340" text-anchor="start">emails the lead</text>
-          </g>
-        </svg>
-      </div>
-      <figcaption>This is the one genuinely non-obvious thing in the system. The Lambda is never allowed to deliver a lead itself, so it builds the payload and hands it back down to the visitor's browser, which posts it over the visitor's own connection rather than an AWS one. The plain contact form on the static site has always worked this way; the chatbot just borrows the same exit.</figcaption>
-    </figure>
-  </section>
-
-  <!-- ============================ FIGURE 3 ============================ -->
-  <section>
-    <h2><em>View 3</em> How Kevin's machine reaches AWS</h2>
-    <figure>
-      <div class="frame">
-        <svg viewBox="0 0 1400 750" role="img" aria-label="Kevin's Windows machine holds two git repositories split by trust level: kc.IT with the site and chatbot source and no git remote at all, and kcit, the Obsidian ops vault, which pushes and pulls to GitHub. The Claude Code CLI runs four agents that read and write the vault, and client-onboarder runs the deploy scripts. The AI Ops dashboard pulls usage logs, prices them, stores them in a local SQLite file and serves them. Every AWS-touching action leaves through one narrowly scoped IAM user, kcit-deploy, which can only touch kcit-star Lambdas, kcit-lambda-star roles, one CloudFront distribution and read-only log events. Kevin reaches the dashboard locally, and his phone or laptop reaches it over Tailscale at 100.87.11.96 port 7417.">
-          <defs>
-            <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"></path>
-            </marker>
-            <marker id="g3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M0,0 L10,5 L0,10 z" fill="var(--signal)"></path>
-            </marker>
+            <marker id="a0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--line)"></path></marker>
+            <marker id="a0d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--danger)"></path></marker>
           </defs>
 
           <!-- zones -->
-          <rect x="30" y="56" width="590" height="660" rx="12" fill="var(--zone)" stroke="var(--zone-edge)"></rect>
-          <text x="52" y="80" class="zl">KEVIN'S MACHINE &middot; LOCAL, WINDOWS</text>
+          <rect x="20" y="40" width="550" height="500" rx="12" fill="var(--zone)" stroke="var(--zone-edge)"></rect>
+          <text x="30" y="64" class="zl">KEVIN'S MACHINE &middot; LOCAL, NEVER PUBLIC</text>
 
-          <rect x="1000" y="110" width="340" height="340" rx="12" fill="var(--zone)" stroke="var(--zone-edge)"></rect>
-          <text x="1320" y="134" text-anchor="end" class="zl">AWS &middot; US-EAST-1</text>
-
-          <!-- the credential band -->
-          <rect x="700" y="100" width="160" height="400" rx="12" fill="var(--signal-soft)" stroke="var(--signal)" stroke-width="1.8"></rect>
+          <rect x="720" y="40" width="540" height="430" rx="12" fill="var(--zone)" stroke="var(--zone-edge)"></rect>
+          <text x="730" y="64" class="zl">AWS &middot; US-EAST-1 &middot; PUBLIC INTERNET FACING</text>
 
           <!-- arrows -->
           <g stroke="var(--line)" stroke-width="1.5" fill="none">
-            <polyline points="466,100 466,40 692,40" marker-end="url(#a3)"></polyline>
-            <line x1="184" y1="236" x2="184" y2="200" marker-end="url(#a3)"></line>
-            <line x1="466" y1="236" x2="466" y2="200" marker-end="url(#a3)" marker-start="url(#a3)"></line>
-            <polyline points="184,610 184,590 440,590 440,576" marker-end="url(#a3)"></polyline>
-            <line x1="500" y1="610" x2="500" y2="576" marker-end="url(#a3)"></line>
-            <line x1="992" y1="648" x2="606" y2="648" marker-end="url(#a3)" marker-start="url(#a3)"></line>
-            <line x1="230" y1="501" x2="241" y2="501" marker-end="url(#a3)"></line>
-            <line x1="405" y1="501" x2="416" y2="501" marker-end="url(#a3)"></line>
+            <line x1="95" y1="140" x2="240" y2="172" marker-end="url(#a0)"></line>
+            <line x1="300" y1="212" x2="300" y2="260" marker-end="url(#a0)"></line>
+            <line x1="270" y1="325" x2="160" y2="400" marker-end="url(#a0)"></line>
+            <line x1="140" y1="465" x2="140" y2="470" marker-end="url(#a0)"></line>
+            <polyline points="370,280 385,280 385,180 588,180" marker-end="url(#a0)"></polyline>
+            <line x1="370" y1="292" x2="588" y2="292" marker-end="url(#a0)"></line>
+            <line x1="930" y1="292" x2="702" y2="292" marker-end="url(#a0)"></line>
+            <line x1="1200" y1="140" x2="1040" y2="150" marker-end="url(#a0)"></line>
+            <line x1="1040" y1="212" x2="1040" y2="260" marker-end="url(#a0)"></line>
+            <line x1="1170" y1="130" x2="830" y2="400" marker-end="url(#a0d)" stroke="var(--danger)" stroke-dasharray="1.5,4"></line>
+            <line x1="530" y1="432" x2="720" y2="432" marker-end="url(#a0)" stroke-dasharray="1.5,4"></line>
           </g>
 
-          <!-- gated flows -->
-          <g stroke="var(--signal)" stroke-width="1.8" fill="none">
-            <polyline points="598,360 940,360 940,183 1012,183" marker-end="url(#g3)"></polyline>
-            <polyline points="940,257 1012,257" marker-end="url(#g3)"></polyline>
-            <polyline points="940,331 1012,331" marker-end="url(#g3)"></polyline>
-            <polyline points="598,460 960,460 960,405 1012,405" marker-end="url(#g3)"></polyline>
-          </g>
-
-          <!-- band contents -->
+          <!-- node: Kevin/phone -->
           <g>
-            <rect x="766" y="126" width="28" height="20" rx="3" fill="none" stroke="var(--signal)" stroke-width="2"></rect>
-            <path d="M772,126 V120 a8,8 0 0 1 16,0 V126" fill="none" stroke="var(--signal)" stroke-width="2"></path>
-            <text x="780" y="168" text-anchor="middle" class="gate-t">kcit-deploy</text>
-            <text x="780" y="184" text-anchor="middle" class="gate-s">IAM user</text>
-            <line x1="718" y1="196" x2="842" y2="196" stroke="var(--signal)" stroke-width="1" opacity="0.45"></line>
-            <text x="780" y="212" text-anchor="middle" class="gate-eyebrow">SCOPED TO</text>
-            <text x="780" y="230" text-anchor="middle" class="gate-s">kcit-* Lambdas</text>
-            <text x="780" y="246" text-anchor="middle" class="gate-s">kcit-lambda-* roles</text>
-            <text x="780" y="262" text-anchor="middle" class="gate-s">1 CloudFront dist</text>
-            <text x="780" y="278" text-anchor="middle" class="gate-s">logs:FilterLogEvents</text>
-            <text x="780" y="294" text-anchor="middle" class="gate-s">read only</text>
-            <line x1="718" y1="306" x2="842" y2="306" stroke="var(--signal)" stroke-width="1" opacity="0.45"></line>
-            <text x="780" y="324" text-anchor="middle" class="gate-eyebrow">NEVER</text>
-            <text x="780" y="342" text-anchor="middle" class="gate-s">no EC2, no billing</text>
+            <rect x="40" y="70" width="70" height="70" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <use href="#ic-phone" x="58" y="82" width="34" height="34"></use>
           </g>
+          <text x="75" y="152" text-anchor="middle" class="s">Kevin, phone or laptop</text>
 
-          <!-- machine nodes -->
+          <!-- Tailscale -->
           <g>
-            <rect x="52" y="100" width="264" height="100" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-            <rect x="334" y="100" width="264" height="100" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-            <rect x="52" y="236" width="546" height="140" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect>
-            <rect x="52" y="412" width="546" height="164" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect>
-            <rect x="52" y="610" width="264" height="76" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-            <rect x="334" y="610" width="264" height="76" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-            <!-- agent chips -->
-            <rect x="70" y="300" width="250" height="32" rx="5" fill="var(--panel-2)" stroke="var(--border)"></rect>
-            <rect x="330" y="300" width="250" height="32" rx="5" fill="var(--panel-2)" stroke="var(--border)"></rect>
-            <rect x="70" y="338" width="250" height="32" rx="5" fill="var(--panel-2)" stroke="var(--border)"></rect>
-            <rect x="330" y="338" width="250" height="32" rx="5" fill="var(--panel-2)" stroke="var(--border)"></rect>
-            <!-- dashboard chips -->
-            <rect x="70" y="474" width="160" height="54" rx="5" fill="var(--panel-2)" stroke="var(--border)"></rect>
-            <rect x="245" y="474" width="160" height="54" rx="5" fill="var(--panel-2)" stroke="var(--border)"></rect>
-            <rect x="420" y="474" width="160" height="54" rx="5" fill="var(--panel-2)" stroke="var(--border)"></rect>
+            <rect x="230" y="150" width="140" height="62" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <use href="#ic-lock" x="242" y="163" width="30" height="30"></use>
           </g>
+          <text x="330" y="172" class="t" font-size="12.5">Tailscale</text>
+          <text x="330" y="187" class="s">private mesh, not public</text>
+          <text x="330" y="200" class="s mono">+ HTTP Basic Auth</text>
 
-          <!-- external nodes -->
+          <!-- Dashboard -->
           <g>
-            <rect x="700" y="8" width="280" height="64" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-            <rect x="1020" y="152" width="300" height="62" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-            <rect x="1020" y="226" width="300" height="62" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-            <rect x="1020" y="300" width="300" height="62" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-            <rect x="1020" y="374" width="300" height="62" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-            <rect x="1000" y="608" width="340" height="80" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <rect x="230" y="260" width="140" height="65" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect>
+            <use href="#ic-server" x="242" y="271" width="30" height="30"></use>
           </g>
+          <text x="330" y="283" class="t" font-size="12.5">Ops dashboard</text>
+          <text x="330" y="298" class="s mono">node server.mjs</text>
+          <text x="330" y="311" class="s">port 7417, view 3</text>
 
-          <!-- node text -->
-          <g text-anchor="middle">
-            <text x="184" y="128" class="t mono">kc.IT</text>
-            <text x="184" y="148" class="s">site + chatbot source</text>
-            <text x="184" y="164" class="s mono">deploy.ps1 &middot; wire-cloudfront.ps1</text>
-            <text x="184" y="184" class="s">no git remote at all</text>
-
-            <text x="466" y="128" class="t mono">kcit</text>
-            <text x="466" y="148" class="s">the ops repo, an Obsidian vault</text>
-            <text x="466" y="164" class="s">pricing &middot; prospects &middot; clients</text>
-            <text x="466" y="184" class="s">remote on GitHub</text>
-
-            <text x="325" y="264" class="t">Claude Code CLI</text>
-            <text x="325" y="283" class="s mono">kcit/.claude/agents/</text>
-            <text x="195" y="320" class="s mono">prospect-scout</text>
-            <text x="455" y="320" class="s mono">follow-up</text>
-            <text x="195" y="358" class="s mono">client-onboarder</text>
-            <text x="455" y="358" class="s mono">executive-assistant</text>
-
-            <text x="325" y="440" class="t">AI Ops Dashboard</text>
-            <text x="325" y="459" class="s mono">kcit/dashboard/</text>
-            <text x="150" y="496" class="s mono">cost-report.mjs</text>
-            <text x="150" y="512" class="s">pull + price</text>
-            <text x="325" y="496" class="s mono">costs.db</text>
-            <text x="325" y="512" class="s">local SQLite</text>
-            <text x="500" y="496" class="s mono">server.mjs</text>
-            <text x="500" y="512" class="s">serves :7417</text>
-            <text x="325" y="552" class="s">pull the usage logs &middot; price them &middot; store &middot; serve</text>
-
-            <text x="184" y="638" class="t">Kevin</text>
-            <text x="184" y="660" class="s">local browser</text>
-            <text x="184" y="676" class="s">chats with agents too</text>
-
-            <text x="466" y="636" class="t mono">Tailscale</text>
-            <text x="466" y="656" class="s mono">100.87.11.96</text>
-            <text x="466" y="674" class="s">live and verified</text>
-
-            <text x="840" y="34" class="t mono">GitHub</text>
-            <text x="840" y="56" class="s mono">kevinchavez42069-afk/kcit</text>
-
-            <text x="1170" y="178" class="t mono">AWS Lambda</text>
-            <text x="1170" y="198" class="s">update kcit-chatbot code</text>
-
-            <text x="1170" y="252" class="t mono">Amazon S3</text>
-            <text x="1170" y="272" class="s">upload files/ to the bucket</text>
-
-            <text x="1170" y="326" class="t mono">CloudFront</text>
-            <text x="1170" y="346" class="s">invalidate ENS0UT1SINC8O</text>
-
-            <text x="1170" y="400" class="t mono">CloudWatch Logs</text>
-            <text x="1170" y="420" class="s">read usage log events</text>
-
-            <text x="1170" y="640" class="t">Kevin's phone / laptop</text>
-            <text x="1170" y="662" class="s">away from the desk</text>
+          <!-- Agent fleet -->
+          <g>
+            <rect x="60" y="400" width="160" height="65" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect>
+            <use href="#ic-robot" x="72" y="412" width="30" height="30"></use>
           </g>
+          <text x="140" y="422" class="t">6-agent fleet</text>
+          <text x="140" y="438" class="s mono">Claude Agent SDK</text>
+          <text x="140" y="452" class="s">view 2</text>
 
-          <!-- arrow labels last -->
+          <!-- Vault -->
+          <g>
+            <rect x="60" y="470" width="160" height="55" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <use href="#ic-book" x="72" y="479" width="26" height="26"></use>
+          </g>
+          <text x="140" y="494" class="t">Obsidian vault</text>
+          <text x="140" y="510" class="s mono">local files, git-tracked</text>
+
+          <!-- kc.IT git, local only, no remote, flagged -->
+          <g>
+            <rect x="390" y="400" width="140" height="65" rx="8" fill="var(--panel)" stroke="var(--danger)" stroke-width="1.8" stroke-dasharray="4,3"></rect>
+            <use href="#ic-warn" x="402" y="410" width="26" height="26"></use>
+          </g>
+          <text x="460" y="422" class="danger-t" text-anchor="middle">kc.IT repo</text>
+          <text x="460" y="438" class="danger-s" text-anchor="middle">no git remote</text>
+          <text x="460" y="452" class="danger-s" text-anchor="middle">one disk, no backup</text>
+
+          <!-- GitHub (kcit only) -->
+          <g>
+            <rect x="590" y="150" width="115" height="62" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <use href="#ic-git" x="600" y="163" width="28" height="28"></use>
+          </g>
+          <text x="647" y="197" text-anchor="middle" class="t" font-size="12">GitHub</text>
+          <text x="647" y="145" text-anchor="middle" class="s mono">kevinchavez.../kcit</text>
+
+          <!-- Anthropic API, shared by both sides -->
+          <g>
+            <rect x="590" y="260" width="115" height="65" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <use href="#ic-bolt" x="600" y="270" width="26" height="26"></use>
+          </g>
+          <text x="647" y="298" text-anchor="middle" class="t" font-size="12">Anthropic</text>
+          <text x="647" y="312" text-anchor="middle" class="s" font-size="9.5">two separate keys</text>
+
+          <!-- Public internet / visitor -->
+          <g>
+            <rect x="1170" y="70" width="70" height="70" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <use href="#ic-globe" x="1188" y="82" width="34" height="34"></use>
+          </g>
+          <text x="1205" y="152" text-anchor="middle" class="s">Visitor, public</text>
+
+          <!-- CloudFront + S3 -->
+          <g>
+            <rect x="930" y="150" width="220" height="62" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
+            <use href="#ic-cloud" x="942" y="163" width="30" height="30"></use>
+          </g>
+          <text x="1050" y="172" class="t" font-size="12.5">CloudFront + S3</text>
+          <text x="1050" y="188" class="s mono">kcitsolutions.co, files/</text>
+          <text x="1050" y="201" class="s">view 4</text>
+
+          <!-- Lambda -->
+          <g>
+            <rect x="930" y="260" width="220" height="65" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect>
+            <use href="#ic-bolt" x="942" y="271" width="30" height="30"></use>
+          </g>
+          <text x="1050" y="283" class="t" font-size="12.5">Lambda, kcit-chatbot</text>
+          <text x="1050" y="298" class="s mono">one JSON per client</text>
+          <text x="1050" y="311" class="s">view 4</text>
+
+          <!-- Web3Forms -->
+          <g>
+            <rect x="750" y="400" width="160" height="55" rx="8" fill="var(--panel)" stroke="var(--danger)" stroke-width="1.6"></rect>
+            <use href="#ic-mail" x="762" y="409" width="26" height="26"></use>
+          </g>
+          <text x="830" y="420" class="t" font-size="12.5" text-anchor="middle">Web3Forms</text>
+          <text x="830" y="435" class="danger-s" text-anchor="middle" font-size="9.5">visitor's browser sends this,</text>
+          <text x="830" y="447" class="danger-s" text-anchor="middle" font-size="9.5">no server-side fallback</text>
+
+          <!-- labels -->
           <g class="lbl">
-            <text x="583" y="30" text-anchor="middle">push / pull</text>
-            <text x="194" y="222" text-anchor="start">runs deploy scripts</text>
-            <text x="476" y="222" text-anchor="start">reads + writes</text>
-            <text x="312" y="580" text-anchor="middle">opens :7417</text>
-            <text x="512" y="592" text-anchor="start">binds 0.0.0.0</text>
-            <text x="799" y="638" text-anchor="middle">http://100.87.11.96:7417</text>
-            <text x="659" y="352" text-anchor="middle" fill="var(--signal)">deploys</text>
-            <text x="659" y="452" text-anchor="middle" fill="var(--signal)">reads logs</text>
+            <text x="150" y="150" text-anchor="middle">over Tailscale</text>
+            <text x="300" y="240" text-anchor="middle">confirm-step gated</text>
+            <text x="90" y="375" text-anchor="middle">reads &amp; writes</text>
+            <text x="480" y="174" text-anchor="middle">git push / fetch</text>
+            <text x="480" y="286" text-anchor="middle">chat + agent calls</text>
+            <text x="815" y="286" text-anchor="middle">model calls</text>
+            <text x="1170" y="145" text-anchor="middle">HTTPS</text>
+            <text x="1050" y="240" text-anchor="middle">/api/chat via OAC</text>
+            <text x="1050" y="345" text-anchor="middle" fill="var(--danger)">no spend cap anywhere, view 5</text>
+            <text x="625" y="424" text-anchor="middle">deploys files, not git</text>
           </g>
         </svg>
       </div>
-      <figcaption>Two repos split by trust level, one agent fleet, one dashboard, and exactly one way out to AWS. Both amber flows (<code>client-onboarder</code> running the deploy scripts, and <code>cost-report.mjs</code> pulling usage logs) go through <code>kcit-deploy</code> and can only land on the four resources listed inside it. The Tailscale path is live: it goes straight from Kevin's phone or laptop to <code>server.mjs</code> and never touches AWS. What happens when Kevin actually chats with an agent through that connection is View 4.</figcaption>
+      <figcaption>Two systems that share a business, not a network. Kevin's own machine and the AWS side never talk to each other directly; both independently call the Anthropic API with separate keys. The one asymmetry worth noticing: the vault repo has a private GitHub remote and is backed up. <strong>The kc.IT product repo, the thing that actually generates revenue, does not</strong>, per the 2026-09-07 audit.</figcaption>
     </figure>
   </section>
 
-  <!-- ============================ FIGURE 4 ============================ -->
-  <section>
-    <h2><em>View 4</em> How an agent gets real tool access</h2>
+  <!-- ============================ VIEW 2: AGENT FLEET & DELEGATION ============================ -->
+  <section id="view2">
+    <h2><em>View 2</em> The agent fleet, and who can delegate to whom</h2>
     <figure>
       <div class="frame">
-        <svg viewBox="0 0 1180 740" role="img" aria-label="Kevin's browser posts a message to server.mjs, which first checks that both local repos are current with origin, refusing to start if either is behind. The Claude Agent SDK then loads the target agent with its real tool list. Read, Write, Edit, Glob, Grep, WebSearch and WebFetch are pre-approved and run immediately, because everything they touch is git-tracked and reversible. Bash is available but never pre-approved, so every Bash call falls through to a canUseTool callback that stores a pending confirmation. The browser polls for that pending confirmation and shows it as a banner with the real command. Kevin approves or denies it: approve runs the command, deny tells the agent it was refused and the agent continues without it.">
+        <svg viewBox="0 0 1280 620" role="img" aria-label="executive-assistant is the hub, with Read, Write, Edit, Glob, Grep, Bash, and Task tools, and can delegate to the other five agents via the SDK's Task tool. Prospect-scout has WebSearch and WebFetch and no Bash. Follow-up has no web tools and no Bash. Client-onboarder, developer, and code-reviewer all have Bash gated by the confirm-step, except code-reviewer's Bash is not restricted despite it having no Write tool. All six agents can read and write both the kcit vault repo and the kc.IT product repo.">
           <defs>
-            <marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"></path>
-            </marker>
-            <marker id="g4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M0,0 L10,5 L0,10 z" fill="var(--signal)"></path>
-            </marker>
+            <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"></path></marker>
+            <marker id="a2d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--danger)"></path></marker>
           </defs>
 
-          <!-- zone: the confirm-step, wraps the whole right column -->
-          <rect x="740" y="300" width="400" height="410" rx="12" fill="var(--signal-soft)" stroke="var(--signal)" stroke-width="1.8"></rect>
-          <text x="1120" y="316" text-anchor="end" class="gate-eyebrow">THE CONFIRM-STEP</text>
+          <rect x="20" y="380" width="1240" height="90" rx="10" fill="var(--zone)" stroke="var(--zone-edge)"></rect>
+          <text x="30" y="404" class="zl">BOTH REPOS &middot; additionalDirectories GRANTS ALL SIX AGENTS kc.IT ACCESS TOO</text>
 
-          <!-- arrows: setup row -->
-          <g stroke="var(--line)" stroke-width="1.5" fill="none">
-            <line x1="260" y1="72" x2="320" y2="72" marker-end="url(#a4)"></line>
-            <line x1="540" y1="72" x2="600" y2="72" marker-end="url(#a4)"></line>
-            <line x1="720" y1="104" x2="720" y2="180" marker-end="url(#a4)"></line>
-          </g>
-
-          <!-- stale-repo refusal: a short local stub, not a return path -->
-          <g stroke="var(--muted)" stroke-width="1.5" fill="none" stroke-dasharray="5,4">
-            <line x1="840" y1="72" x2="898" y2="72"></line>
-          </g>
-          <circle cx="908" cy="72" r="11" fill="var(--panel)" stroke="none"></circle>
-          <g stroke="var(--muted)" stroke-width="1.8" stroke-linecap="round">
-            <line x1="903" y1="67" x2="913" y2="77"></line>
-            <line x1="913" y1="67" x2="903" y2="77"></line>
-          </g>
-
-          <!-- arrows: the fork -->
-          <g stroke="var(--line)" stroke-width="1.5" fill="none">
-            <polyline points="720,260 720,290 330,290 330,320" marker-end="url(#a4)"></polyline>
-            <line x1="330" y1="410" x2="330" y2="450" marker-end="url(#a4)"></line>
-          </g>
-          <g stroke="var(--signal)" stroke-width="1.8" fill="none">
-            <polyline points="720,260 720,290 940,290 940,320" marker-end="url(#g4)"></polyline>
-            <line x1="940" y1="390" x2="940" y2="420" marker-end="url(#g4)"></line>
-            <line x1="940" y1="480" x2="940" y2="520" marker-end="url(#g4)"></line>
-            <line x1="870" y1="590" x2="850" y2="628" marker-end="url(#g4)"></line>
-            <line x1="1010" y1="590" x2="1030" y2="628" marker-end="url(#g4)"></line>
-          </g>
-
-          <!-- nodes: setup row -->
+          <!-- hub: EA -->
           <g>
-            <rect x="40" y="40" width="220" height="64" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-            <rect x="320" y="40" width="220" height="64" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-            <rect x="600" y="40" width="240" height="64" rx="8" fill="var(--panel)" stroke="var(--signal)" stroke-width="1.6"></rect>
-            <rect x="560" y="180" width="320" height="80" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect>
+            <rect x="540" y="40" width="200" height="90" rx="10" fill="var(--panel)" stroke="var(--accent)" stroke-width="2"></rect>
+            <use href="#ic-robot" x="556" y="55" width="34" height="34"></use>
+          </g>
+          <text x="640" y="66" class="t" text-anchor="middle">executive-assistant</text>
+          <text x="640" y="83" class="s mono" text-anchor="middle">Read Write Edit Glob Grep</text>
+          <text x="640" y="97" class="s mono" text-anchor="middle">Bash &middot; Task &lt;- delegates</text>
+          <text x="640" y="112" class="s" text-anchor="middle">the only agent with Task</text>
+
+          <!-- 5 spokes -->
+          <g stroke="var(--accent)" stroke-width="1.5" fill="none">
+            <line x1="600" y1="130" x2="200" y2="230" marker-end="url(#a2)"></line>
+            <line x1="620" y1="130" x2="420" y2="230" marker-end="url(#a2)"></line>
+            <line x1="660" y1="130" x2="640" y2="230" marker-end="url(#a2)"></line>
+            <line x1="680" y1="130" x2="860" y2="230" marker-end="url(#a2)"></line>
+            <line x1="700" y1="130" x2="1080" y2="230" marker-end="url(#a2)"></line>
           </g>
 
-          <!-- nodes: safe fork (left) -->
+          <!-- prospect-scout -->
+          <g><rect x="100" y="230" width="200" height="110" rx="10" fill="var(--panel)" stroke="var(--border)"></rect><use href="#ic-robot" x="116" y="242" width="28" height="28"></use></g>
+          <text x="200" y="270" class="t" text-anchor="middle" font-size="13">prospect-scout</text>
+          <text x="200" y="287" class="s mono" text-anchor="middle">Read Write Edit</text>
+          <text x="200" y="301" class="s mono" text-anchor="middle">WebSearch WebFetch</text>
+          <text x="200" y="318" class="s" text-anchor="middle">most exposed, no Bash</text>
+          <text x="200" y="332" class="s" text-anchor="middle">scheduled Mon/Wed/Fri</text>
+
+          <!-- follow-up -->
+          <g><rect x="320" y="230" width="200" height="110" rx="10" fill="var(--panel)" stroke="var(--border)"></rect><use href="#ic-robot" x="336" y="242" width="28" height="28"></use></g>
+          <text x="420" y="270" class="t" text-anchor="middle" font-size="13">follow-up</text>
+          <text x="420" y="287" class="s mono" text-anchor="middle">Read Write Edit</text>
+          <text x="420" y="304" class="s mono" text-anchor="middle">Glob Grep</text>
+          <text x="420" y="321" class="s" text-anchor="middle">no web, no Bash</text>
+          <text x="420" y="335" class="s" text-anchor="middle">drafts only, never sends</text>
+
+          <!-- client-onboarder -->
+          <g><rect x="540" y="230" width="200" height="110" rx="10" fill="var(--panel)" stroke="var(--signal)" stroke-width="1.6"></rect><use href="#ic-robot" x="556" y="242" width="28" height="28"></use></g>
+          <text x="640" y="270" class="t" text-anchor="middle" font-size="13">client-onboarder</text>
+          <text x="640" y="287" class="s mono" text-anchor="middle">Read Write Edit Glob Grep</text>
+          <text x="640" y="304" class="s mono" text-anchor="middle">Bash, gated</text>
+          <text x="640" y="321" class="s" text-anchor="middle">runs the real deploy scripts</text>
+          <text x="640" y="335" class="s" text-anchor="middle">highest consequence agent</text>
+
+          <!-- developer -->
+          <g><rect x="760" y="230" width="200" height="110" rx="10" fill="var(--panel)" stroke="var(--signal)" stroke-width="1.6"></rect><use href="#ic-robot" x="776" y="242" width="28" height="28"></use></g>
+          <text x="860" y="270" class="t" text-anchor="middle" font-size="13">developer</text>
+          <text x="860" y="287" class="s mono" text-anchor="middle">Read Write Edit Glob Grep</text>
+          <text x="860" y="304" class="s mono" text-anchor="middle">Bash, gated</text>
+          <text x="860" y="321" class="s" text-anchor="middle">branch only, never merges</text>
+          <text x="860" y="335" class="s" text-anchor="middle">no-go: permissions.mjs, agents/</text>
+
+          <!-- code-reviewer -->
+          <g><rect x="980" y="230" width="200" height="110" rx="10" fill="var(--panel)" stroke="var(--danger)" stroke-width="1.8"></rect><use href="#ic-robot" x="996" y="242" width="28" height="28"></use></g>
+          <text x="1080" y="270" class="t" text-anchor="middle" font-size="13">code-reviewer</text>
+          <text x="1080" y="287" class="s mono" text-anchor="middle">Read Glob Grep</text>
+          <text x="1080" y="304" class="s mono danger-s" text-anchor="middle" font-weight="600">Bash, unrestricted</text>
+          <text x="1080" y="321" class="danger-s" text-anchor="middle">no Write, but Bash can commit,</text>
+          <text x="1080" y="335" class="danger-s" text-anchor="middle">merge, push, or delete anyway</text>
+
+          <!-- warning callout under code-reviewer -->
           <g>
-            <rect x="140" y="320" width="380" height="90" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect>
-            <rect x="140" y="450" width="380" height="66" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-          </g>
-
-          <!-- nodes: Bash / confirm fork (right) -->
-          <g>
-            <rect x="760" y="320" width="360" height="70" rx="8" fill="var(--panel)" stroke="var(--signal)" stroke-width="1.6"></rect>
-            <rect x="760" y="420" width="360" height="60" rx="8" fill="var(--panel)" stroke="var(--signal)" stroke-width="1.6"></rect>
-            <rect x="760" y="520" width="360" height="70" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-            <rect x="760" y="628" width="170" height="66" rx="8" fill="var(--panel)" stroke="var(--signal)" stroke-width="1.4"></rect>
-            <rect x="950" y="628" width="170" height="66" rx="8" fill="var(--panel)" stroke="var(--border)"></rect>
-          </g>
-
-          <!-- node text -->
-          <g text-anchor="middle">
-            <text x="150" y="64" class="t">Kevin</text>
-            <text x="150" y="82" class="s">browser, chat panel</text>
-
-            <text x="430" y="64" class="t mono">server.mjs</text>
-            <text x="430" y="82" class="s">POST /api/run</text>
-
-            <text x="720" y="64" class="gate-t">checkReposCurrent</text>
-            <text x="720" y="82" class="gate-s">fetches, compares to origin</text>
-
-            <text x="720" y="212" class="t">Claude Agent SDK</text>
-            <text x="720" y="230" class="s">query() with the agent's real system prompt</text>
-            <text x="720" y="246" class="s mono">tools: agent.tools &middot; allowedTools: tools minus Bash</text>
-
-            <text x="330" y="352" class="t">Read &middot; Write &middot; Edit</text>
-            <text x="330" y="370" class="s">Glob &middot; Grep &middot; WebSearch &middot; WebFetch</text>
-            <text x="330" y="388" class="s">pre-approved &mdash; git-tracked, reversible</text>
-            <text x="330" y="482" class="t">Tool executes</text>
-            <text x="330" y="500" class="s">immediately, reply goes back to Kevin</text>
-
-            <text x="940" y="348" class="gate-t">Bash</text>
-            <text x="940" y="366" class="gate-s">available, never pre-approved</text>
-            <text x="940" y="450" class="gate-t">Pending confirmation</text>
-            <text x="940" y="468" class="gate-s">canUseTool stores it, waits</text>
-            <text x="940" y="552" class="t">Confirm banner</text>
-            <text x="940" y="570" class="s">Kevin's browser, shows the real command</text>
-            <text x="845" y="656" class="gate-t">Approve</text>
-            <text x="845" y="674" class="gate-s">runs, replies</text>
-            <text x="1035" y="656" class="t">Deny</text>
-            <text x="1035" y="674" class="s">agent told, continues</text>
-          </g>
-
-          <!-- arrow labels, drawn last -->
-          <g class="lbl">
-            <text x="290" y="62" text-anchor="middle">1 message</text>
-            <text x="570" y="62" text-anchor="middle">2 checks both repos</text>
-            <text x="869" y="62" text-anchor="start" fill="var(--muted)">stale: refused</text>
-            <text x="735" y="150" text-anchor="middle">3 current: proceeds</text>
-            <text x="470" y="278" text-anchor="middle">safe tools</text>
-            <text x="1000" y="278" text-anchor="middle" fill="var(--signal)">4 Bash</text>
-            <text x="965" y="410" text-anchor="middle" fill="var(--signal)">5 polls GET /api/pending</text>
-            <text x="965" y="510" text-anchor="middle" fill="var(--signal)">6 Kevin decides</text>
+            <use href="#ic-warn" x="1150" y="235" width="20" height="20"></use>
           </g>
         </svg>
       </div>
-      <figcaption>The one line this whole mechanism rests on: Bash sits in the agent's real <code>tools</code> list (so it's available) but deliberately outside <code>allowedTools</code> (so it's never pre-approved) &mdash; confirmed by reading the Agent SDK's own source, which spawns the real Claude Code CLI and passes these as its actual <code>--tools</code> and <code>--allowedTools</code> flags. Every other tool a write-capable agent has is pre-approved and reversible through git; Bash is the only door to <code>git push</code>, a deploy script, or an <code>aws</code> call, and it never opens without Kevin looking at the actual command first.</figcaption>
+      <figcaption>One hub, five specialists. <code>executive-assistant</code> is the only agent with the SDK's <code>Task</code> tool, so it is the only one that can genuinely delegate, and a delegated agent hits the exact same confirm-step Bash gate as if Kevin ran it directly. The gap the audit flagged in red: <code>code-reviewer</code> has no <code>Write</code> tool by design, specifically so it cannot become the thing it is reviewing, but its unrestricted <code>Bash</code> means it can commit, merge, or push through the shell regardless. Every agent, not just the two with an obvious reason, also has write access into the live kc.IT product repo, via <code>additionalDirectories</code>.</figcaption>
     </figure>
   </section>
 
-  <!-- ============================ NOTES ============================ -->
+  <!-- ============================ VIEW 3: INSIDE THE DASHBOARD ============================ -->
+  <section id="view3">
+    <h2><em>View 3</em> Inside the dashboard's one Node process</h2>
+    <figure>
+      <div class="frame">
+        <svg viewBox="0 0 1280 640" role="img" aria-label="server.mjs routes browser requests to chat.mjs, which has two entry points: chatWithAgent for executive-assistant with delegation, and runAgentFull for the other five agents. Both route every tool call through permissions.mjs's canUseTool, which checks an auto-allow list, then a global auto-approve flag, then falls through to a pending queue the browser polls and resolves. runs.mjs tracks live tool calls for the Fleet tab. scheduler.mjs fires unattended standup, retro, and prospect-scout runs through the same two entry points, marked to ignore auto-approve. db.mjs stores cost data in SQLite. notify.mjs sends Pushover pushes.">
+          <defs>
+            <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--line)"></path></marker>
+            <marker id="a3g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--signal)"></path></marker>
+            <marker id="a3d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--danger)"></path></marker>
+          </defs>
+
+          <rect x="20" y="20" width="1240" height="600" rx="12" fill="var(--zone)" stroke="var(--zone-edge)"></rect>
+          <text x="32" y="44" class="zl">node server.mjs &middot; ONE PROCESS, IN-MEMORY STATE ONLY</text>
+
+          <!-- browser -->
+          <g><rect x="50" y="70" width="150" height="60" rx="8" fill="var(--panel)" stroke="var(--border)"></rect><use href="#ic-chat" x="62" y="82" width="28" height="28"></use></g>
+          <text x="125" y="92" class="t" font-size="12.5">Browser</text>
+          <text x="125" y="108" class="s">index.html / app.js</text>
+          <text x="125" y="121" class="s mono">polls /api/pending, /api/runs</text>
+
+          <!-- server.mjs -->
+          <g><rect x="250" y="70" width="160" height="60" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect><use href="#ic-server" x="262" y="82" width="28" height="28"></use></g>
+          <text x="330" y="92" class="t" font-size="12.5">server.mjs</text>
+          <text x="330" y="108" class="s">HTTP routes, Basic Auth</text>
+          <text x="330" y="121" class="s mono">no try/catch boundary</text>
+
+          <!-- chat.mjs -->
+          <g><rect x="470" y="70" width="200" height="80" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"></rect><use href="#ic-robot" x="482" y="80" width="28" height="28"></use></g>
+          <text x="570" y="90" class="t" font-size="12.5">chat.mjs</text>
+          <text x="570" y="106" class="s mono">chatWithAgent(EA, +delegate)</text>
+          <text x="570" y="120" class="s mono">runAgentFull(other 5)</text>
+          <text x="570" y="134" class="s">session memory, per agent name</text>
+
+          <!-- permissions.mjs / canUseTool -->
+          <g><rect x="470" y="200" width="200" height="110" rx="8" fill="var(--panel)" stroke="var(--signal)" stroke-width="1.8"></rect><use href="#ic-shield" x="482" y="212" width="30" height="30"></use></g>
+          <text x="570" y="234" class="gate-t" text-anchor="middle">canUseTool</text>
+          <text x="570" y="250" class="gate-s" text-anchor="middle">1. AUTO_ALLOW_TOOLS?</text>
+          <text x="570" y="264" class="gate-s" text-anchor="middle">2. autoApprove on?</text>
+          <text x="570" y="278" class="gate-s" text-anchor="middle">3. else: pending queue</text>
+          <text x="570" y="294" class="gate-s" text-anchor="middle">view 5 for the gaps</text>
+
+          <!-- runs.mjs -->
+          <g><rect x="750" y="200" width="180" height="90" rx="8" fill="var(--panel)" stroke="var(--border)"></rect><use href="#ic-db" x="762" y="210" width="26" height="26"></use></g>
+          <text x="840" y="230" class="t" font-size="12.5">runs.mjs</text>
+          <text x="840" y="246" class="s">live tool tracking</text>
+          <text x="840" y="260" class="s mono">in-memory, no persistence</text>
+          <text x="840" y="274" class="s">powers the Fleet tab</text>
+
+          <!-- db.mjs -->
+          <g><rect x="990" y="200" width="180" height="90" rx="8" fill="var(--panel)" stroke="var(--border)"></rect><use href="#ic-db" x="1002" y="210" width="26" height="26"></use></g>
+          <text x="1080" y="230" class="t" font-size="12.5">db.mjs</text>
+          <text x="1080" y="246" class="s mono">costs.db, SQLite</text>
+          <text x="1080" y="260" class="s">opened fresh per request</text>
+          <text x="1080" y="274" class="s">no WAL, no busy timeout</text>
+
+          <!-- scheduler.mjs -->
+          <g><rect x="470" y="350" width="200" height="100" rx="8" fill="var(--panel)" stroke="var(--border)"></rect><use href="#ic-lock" x="482" y="360" width="26" height="26"></use></g>
+          <text x="570" y="380" class="t" font-size="12.5">scheduler.mjs</text>
+          <text x="570" y="396" class="s">daily standup, weekly retro,</text>
+          <text x="570" y="409" class="s">prospect-scout Mon/Wed/Fri</text>
+          <text x="570" y="424" class="s mono">unattended: true, ignores</text>
+          <text x="570" y="437" class="s mono">the auto-approve toggle</text>
+
+          <!-- notify.mjs -->
+          <g><rect x="750" y="350" width="180" height="70" rx="8" fill="var(--panel)" stroke="var(--border)"></rect><use href="#ic-phone" x="762" y="358" width="24" height="24"></use></g>
+          <text x="840" y="378" class="t" font-size="12.5">notify.mjs</text>
+          <text x="840" y="394" class="s">Pushover push</text>
+          <text x="840" y="408" class="s">successes only, not failures</text>
+
+          <!-- agents.mjs -->
+          <g><rect x="250" y="200" width="160" height="80" rx="8" fill="var(--panel)" stroke="var(--border)"></rect><use href="#ic-book" x="262" y="210" width="26" height="26"></use></g>
+          <text x="330" y="228" class="t" font-size="12.5">agents.mjs</text>
+          <text x="330" y="244" class="s">parses .claude/agents/*.md</text>
+          <text x="330" y="258" class="s mono">re-reads disk every call</text>
+
+          <!-- CLAUDE.md, unloaded, flagged -->
+          <g><rect x="80" y="490" width="200" height="80" rx="8" fill="var(--panel)" stroke="var(--danger)" stroke-width="1.8" stroke-dasharray="4,3"></rect><use href="#ic-warn" x="92" y="500" width="26" height="26"></use></g>
+          <text x="180" y="522" class="danger-t" text-anchor="middle">CLAUDE.md</text>
+          <text x="180" y="538" class="danger-s" text-anchor="middle">never loaded here</text>
+          <text x="180" y="552" class="danger-s" text-anchor="middle">settingSources missing</text>
+          <text x="180" y="564" class="danger-s" text-anchor="middle">audit finding, view 5</text>
+
+          <!-- Anthropic SDK -->
+          <g><rect x="990" y="70" width="180" height="60" rx="8" fill="var(--panel)" stroke="var(--border)"></rect><use href="#ic-bolt" x="1002" y="82" width="26" height="26"></use></g>
+          <text x="1080" y="92" class="t" font-size="12.5">Claude Agent SDK</text>
+          <text x="1080" y="108" class="s">spawns the real Claude Code CLI</text>
+          <text x="1080" y="121" class="s mono">own ANTHROPIC_API_KEY</text>
+
+          <!-- arrows -->
+          <g stroke="var(--line)" stroke-width="1.5" fill="none">
+            <line x1="200" y1="100" x2="248" y2="100" marker-end="url(#a3)"></line>
+            <line x1="410" y1="100" x2="468" y2="100" marker-end="url(#a3)"></line>
+            <line x1="330" y1="130" x2="330" y2="198" marker-end="url(#a3)"></line>
+            <line x1="570" y1="150" x2="570" y2="198" marker-end="url(#a3)"></line>
+            <line x1="670" y1="110" x2="988" y2="100" marker-end="url(#a3)"></line>
+            <line x1="670" y1="245" x2="748" y2="245" marker-end="url(#a3g)" stroke="var(--signal)"></line>
+            <line x1="850" y1="200" x2="1000" y2="200" marker-end="url(#a3)"></line>
+            <line x1="570" y1="310" x2="570" y2="348" marker-end="url(#a3)"></line>
+            <line x1="670" y1="390" x2="748" y2="390" marker-end="url(#a3)"></line>
+            <line x1="470" y1="400" x2="410" y2="280" marker-end="url(#a3)"></line>
+            <line x1="180" y1="280" x2="180" y2="488" stroke-dasharray="1.5,4" stroke="var(--danger)" marker-end="url(#a3d)"></line>
+          </g>
+
+          <g class="lbl">
+            <text x="440" y="63" text-anchor="middle">POST /api/chat, /run</text>
+            <text x="820" y="94" text-anchor="middle">spawns query()</text>
+            <text x="710" y="239" text-anchor="middle" fill="var(--signal)">record tool start/end</text>
+            <text x="605" y="335" text-anchor="middle">chatWithAgent /</text>
+            <text x="605" y="348" text-anchor="middle">runAgentFull</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption>Everything here lives in one Node process with no persistence layer of its own beyond the SQLite cost table. A crash loses the pending confirmation queue, the live Fleet state, and every session's conversation memory at once, and per the audit, an uncaught exception anywhere in this diagram takes the whole thing down, scheduler included. <code>CLAUDE.md</code>, shown in red, is never actually loaded for anything running through this process; only what each individual agent's own <code>.md</code> file restates applies.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============================ VIEW 4: CHATBOT + LEAD ============================ -->
+  <section id="view4">
+    <h2><em>View 4</em> How a chatbot reply, and a lead, actually happen</h2>
+    <figure>
+      <div class="frame">
+        <svg viewBox="0 0 1280 560" role="img" aria-label="A visitor's browser requests kcitsolutions.co through CloudFront, which serves static files from S3 or routes slash api slash chat to a Lambda function through an Origin Access Control. The Lambda checks an Origin header for tenant authorization, which the audit found is not a real control, then calls the Anthropic API, and if the model wants to capture a lead, the browser itself posts the lead to Web3Forms, a step with no server-side fallback if it fails.">
+          <defs>
+            <marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--line)"></path></marker>
+            <marker id="a4d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--danger)"></path></marker>
+          </defs>
+
+          <rect x="480" y="30" width="760" height="330" rx="12" fill="var(--zone)" stroke="var(--zone-edge)"></rect>
+          <text x="1230" y="54" text-anchor="end" class="zl">AWS</text>
+
+          <!-- Visitor -->
+          <g><rect x="40" y="60" width="140" height="65" rx="8" fill="var(--panel)" stroke="var(--border)"></rect><use href="#ic-person" x="52" y="70" width="28" height="28"></use></g>
+          <text x="110" y="80" class="t" font-size="12.5">Visitor</text>
+          <text x="110" y="96" class="s">chat-widget.js</text>
+          <text x="110" y="110" class="s mono">data-client="&lt;id&gt;"</text>
+
+          <!-- CloudFront -->
+          <g><rect x="530" y="65" width="220" height="60" rx="8" fill="var(--panel)" stroke="var(--border)"></rect><use href="#ic-cloud" x="542" y="76" width="28" height="28"></use></g>
+          <text x="640" y="86" class="t" font-size="12.5">CloudFront</text>
+          <text x="640" y="102" class="s mono">forwards Origin verbatim</text>
+          <text x="640" y="115" class="s">two behaviors: files, /api/chat</text>
+
+          <!-- Lambda -->
+          <g><rect x="530" y="190" width="220" height="90" rx="8" fill="var(--panel)" stroke="var(--danger)" stroke-width="1.8"></rect><use href="#ic-bolt" x="542" y="200" width="28" height="28"></use></g>
+          <text x="640" y="220" class="t" text-anchor="middle" font-size="12.5">Lambda, kcit-chatbot</text>
+          <text x="640" y="236" class="danger-s" text-anchor="middle">checks Origin header only</text>
+          <text x="640" y="250" class="danger-s" text-anchor="middle">a bare curl request bypasses it</text>
+          <text x="640" y="264" class="s" text-anchor="middle">per-container rate limit, resets</text>
+          <text x="640" y="276" class="s" text-anchor="middle">on every fresh container</text>
+
+          <!-- Anthropic API -->
+          <g><rect x="820" y="190" width="180" height="70" rx="8" fill="var(--panel)" stroke="var(--border)"></rect><use href="#ic-bolt" x="832" y="200" width="24" height="24"></use></g>
+          <text x="910" y="220" class="t" text-anchor="middle" font-size="12.5">Anthropic API</text>
+          <text x="910" y="236" class="s" text-anchor="middle">claude-opus-5</text>
+          <text x="910" y="250" class="s" text-anchor="middle">no per-tenant spend cap</text>
+
+          <!-- CloudWatch -->
+          <g><rect x="820" y="65" width="180" height="60" rx="8" fill="var(--panel)" stroke="var(--border)"></rect><use href="#ic-db" x="832" y="75" width="26" height="26"></use></g>
+          <text x="910" y="85" class="t" font-size="12.5">CloudWatch Logs</text>
+          <text x="910" y="101" class="danger-s">name + phone, no retention set</text>
+          <text x="910" y="114" class="s">every 4xx returns HTTP 200</text>
+
+          <!-- S3 -->
+          <g><rect x="530" y="300" width="220" height="45" rx="8" fill="var(--panel)" stroke="var(--border)"></rect><use href="#ic-cloud" x="542" y="308" width="22" height="22"></use></g>
+          <text x="640" y="326" class="t" text-anchor="middle" font-size="12">S3, static files</text>
+
+          <!-- Web3Forms -->
+          <g><rect x="60" y="230" width="180" height="70" rx="8" fill="var(--panel)" stroke="var(--danger)" stroke-width="1.8"></rect><use href="#ic-mail" x="72" y="240" width="26" height="26"></use></g>
+          <text x="150" y="260" class="t" text-anchor="middle" font-size="12.5">Web3Forms</text>
+          <text x="150" y="276" class="danger-s" text-anchor="middle">from the visitor's browser,</text>
+          <text x="150" y="289" class="danger-s" text-anchor="middle">no server-side fallback</text>
+
+          <!-- Kevin's inbox -->
+          <g><rect x="60" y="330" width="180" height="60" rx="8" fill="var(--panel)" stroke="var(--border)"></rect><use href="#ic-mail" x="72" y="340" width="24" height="24"></use></g>
+          <text x="150" y="360" class="t" text-anchor="middle" font-size="12.5">Kevin's inbox</text>
+          <text x="150" y="376" class="danger-s" text-anchor="middle">only reached if the browser</text>
+          <text x="150" y="388" class="danger-s" text-anchor="middle" font-size="9.5">stays open and the POST succeeds</text>
+
+          <!-- arrows -->
+          <g stroke="var(--line)" stroke-width="1.5" fill="none">
+            <line x1="180" y1="92" x2="528" y2="92" marker-end="url(#a4)"></line>
+            <line x1="640" y1="125" x2="640" y2="188" marker-end="url(#a4)"></line>
+            <line x1="750" y1="225" x2="818" y2="225" marker-end="url(#a4)"></line>
+            <line x1="750" y1="100" x2="818" y2="100" marker-end="url(#a4)" stroke-dasharray="1.5,4"></line>
+            <line x1="640" y1="280" x2="640" y2="298" marker-end="url(#a4)" stroke-dasharray="1.5,4"></line>
+            <polyline points="150,60 150,265 240,265" marker-end="url(#a4d)" stroke="var(--danger)"></polyline>
+            <line x1="150" y1="300" x2="150" y2="328" marker-end="url(#a4d)" stroke="var(--danger)"></line>
+          </g>
+
+          <g class="lbl">
+            <text x="354" y="86" text-anchor="middle">HTTPS request</text>
+            <text x="670" y="158" text-anchor="middle">/api/chat via OAC</text>
+            <text x="784" y="219" text-anchor="middle">model call</text>
+            <text x="784" y="94" text-anchor="middle">token usage logged</text>
+            <text x="105" y="180" text-anchor="middle" fill="var(--danger)">model decides to</text>
+            <text x="105" y="192" text-anchor="middle" fill="var(--danger)">capture a lead</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption>The chat path and the lead path are both shown here because they fail differently. The chat path has no spend ceiling anywhere and an authentication check that a browser convention, not a real credential, so a bare <code>curl</code> request with a forged header passes it. The lead path depends entirely on the visitor's own browser succeeding at a second request after the model has already told them help is coming, and nothing server-side ever confirms it actually arrived.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============================ VIEW 5: THE CONFIRM-STEP AND ITS GAPS ============================ -->
+  <section id="view5">
+    <h2><em>View 5</em> The confirm-step, and exactly where the audit found it doesn't reach</h2>
+    <figure>
+      <div class="frame">
+        <svg viewBox="0 0 1280 600" role="img" aria-label="A tool call from any agent first checks an auto-allow list covering Read, Write, Edit, Glob, Grep, WebSearch, and WebFetch, all of which proceed with no human involved. Only Bash falls through, and even then, first the global auto-approve flag is checked, and if a scheduled run marked it to be ignored, and only then does it become a pending confirmation the dashboard shows Kevin, who approves or denies it. Three real gaps are marked in red: auto-allowed tools have no path restriction so a write can rewrite the safety layer itself, an unattended scheduled run's confirmation can sit invisible behind an older one, and a chain of only auto-allowed tools, Read plus WebFetch, can exfiltrate a credential without ever reaching Bash at all.">
+          <defs>
+            <marker id="a5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--line)"></path></marker>
+            <marker id="a5g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--signal)"></path></marker>
+            <marker id="a5d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--danger)"></path></marker>
+          </defs>
+
+          <!-- tool call -->
+          <g><rect x="30" y="60" width="170" height="70" rx="8" fill="var(--panel)" stroke="var(--border)"></rect><use href="#ic-robot" x="42" y="72" width="30" height="30"></use></g>
+          <text x="115" y="90" class="t" text-anchor="middle" font-size="12.5">Any agent tool call</text>
+          <text x="115" y="107" class="s" text-anchor="middle">direct, or delegated</text>
+          <text x="115" y="120" class="s" text-anchor="middle">by executive-assistant</text>
+
+          <!-- AUTO_ALLOW check -->
+          <g><rect x="260" y="30" width="230" height="80" rx="8" fill="var(--panel)" stroke="var(--border)"></rect></g>
+          <text x="375" y="52" class="step" text-anchor="middle">STEP 1</text>
+          <text x="375" y="70" class="t" text-anchor="middle" font-size="12.5">Read Write Edit Glob</text>
+          <text x="375" y="86" class="t" text-anchor="middle" font-size="12.5">Grep WebSearch WebFetch?</text>
+          <text x="375" y="102" class="s" text-anchor="middle">no path check, no domain check</text>
+
+          <!-- proceeds, unsupervised -->
+          <g><rect x="560" y="30" width="220" height="80" rx="8" fill="var(--danger-soft)" stroke="var(--danger)" stroke-width="1.6"></rect><use href="#ic-warn" x="572" y="42" width="26" height="26"></use></g>
+          <text x="675" y="65" class="danger-t" text-anchor="middle">Proceeds immediately</text>
+          <text x="675" y="81" class="danger-s" text-anchor="middle">no human ever sees this</text>
+          <text x="675" y="95" class="danger-s" text-anchor="middle">C1: exfiltration chain</text>
+
+          <!-- Bash path -->
+          <g><rect x="260" y="200" width="230" height="70" rx="8" fill="var(--panel)" stroke="var(--border)"></rect></g>
+          <text x="375" y="222" class="step" text-anchor="middle">STEP 2</text>
+          <text x="375" y="240" class="t" text-anchor="middle" font-size="12.5">Bash falls through here</text>
+          <text x="375" y="256" class="s" text-anchor="middle">plus some read-only shapes</text>
+          <text x="375" y="266" class="s" text-anchor="middle">the CLI's own allowlist skips</text>
+
+          <!-- auto-approve check -->
+          <g><rect x="560" y="200" width="220" height="80" rx="8" fill="var(--panel)" stroke="var(--signal)" stroke-width="1.8"></rect><use href="#ic-toggle" x="572" y="210" width="26" height="26"></use></g>
+          <text x="675" y="232" class="gate-eyebrow" text-anchor="middle">STEP 3</text>
+          <text x="675" y="250" class="gate-t" text-anchor="middle">autoApprove on,</text>
+          <text x="675" y="266" class="gate-t" text-anchor="middle">and not ignored?</text>
+
+          <!-- unattended check -->
+          <g><rect x="820" y="200" width="220" height="80" rx="8" fill="var(--panel)" stroke="var(--border)"></rect></g>
+          <text x="930" y="222" class="s" text-anchor="middle">scheduled runs pass</text>
+          <text x="930" y="238" class="t" text-anchor="middle" font-size="12.5">ignoreAutoApprove: true</text>
+          <text x="930" y="256" class="s" text-anchor="middle">so a forgotten toggle can't</text>
+          <text x="930" y="270" class="s" text-anchor="middle">reach the 7am standup</text>
+
+          <!-- proceeds via auto-approve -->
+          <g><rect x="560" y="320" width="220" height="60" rx="8" fill="var(--panel)" stroke="var(--border)"></rect></g>
+          <text x="670" y="345" class="t" text-anchor="middle" font-size="12.5">Proceeds, no click</text>
+          <text x="670" y="362" class="s" text-anchor="middle">global flag, no audit log</text>
+
+          <!-- pending queue -->
+          <g><rect x="260" y="400" width="230" height="90" rx="8" fill="var(--panel)" stroke="var(--signal)" stroke-width="1.8"></rect><use href="#ic-shield" x="272" y="412" width="28" height="28"></use></g>
+          <text x="375" y="435" class="gate-t" text-anchor="middle">Pending queue</text>
+          <text x="375" y="451" class="gate-s" text-anchor="middle">no timeout, no TTL</text>
+          <text x="375" y="465" class="gate-s" text-anchor="middle">renders as pending[0] only</text>
+          <text x="375" y="479" class="danger-s" text-anchor="middle">no agent name attached</text>
+
+          <!-- Kevin -->
+          <g><rect x="560" y="400" width="220" height="90" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.8"></rect><use href="#ic-person" x="572" y="412" width="28" height="28"></use></g>
+          <text x="670" y="432" class="t" text-anchor="middle">Kevin approves or denies</text>
+          <text x="670" y="450" class="s" text-anchor="middle">sees the command string</text>
+          <text x="670" y="464" class="danger-s" text-anchor="middle">not which agent asked</text>
+          <text x="670" y="478" class="danger-s" text-anchor="middle">or when it was queued</text>
+
+          <!-- stale confirmation danger box -->
+          <g><rect x="820" y="400" width="220" height="90" rx="8" fill="var(--danger-soft)" stroke="var(--danger)" stroke-width="1.6"></rect><use href="#ic-warn" x="832" y="410" width="26" height="26"></use></g>
+          <text x="930" y="432" class="danger-t" text-anchor="middle">A stale confirmation</text>
+          <text x="930" y="448" class="danger-s" text-anchor="middle">from an unattended run sits</text>
+          <text x="930" y="462" class="danger-s" text-anchor="middle">first in the queue, invisible,</text>
+          <text x="930" y="476" class="danger-s" text-anchor="middle">until Kevin approves the wrong one</text>
+
+          <!-- arrows -->
+          <g stroke="var(--line)" stroke-width="1.5" fill="none">
+            <line x1="200" y1="80" x2="258" y2="70" marker-end="url(#a5)"></line>
+            <line x1="490" y1="70" x2="558" y2="70" marker-end="url(#a5d)" stroke="var(--danger)"></line>
+            <line x1="200" y1="110" x2="300" y2="200" marker-end="url(#a5)"></line>
+            <line x1="490" y1="235" x2="558" y2="235" marker-end="url(#a5g)" stroke="var(--signal)"></line>
+            <line x1="670" y1="280" x2="670" y2="318" marker-end="url(#a5)"></line>
+            <line x1="780" y1="240" x2="818" y2="240" marker-end="url(#a5)"></line>
+            <line x1="670" y1="280" x2="400" y2="398" marker-end="url(#a5g)" stroke="var(--signal)"></line>
+            <line x1="490" y1="445" x2="558" y2="445" marker-end="url(#a5)"></line>
+            <line x1="490" y1="420" x2="818" y2="430" marker-end="url(#a5d)" stroke="var(--danger)" stroke-dasharray="3,3"></line>
+          </g>
+
+          <g class="lbl">
+            <text x="228" y="65" text-anchor="middle">yes</text>
+            <text x="524" y="60" text-anchor="middle">yes</text>
+            <text x="524" y="230" text-anchor="middle">yes</text>
+            <text x="670" y="302" text-anchor="middle">yes</text>
+            <text x="524" y="440" text-anchor="middle">no</text>
+            <text x="655" y="376" text-anchor="middle">no</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption>Read top to bottom, left to right: most tools never reach a human at all (step 1), Bash usually does (step 2), unless the global auto-approve toggle is on and this particular run wasn't explicitly marked to ignore it (step 3). Everything in this diagram outlined in signal amber is a real, working gate. Everything outlined in red is where the 2026-09-07 audit found it doesn't actually hold: an auto-allowed write with no path restriction, a stale queued confirmation with no timestamp or agent name, and a full exfiltration chain that never touches Bash and so never reaches this gate at all.</figcaption>
+    </figure>
+  </section>
+
   <div class="notes">
-    <h2><em>Context</em> Worth knowing</h2>
+    <h2>Context worth knowing</h2>
     <dl>
-      <div>
-        <dt>The chatbot cannot send its own leads.</dt>
-        <dd>Web3Forms sits behind Cloudflare, which blocks requests from AWS datacenter IP addresses outright. The Lambda therefore builds a ready-to-send payload and hands it back to the visitor's browser, and that browser does the submitting. It is the same mechanism the plain static contact form already used, which posts to Web3Forms directly with no Lambda involved. Both paths end at Web3Forms, which emails the lead to <code>KC.ITSolutions@outlook.com</code>.</dd>
-      </div>
-      <div>
-        <dt>One IAM user gates every AWS action from this machine.</dt>
-        <dd><code>kcit-deploy</code> is deliberately narrow: only <code>kcit-*</code> Lambda functions, only <code>kcit-lambda-*</code> IAM roles, only the one CloudFront distribution, plus read-only <code>logs:FilterLogEvents</code> on <code>kcit-*</code> log groups, that last one confirmed working directly rather than assumed. No EC2, no billing, nothing that can spend money outside that box. An <code>AccessDenied</code> from it is the policy doing its job.</dd>
-      </div>
-      <div>
-        <dt>Two repos, two trust levels.</dt>
-        <dd><code>kc.IT</code> holds the site and chatbot source (<code>deploy.ps1</code>, <code>chatbot/deploy-chatbot.ps1</code>, <code>chatbot/wire-cloudfront.ps1</code>, <code>chatbot/clients/*.json</code>) and has no git remote at all, local only. <code>kcit</code> is the operations repo: the Obsidian vault of business knowledge plus <code>.claude/agents/*.md</code>, with a remote on GitHub at <code>kevinchavez42069-afk/kcit</code>. Nothing from <code>kc.IT</code> is on GitHub.</dd>
-      </div>
-      <div>
-        <dt>One Lambda serves every client.</dt>
-        <dd><code>kcit-chatbot</code> is multi-tenant. Each client is a single JSON file under <code>chatbot/clients/</code>, currently <code>kc-it-solutions.json</code> and <code>sample-plumbing.json</code>, all sharing one prompt template. Adding a client is adding a file, not a function. Its Function URL is <code>AWS_IAM</code>-only and not publicly invokable; CloudFront reaches it through an Origin Access Control.</dd>
-      </div>
-      <div>
-        <dt>The dashboard is reachable off this machine, and now does more than show numbers.</dt>
-        <dd>The Lambda writes per-request input, output, cache-read and cache-write token counts as JSON lines to <code>/aws/lambda/kcit-chatbot</code>. <code>cost-report.mjs</code> pulls those through <code>kcit-deploy</code>, prices them and stores the result in <code>costs.db</code>, a local SQLite file that syncs nowhere; <code>server.mjs</code> serves it over Tailscale at <code>http://100.87.11.96:7417</code>. It's also where Kevin now chats with the agent fleet directly &mdash; <code>executive-assistant</code> read-only, the other three with real tool access gated by View 4's confirm-step.</dd>
-      </div>
-      <div>
-        <dt>The confirm-step is verified live, not just written.</dt>
-        <dd>Kevin ran the actual first test: asked <code>client-onboarder</code> to check git status, watched the confirm banner appear with the real command, approved it. A second table, <code>agent_runs</code>, logs what the fleet itself costs to run &mdash; separate from <code>chatbot_usage</code>, which is customer traffic &mdash; straight from the same SDK result the reply already carries, so there's no separate pricing table to keep in sync.</dd>
-      </div>
+      <dt>This is the second version of this map</dt>
+      <dd>The original (2026-09-06) covered four views of the kc.IT product and one phase-4 confirm-step diagram, before the agent fleet grew from three agents to six, before the dashboard was rebuilt twice, and before the 2026-09-07 infrastructure audit. This version folds all of that in rather than appending a fifth and sixth view onto the old one.</dd>
+      <dt>The audit this map cross-references</dt>
+      <dd>See <a href="https://claude.ai/code/artifact/69d24a2d-4837-4d37-8404-32a1e137b394">the full 2026-09-07 infrastructure and strategy audit</a> for the complete findings, severity ratings, and the prioritized fix list behind every red element on this page.</dd>
+      <dt>What changed since the last map</dt>
+      <dd><code>developer</code> and <code>code-reviewer</code> joined the fleet (phase 7). The dashboard was reskinned twice and rebuilt around a persistent EA chat, a collapsible drawer for the other five agents, and a live Fleet tab (phases 8 and 9). An explicit, session-only auto-approve toggle was added, then patched so scheduled runs can never inherit it (phases 9 and 9.1). None of this changed the underlying kc.IT product, which is why views 1 and 4 carry over the most.</dd>
+      <dt>Why the exposed API key from the audit doesn't appear as its own node here</dt>
+      <dd>It was a file left on disk, not a structural feature of the system, there's nothing architectural to draw. It's called out in the audit itself; treat it as already handled rather than a live diagram element.</dd>
     </dl>
   </div>
 
