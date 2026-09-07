@@ -251,8 +251,8 @@ const server = createServer(async (req, res) => {
     return jsonResponse(res, 200, { agents: rows });
   }
 
-  // Phase 3: chat with executive-assistant, strictly read-only (see
-  // chat.mjs - it enforces this even if the agent's own file grants more).
+  // executive-assistant's dedicated endpoint - real tools plus delegation
+  // to the other three agents as of phase 6 (see chat.mjs).
   if (req.url === "/api/chat" && req.method === "POST") {
     let body;
     try {

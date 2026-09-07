@@ -193,7 +193,11 @@ function initChat() {
     if (!message) return;
 
     const agent = select.value;
-    const readOnly = agent === "executive-assistant";
+    // executive-assistant has its own dedicated endpoint (it gets the
+    // delegation `agents` map chat.mjs builds specially for it), but as of
+    // phase 6 it's not read-only - it can delegate to a Bash-capable agent
+    // and needs the same confirm-step polling as a direct phase-4 run.
+    const isEA = agent === "executive-assistant";
 
     appendChatMessage("user", `[${agent}] ${message}`);
     input.value = "";
@@ -201,13 +205,13 @@ function initChat() {
     button.disabled = true;
     const pendingMsg = appendChatMessage("agent", "Thinking…");
 
-    if (!readOnly) startPendingPoll();
+    startPendingPoll();
 
     try {
-      const res = await fetch(readOnly ? "/api/chat" : "/api/run", {
+      const res = await fetch(isEA ? "/api/chat" : "/api/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(readOnly ? { message } : { agent, message }),
+        body: JSON.stringify(isEA ? { message } : { agent, message }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);

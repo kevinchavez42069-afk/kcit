@@ -9,14 +9,14 @@
 <body>
 <header>
   <h1>KC IT Ops Dashboard</h1>
-  <p class="subtitle">executive-assistant is always read-only. The other three agents run with their real tools &mdash; Bash always waits for your confirmation below before anything executes.</p>
+  <p class="subtitle">All four agents run with real tools now. executive-assistant can delegate to the other three; Bash always waits for your confirmation below before anything executes.</p>
 </header>
 
 <main>
   <section class="panel" id="chat-panel">
     <div class="chat-header">
       <h2>Chat</h2>
-      <select id="agent-select"><option value="executive-assistant">executive-assistant (read-only)</option></select>
+      <select id="agent-select"><option value="executive-assistant">executive-assistant (hub, can delegate)</option></select>
     </div>
     <div id="confirm-banner" class="confirm-banner" hidden></div>
     <div id="chat-log" class="chat-log"></div>
