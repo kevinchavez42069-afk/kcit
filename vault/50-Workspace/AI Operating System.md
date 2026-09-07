@@ -219,24 +219,25 @@ capability was real — correctly, since a service that can trigger shell
 commands is not something to self-test unsupervised. Kevin ran it himself
 for exactly that reason.)
 
-**Phase 5 — agent-fleet usage tracking. Code done, DB layer verified,
-2026-09-07; full end-to-end still needs one real chat through the running
-server.** New `agent_runs` table in `dashboard/db.mjs`, alongside
+**Phase 5 — agent-fleet usage tracking. Done and verified live,
+2026-09-07.** New `agent_runs` table in `dashboard/db.mjs`, alongside
 `chatbot_usage` (that one's customer traffic; this one's Kevin's own
-fleet). Every `chatWithAgent`/`runAgentFull` call now logs its
-`result.usage` and `result.total_cost_usd` straight from the SDK — no
-separate pricing math to keep in sync, exactly as planned back in phase 1.
-New `GET /api/agent-costs` and a dashboard panel next to the existing
-chatbot-cost one. A logging failure never breaks the chat reply itself —
-the run already happened, losing the log entry is better than losing the
-answer.
+fleet). Every `chatWithAgent`/`runAgentFull` call logs its `result.usage`
+and `result.total_cost_usd` straight from the SDK — no separate pricing
+math to keep in sync, exactly as planned back in phase 1. `GET
+/api/agent-costs` and a dashboard panel next to the existing chatbot-cost
+one, refreshed after every reply.
 
-Verified directly: inserted a throwaway row, confirmed `summaryByAgent`
-totals it correctly, deleted it, confirmed the table is clean again. Not
-yet verified: an actual chat message through the live server landing in
-the table, since Kevin's currently-running server predates this code —
-needs a restart plus one more message to close the loop, same bar phase 4
-was held to.
+First real row, from Kevin's own test message: `executive-assistant`, 1
+run, $0.1441 (8 input tokens, 203 output, 16114 cache read, 16350 cache
+write). Getting here caught a real process gap worth keeping in mind for
+next time: Kevin's first restart attempt used a server process that had
+started *before* this code was even committed — confirmed with hard
+timestamps (process start 11:07:03, commit 11:14:10), not a guessed
+explanation — so "I restarted it" isn't itself proof a new process is
+running new code; check the numbers when it matters.
+
+**All five phases of the original roadmap are now built and verified.**
 
 ## Open items for whoever picks up each phase
 

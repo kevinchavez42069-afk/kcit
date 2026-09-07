@@ -15,6 +15,24 @@ Each entry: when, which session, what shipped, what's next.
 
 ---
 
+## 2026-09-07 (night) — local session (this one)
+
+**Verified live, closing out the roadmap:** Phase 5's full loop. Kevin's
+first restart attempt turned out to be a process that started before the
+Phase 5 commit existed — caught with process-start vs. commit timestamps,
+not a guess — so nothing had logged. Walked him through a real
+terminal-level restart (a browser refresh alone doesn't reload the
+server's code, only what it sends the page), and the second attempt
+produced a real row: `executive-assistant`, $0.1441.
+
+**All five phases of [[AI Operating System]] are now built and verified**
+— not just committed, each one actually exercised end to end: the cost
+pipeline, the read-only dashboard, EA chat, full agentic chat with a
+working confirm-step, and agent-fleet cost tracking.
+
+**Next:** nothing outstanding on this roadmap. `voice.md` writing
+samples are the one item left over from before this thread started.
+
 ## 2026-09-07 (evening) — local session (this one)
 
 **Shipped, DB layer verified, full loop pending:** Phase 5 — agent-fleet
