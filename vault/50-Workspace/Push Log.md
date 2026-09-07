@@ -15,6 +15,43 @@ Each entry: when, which session, what shipped, what's next.
 
 ---
 
+## 2026-09-07 (dev team + dashboard redesign) — local session (this one)
+
+**Shipped, phase 7:** `developer` and `code-reviewer`, a two-agent dev team
+EA orchestrates (build → review → bounded revise → report), with
+branch-per-task discipline and a hard "never merge, push, or deploy" rule
+on both EA and `developer`. Fixed a real bug found while planning it: EA's
+delegation map, shipped in phase 6, had almost certainly never worked
+because `Task` was missing from its `tools:` line. Verified live by having
+EA delegate to `prospect-scout` and confirming a real subagent-written log
+line. Also set `additionalDirectories` (never set before, though
+`client-onboarder` has always needed `kc.IT` access) and moved `maxTurns`
+to one constant, 20 → 60.
+
+**Shipped, phase 8:** full dashboard redesign against the real
+kcitsolutions.co design tokens (Figtree, cream/near-black/gold, thin
+dividers, the site's own chat-widget pattern), a persistent EA chat column,
+and tabs replacing the five-panel scroll. New `dashboard/runs.mjs` +
+`/api/runs` give live per-agent "what's running right now" visibility by
+scanning the SDK message stream `runQuery` used to throw away.
+
+**Worth reading, not just a changelog line:** testing phase 8 turned up
+that "Bash always waits for your confirmation" isn't literally true.
+`git status --porcelain` ran with no confirm-step; `git -C "<path>" status
+--porcelain` — same read-only operation — did wait; `touch` waited too. So
+Claude Code's CLI has its own command-string pattern allowlist below our
+gate. Nothing destructive is anywhere near that allowlist, but the absolute
+claim is wrong and has been corrected in `permissions.mjs`, the dashboard
+caption, and [[AI Operating System]]. The concurrent session caught my
+first (wrong) "read-only is auto-approved" explanation — the path-qualified
+test is what actually settled it.
+
+**Next:** phase 7's full build → review → merge-decision cycle still needs
+one real end-to-end run through the dashboard, with Kevin clicking the
+confirm banners. `voice.md` writing samples remain the oldest open item.
+
+---
+
 ## 2026-09-07 (EA gets Bash + real chat memory) — local session (this one)
 
 **Shipped, commit `875bfb8`:** phase 6.2 — gave `executive-assistant` its

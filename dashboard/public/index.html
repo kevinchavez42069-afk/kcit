@@ -6,62 +6,63 @@
 <title>KC IT Ops Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="topbar">
-  <span><b>KC-IT-OPS</b> &sol;&sol; SESSION ACTIVE &sol;&sol; USER: KEVIN</span>
-  <span>FLEET: 4 ONLINE &middot; PHASES 1&ndash;6 LIVE</span>
-</div>
+<header class="topnav">
+  <span class="brand"><span class="dot"></span>KC IT Solutions <span class="brand-sub">/ Ops</span></span>
+  <span class="topnav-status">Kevin &middot; 6 agents in the fleet</span>
+</header>
 
-<div class="masthead">
-  <h1>Agent Ops Dashboard</h1>
-  <p class="subtitle">All four agents run with real tools. executive-assistant is the hub and can delegate to the other three &mdash; Bash always waits for your confirmation below before anything executes.</p>
-</div>
+<div class="app">
+  <aside class="chat-column">
+    <div class="chat-header">
+      <span class="dot"></span>
+      <label for="agent-select" class="chat-to">To</label>
+      <select id="agent-select"><option value="executive-assistant">executive-assistant (hub, full tools + delegates)</option></select>
+    </div>
+    <div id="confirm-banner" class="confirm-banner" hidden></div>
+    <div id="chat-log" class="chat-log">
+      <p class="chat-empty">Ask executive-assistant what's going on, or pick another agent to run something directly.</p>
+    </div>
+    <form id="chat-form" class="chat-form">
+      <input id="chat-input" type="text" placeholder="Ask about status, prospects, findings&hellip;" autocomplete="off">
+      <button type="submit">Send</button>
+    </form>
+    <p class="chat-caption">Any command that changes something waits for your confirmation here first.</p>
+  </aside>
 
-<main>
-  <div class="col">
-    <section class="panel" id="chat-panel">
-      <div class="panel-head">
-        <h2>[01] Chat</h2>
-        <select id="agent-select"><option value="executive-assistant">executive-assistant (hub, full tools + delegates)</option></select>
-      </div>
-      <div id="confirm-banner" class="confirm-banner" hidden></div>
-      <div id="chat-log" class="chat-log"></div>
-      <form id="chat-form" class="chat-form">
-        <input id="chat-input" type="text" placeholder="&gt; ask about status, prospects, findings" autocomplete="off">
-        <button type="submit">[ send ]</button>
-      </form>
-    </section>
+  <section class="panel-column">
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-tab="fleet" type="button">Fleet</button>
+      <button class="tab" data-tab="digest" type="button">Digest</button>
+      <button class="tab" data-tab="costs" type="button">Costs</button>
+      <button class="tab" data-tab="activity" type="button">Activity</button>
+    </nav>
 
-    <section class="panel" id="digest-panel">
-      <div class="panel-head"><h2>[02] Digest</h2></div>
+    <div class="tab-panel" data-tab-panel="fleet">
+      <h2>What's running right now</h2>
+      <div id="fleet-content" class="loading">loading&hellip;</div>
+    </div>
+
+    <div class="tab-panel" data-tab-panel="digest" hidden>
+      <h2>Daily digest</h2>
       <div id="digest-content" class="loading">loading&hellip;</div>
-    </section>
-  </div>
+    </div>
 
-  <div class="col">
-    <section class="panel" id="costs-panel">
-      <div class="panel-head"><h2>[03] Chatbot cost / client</h2></div>
+    <div class="tab-panel" data-tab-panel="costs" hidden>
+      <h2>Chatbot cost, by client</h2>
       <div id="costs-content" class="loading">loading&hellip;</div>
-    </section>
-
-    <section class="panel" id="agent-costs-panel">
-      <div class="panel-head"><h2>[04] Agent fleet cost</h2></div>
+      <h2 class="second">Agent fleet cost</h2>
       <div id="agent-costs-content" class="loading">loading&hellip;</div>
-    </section>
+    </div>
 
-    <section class="panel" id="activity-panel">
-      <div class="panel-head"><h2>[05] Recent activity</h2></div>
+    <div class="tab-panel" data-tab-panel="activity" hidden>
+      <h2>Recent activity</h2>
       <div id="activity-content" class="loading">loading&hellip;</div>
-    </section>
-  </div>
-</main>
-
-<div class="topbar bottombar">
-  <span>[ AI OPERATING SYSTEM ]</span>
-  <span>dashboard&sol;server.mjs &middot; never port-forward this</span>
+    </div>
+  </section>
 </div>
 
 <script src="app.js"></script>

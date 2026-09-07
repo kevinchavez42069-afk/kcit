@@ -41,11 +41,27 @@ import { query } from "@anthropic-ai/claude-agent-sdk";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { getAgent, loadAgents } from "./agents.mjs";
-import { makeCanUseTool, checkReposCurrent } from "./permissions.mjs";
+import { makeCanUseTool, checkReposCurrent, KC_IT_ROOT } from "./permissions.mjs";
 import { openDb, insertAgentRun } from "./db.mjs";
+import { startRun, endRun, recordToolStart, recordToolEnd } from "./runs.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const KCIT_ROOT = join(here, "..");
+
+// Phase 7: developer/code-reviewer both need to read and edit files under
+// kc.IT, a separate repo entirely outside cwd (KCIT_ROOT). additionalDirectories
+// is what actually grants that - client-onboarder's own job has needed this
+// since before phase 7 (chatbot/clients/*.json, deploy.ps1 all live under
+// kc.IT) but nothing ever set it explicitly. Applies to every agent through
+// both entry points below, not just the two new ones.
+const ADDITIONAL_DIRECTORIES = [KC_IT_ROOT];
+
+// Phase 7: a build -> review -> revise orchestration spends EA's own turn
+// budget on every delegation plus every result it reads back. One named
+// constant so it's tunable in one place instead of two magic 20s. If a run
+// ever throws "Agent run failed: error_max_turns" (see runQuery below),
+// that's the concrete signal to raise this further - not a guess in advance.
+const MAX_TURNS = 60;
 
 // Multi-turn memory within one dashboard conversation - NOT the same thing
 // as the deliberate "every standup/retro is a fresh vault read" design.
@@ -122,16 +138,54 @@ function logRun(agentName, phase, usage, costUsd) {
   }
 }
 
-async function runQuery(agentName, phase, prompt, options) {
+// Phase 8: scans every message the SDK streams, not just the final
+// `result`, so runs.mjs can show what's actually happening while an agent
+// works - previously everything but the final answer was thrown away here.
+// `assistant` messages carry `tool_use` blocks (a tool starting); `user`
+// messages carry the matching `tool_result` blocks (that tool finishing) -
+// both verified directly in coreTypes.d.ts, not assumed. `Task` tool_use
+// blocks carry `input.subagent_type`, which is what lets a delegated
+// developer/code-reviewer call show up attributed to the right agent.
+function recordStreamActivity(runId, message) {
+  if (message.type === "assistant") {
+    for (const block of message.message.content) {
+      if (block.type === "tool_use") {
+        recordToolStart(runId, {
+          toolUseId: block.id,
+          name: block.name,
+          input: block.input,
+          parentToolUseId: message.parent_tool_use_id,
+        });
+      }
+    }
+  } else if (message.type === "user") {
+    const content = message.message?.content;
+    if (Array.isArray(content)) {
+      for (const block of content) {
+        if (block.type === "tool_result") recordToolEnd(runId, block.tool_use_id);
+      }
+    }
+  }
+}
+
+async function runQuery(agentName, phase, prompt, options, runId) {
   let result = null;
 
-  for await (const message of query({ prompt, options })) {
-    // The 'result' message is the authoritative final answer - it also
-    // carries usage and total_cost_usd (SDK computes this itself, no need
-    // to duplicate pricing.mjs's math for agent-fleet costs) and
-    // session_id, which every message carries but this is the one place
-    // that needs to read it back out.
-    if (message.type === "result") result = message;
+  try {
+    for await (const message of query({ prompt, options })) {
+      recordStreamActivity(runId, message);
+      // The 'result' message is the authoritative final answer - it also
+      // carries usage and total_cost_usd (SDK computes this itself, no need
+      // to duplicate pricing.mjs's math for agent-fleet costs) and
+      // session_id, which every message carries but this is the one place
+      // that needs to read it back out.
+      if (message.type === "result") result = message;
+    }
+  } finally {
+    // Fires on success, on an agent error, and on an exception thrown
+    // before the stream ever yields anything - no run is ever left showing
+    // as "running" forever.
+    endRun(runId);
   }
 
   if (!result) throw new Error("Agent SDK returned no result message");
@@ -154,19 +208,28 @@ async function runQuery(agentName, phase, prompt, options) {
 // to a fresh conversation (no `resume`) if resuming the old one throws -
 // e.g. its session file was pruned or the server restarted mid-session on
 // a different machine state - rather than breaking the chat outright.
+//
+// runId is minted here, before buildOptions runs, because canUseTool
+// (built inside buildOptions) needs it to mark a tool "awaiting
+// confirmation" - runQuery can't mint its own, since options (canUseTool
+// included) has to exist before runQuery is ever called. A failed-then-
+// retried attempt gets its own fresh runId, so it shows as two short-lived
+// runs, never one left dangling.
 async function runQueryWithMemory(agentName, phase, prompt, buildOptions) {
   const priorSessionId = sessionIds.get(agentName);
+  const runId = startRun(agentName, phase, prompt.slice(0, 80));
   try {
-    const options = buildOptions(priorSessionId);
-    const result = await runQuery(agentName, phase, prompt, options);
+    const options = buildOptions(priorSessionId, runId);
+    const result = await runQuery(agentName, phase, prompt, options, runId);
     sessionIds.set(agentName, result.sessionId);
     return result;
   } catch (err) {
     if (!priorSessionId) throw err;
     console.error(`Resuming ${agentName}'s session failed, starting fresh:`, err.message);
     sessionIds.delete(agentName);
-    const options = buildOptions(undefined);
-    const result = await runQuery(agentName, phase, prompt, options);
+    const retryRunId = startRun(agentName, phase, prompt.slice(0, 80));
+    const options = buildOptions(undefined, retryRunId);
+    const result = await runQuery(agentName, phase, prompt, options, retryRunId);
     sessionIds.set(agentName, result.sessionId);
     return result;
   }
@@ -203,8 +266,9 @@ export async function chatWithAgent(agentName, prompt) {
     );
   }
 
-  return runQueryWithMemory(agentName, "6", prompt, (resume) => ({
+  return runQueryWithMemory(agentName, "6", prompt, (resume, runId) => ({
     cwd: KCIT_ROOT,
+    additionalDirectories: ADDITIONAL_DIRECTORIES,
     model: agent.model,
     systemPrompt: agent.systemPrompt,
     // `tools` makes Bash available to EA (as of phase 6.2); `allowedTools`
@@ -213,12 +277,15 @@ export async function chatWithAgent(agentName, prompt) {
     // uses for the other three agents. Without this filter, adding Bash
     // to EA's frontmatter tools would have made it a pre-approved tool
     // for EA specifically, silently skipping the confirm-step - the one
-    // thing being "the hub" must never do.
+    // thing being "the hub" must never do. `Task` (phase 7) lands in
+    // allowedTools too since this filter only strips Bash - delegating
+    // itself needs no confirm-step, only what a delegated agent's own
+    // Bash calls do.
     tools: agent.tools,
     allowedTools: agent.tools.filter((t) => t !== "Bash"),
     agents: buildSubagents("executive-assistant"),
-    canUseTool: makeCanUseTool(),
-    maxTurns: 20,
+    canUseTool: makeCanUseTool(runId),
+    maxTurns: MAX_TURNS,
     ...(resume ? { resume } : {}),
   }));
 }
@@ -246,8 +313,9 @@ export async function runAgentFull(agentName, prompt) {
     );
   }
 
-  return runQueryWithMemory(agentName, "4", prompt, (resume) => ({
+  return runQueryWithMemory(agentName, "4", prompt, (resume, runId) => ({
     cwd: KCIT_ROOT,
+    additionalDirectories: ADDITIONAL_DIRECTORIES,
     model: agent.model,
     systemPrompt: agent.systemPrompt,
     // `tools` is what makes a tool available to the model at all (mirrors
@@ -262,8 +330,8 @@ export async function runAgentFull(agentName, prompt) {
     // actually enforces the confirm-step.
     tools: agent.tools,
     allowedTools: agent.tools.filter((t) => t !== "Bash"),
-    canUseTool: makeCanUseTool(),
-    maxTurns: 20,
+    canUseTool: makeCanUseTool(runId),
+    maxTurns: MAX_TURNS,
     ...(resume ? { resume } : {}),
   }));
 }

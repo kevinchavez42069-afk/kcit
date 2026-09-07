@@ -386,9 +386,134 @@ underneath it — mildly confusing but not unsafe; no explicit "start a new
 conversation" control. Revisit only if a stale multi-day conversation
 becomes a real problem in practice.
 
+**Phase 7 — a dev team: `developer` and `code-reviewer`. Built
+2026-09-07.** Kevin asked for "an agent thats main focus is developing,
+perhaps several development agents working as a team where they do
+subprocesses and cross check each other with that all go to the hub agent,
+for final decisions that need to come to me." Scope confirmed with him
+directly: one general engineering team pointed at whichever repo needs
+work, `kcit` or `kc.IT`, task by task.
+
+Two new agents. `developer` (Read/Write/Edit/Glob/Grep/Bash) works only on
+a `dev/<slug>` branch, never `main`: it checks the tree is clean first,
+records the branch it started on, branches *before* its first Write (Write
+and Edit are auto-allowed with no confirm-step, so anything edited before
+branching lands silently on whatever was checked out), commits, and returns
+to where it started — and never merges, pushes, or opens a PR.
+`dashboard/permissions.mjs`, `.claude/agents/*.md` and `CLAUDE.md` are
+no-go files for it regardless of the task. `code-reviewer`
+(Read/Glob/Grep/Bash, **deliberately no Write or Edit**) is the independent
+check — a reviewer that can edit the thing it's reviewing isn't a
+cross-check, and having no Write also means it structurally can't log to
+`Activity Log.md`, so no rule is needed to stop it.
+
+EA orchestrates the cycle, because delegation is exactly one level deep —
+verified in the SDK's own `AgentDefinition` type, which has no `agents`
+field, so a delegated subagent cannot itself delegate. EA delegates to
+`developer`, then to `code-reviewer`, passes the reviewer's findings back
+verbatim if changes are needed (a fresh delegation has no memory of the
+prior round), caps at two revise rounds, and reports branch + commit log +
+verdict to Kevin. It never merges or deploys any of it.
+
+**A real bug found while planning this, and the reason the whole phase
+nearly got built on sand:** EA's `agents` delegation map, shipped back in
+phase 6, had almost certainly never worked. Its frontmatter `tools:` line
+didn't include `Task` — the tool a session actually invokes to run a
+subagent — and `chat.mjs` passes `tools` straight through as an explicit
+`--tools` list, which restricts the model to exactly those names.
+Corroborated independently before changing anything: Claude Code's own
+bundled `statusline-setup` command lists `"Task"` in its `allowedTools`
+array for exactly this reason. Fixed by adding `Task`, then **verified
+live** rather than assumed — asked EA to delegate a trivial check to
+`prospect-scout` and confirmed a real new `prospect-scout` line appeared in
+`Activity Log.md`, written by the subagent, not by EA.
+
+Also fixed here: `additionalDirectories` was never set on any agent's
+query options, even though `client-onboarder`'s job has always required
+editing files under `kc.IT` — a separate repo outside `cwd`. Now set from
+`permissions.mjs`'s existing `KC_IT_ROOT` for every agent through both
+entry points. And `maxTurns` moved to one `MAX_TURNS` constant (20 → 60),
+since a build → review → revise cycle spends EA's turn budget on every
+delegation and every result it reads back.
+
+Partially verified live: `developer` ran for real several times during
+phase 8's testing and behaved exactly as written — it refused to proceed
+on a dirty working tree per its own first hard rule, and correctly flagged
+`permissions.mjs` as a no-go file. The full build → review → merge-decision
+cycle end to end is still untested.
+
+**Phase 8 — dashboard redesign + live fleet status. Done, 2026-09-07.**
+Kevin, after using phase 6.1's Mission Control terminal aesthetic for a
+day: "this UI is over all just pretty bad honestly... use the actual
+kcitsolutions website as reference because it is extremely hard to
+navigate, the EA agent should always be open and the chat box should alot
+better." A full reversal, with concrete reference material this time
+instead of a request for options.
+
+Design tokens were read directly off the live site rather than
+approximated: Figtree (800 for headings), near-black `#0d0d0c`, warm cream
+`#f6f3ec`, white, gold `#c9a84c`, bronze `#96772c` for small-caps labels,
+thin 1px dividers instead of boxed panels, and the site's own chat-widget
+pattern (dark header bar, cream message area, gold focus ring and Send
+button) applied to the dashboard's chat since Kevin named the chat
+specifically. Light base, no dark mode, no toggle — matching how the real
+site uses black sparingly rather than as a whole-page theme.
+
+Layout: EA's chat is now a persistent left column that never moves, and
+the other four views became tabs (Fleet, Digest, Costs, Activity) instead
+of five panels stacked down one long scroll. Costs merges what were two
+separate panels.
+
+The new part, and the one that needed real backend work: **`dashboard/runs.mjs`**,
+an in-memory store of what's running right now, same shape as
+`permissions.mjs`'s `pending` map and keyed per-run rather than per-agent
+(concurrent runs are real — `scheduler.mjs` fires the standup, the retro,
+and prospect-scout's Mon/Wed/Fri slot unattended). `runQuery` in `chat.mjs`
+previously discarded every streamed message except the final `result`; it
+now scans `assistant` messages for `tool_use` blocks (a tool starting) and
+`user` messages for `tool_result` blocks (that tool finishing), so
+`/api/runs` can show the actual command or the subagent being delegated to.
+`canUseTool`'s `toolUseID` — already passed by the SDK, previously thrown
+away — is the join key that flips a tool from "running" to "awaiting
+confirmation". Cleanup is a `finally`, so a run can never be left showing
+as running forever.
+
+Verified live against a real agent run, not mocked: a `developer` run
+showed `Bash` → "running", then flipping to "awaiting confirmation" with
+the real command string once it hit the gate, then the run clearing
+entirely from `/api/runs` after a deny — and the denied command never
+executed.
+
+**A safety finding that came out of that testing, worth reading before
+trusting the confirm-step's reputation.** "Bash always waits for your
+confirmation" — written into agent prompts, the dashboard UI, and this doc
+— is not literally true. Three real runs:
+
+| command | gated? |
+|---|---|
+| `git status --porcelain` | **no**, ran immediately |
+| `git -C "<path>" status --porcelain` | yes, waited |
+| `touch /tmp/<file>` | yes, waited, never ran once denied |
+
+The first two are the same read-only operation. So the bypass is a
+built-in **command-string pattern allowlist** inside Claude Code's own CLI,
+applied before `canUseTool` is ever consulted — not a read-only/mutating
+distinction, and not something to reason about semantically. (Credit to the
+concurrent session for pushing back on the first, wrong "read-only is
+auto-approved" reading; the path-qualified test is what settled it.)
+Everything genuinely destructive here — `git push`, the deploy scripts,
+`aws` — is well outside any plausible allowlist, so the protection that
+matters holds. But the absolute guarantee doesn't, and nothing written for
+Kevin should repeat the stronger claim. The dashboard's own caption now
+reads "any command that changes something waits for your confirmation."
+
 ## Open items for whoever picks up each phase
 
 - Frontend framework unspecified on purpose — whatever's fastest when a
   phase actually starts.
 - ~~Tailscale vs. Cloudflare Tunnel is a phase 2 decision.~~ Decided: Tailscale, live.
-- ~~What the "confirm step" looks like in the UI is a phase 4 design question.~~ Decided: phase 6.1's Mission Control redesign.
+- ~~What the "confirm step" looks like in the UI is a phase 4 design question.~~ Decided: phase 6.1's Mission Control redesign, superseded by phase 8.
+- Phase 7's full build → review → merge-decision cycle still needs one real
+  end-to-end run through the dashboard.
+- The exact shape of Claude Code's built-in Bash allowlist is unmapped. Worth
+  knowing more precisely if anything ever depends on a specific command gating.

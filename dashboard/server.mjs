@@ -42,6 +42,7 @@ import { chatWithAgent, runAgentFull } from "./chat.mjs";
 import { startScheduler } from "./scheduler.mjs";
 import { loadAgents } from "./agents.mjs";
 import { listPending, resolvePending } from "./permissions.mjs";
+import { listRuns } from "./runs.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const VAULT = join(here, "..", "vault");
@@ -304,6 +305,13 @@ const server = createServer(async (req, res) => {
   // Phase 4: the confirm-step. GET to see what's waiting, POST to decide.
   if (req.url === "/api/pending") {
     return jsonResponse(res, 200, { pending: listPending() });
+  }
+
+  // Phase 8: what's actually running right now, across every agent -
+  // including a scheduler-fired run with no browser request in flight at
+  // all. Read-only, no POST side, unlike /api/pending.
+  if (req.url === "/api/runs") {
+    return jsonResponse(res, 200, { runs: listRuns() });
   }
 
   if (req.url === "/api/confirm" && req.method === "POST") {

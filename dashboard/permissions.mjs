@@ -8,22 +8,44 @@
 //    - Write, Edit: auto-allow. Everything these touch is inside a git
 //      repo (kcit or kc.IT), so a bad edit is a `git diff` and a revert
 //      away - not hard to reverse.
-//    - Bash: ALWAYS confirm. This is deliberately blunt - it's also
-//      exactly right, because every genuinely hard-to-reverse action in
-//      this codebase (git push, a deploy script, an aws cli call) goes
-//      through Bash. Nothing here tries to tell a safe git status from a
-//      dangerous git push by pattern-matching the command string - the
-//      human reads the actual command before it runs, every time.
+//    - Bash: ALWAYS confirm, as far as this file is concerned. This is
+//      deliberately blunt - every genuinely hard-to-reverse action in this
+//      codebase (git push, a deploy script, an aws cli call) goes through
+//      Bash, and nothing *here* tries to tell a safe command from a
+//      dangerous one by pattern-matching the string.
+//
+//      Measured caveat, found by testing this live on 2026-09-07 rather
+//      than trusting the design: a layer BELOW this one classifies, and it
+//      classifies by COMMAND STRING, not by what the command does. Three
+//      real runs through this dashboard:
+//        - `git status --porcelain`                    -> NOT gated, ran immediately
+//        - `git -C "<path>" status --porcelain`        -> gated, waited
+//        - `touch /tmp/<file>`                         -> gated, waited
+//      The first two are the same read-only operation. One bypassed the
+//      confirm-step, one didn't. So this is a built-in command-pattern
+//      allowlist inside Claude Code's own CLI, applied before canUseTool
+//      below is ever consulted - not a read-only/mutating distinction, and
+//      not something to reason about semantically.
+//
+//      Practical consequence: do NOT write or rely on "every Bash call
+//      waits for Kevin." What actually holds is narrower and fuzzier -
+//      most commands gate, some bare well-known read-only invocations do
+//      not, and which is which depends on exact string shape. Everything
+//      genuinely destructive in this codebase (git push, deploy scripts,
+//      aws cli) is well outside any plausible allowlist, so the protection
+//      that matters is intact - but the guarantee is not absolute, and
+//      anything written for Kevin should say so.
 // =====================================================================
 
 import { execFileSync } from "child_process";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { randomUUID } from "crypto";
+import { markAwaitingConfirmation } from "./runs.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const KCIT_ROOT = join(here, "..");
-const KC_IT_ROOT = "C:\\Users\\PC USER\\Downloads\\kc.IT";
+export const KC_IT_ROOT = "C:\\Users\\PC USER\\Downloads\\kc.IT";
 
 const AUTO_ALLOW_TOOLS = new Set(["Read", "Glob", "Grep", "WebSearch", "WebFetch", "Write", "Edit"]);
 
@@ -55,19 +77,27 @@ export function resolvePending(id, approve) {
   return true;
 }
 
+// Phase 8: runId is the caller's own live-run id (see runs.mjs) - passed in
+// so a Bash call that falls through to a human can flip that run's tool
+// entry from "running" to "awaiting confirmation" instead of just looking
+// stuck. toolUseID/agentID come from the SDK's own canUseTool callback
+// (verified in runtimeTypes.d.ts - already passed in, previously discarded)
+// and are exactly the join key needed, no new bookkeeping required.
 /** @returns {import("@anthropic-ai/claude-agent-sdk").CanUseTool} */
-export function makeCanUseTool() {
-  return async (toolName, input) => {
+export function makeCanUseTool(runId) {
+  return async (toolName, input, { toolUseID, agentID } = {}) => {
     if (AUTO_ALLOW_TOOLS.has(toolName)) {
       return { behavior: "allow", updatedInput: input };
     }
+
+    if (runId && toolUseID) markAwaitingConfirmation(runId, toolUseID);
 
     // Everything else (Bash, and anything not explicitly listed above -
     // deny by default rather than silently auto-allow an unrecognized
     // future tool) waits for a human.
     return new Promise((resolve) => {
       const id = randomUUID();
-      pending.set(id, { id, toolName, input, createdAt: Date.now(), resolve });
+      pending.set(id, { id, toolName, input, toolUseID, agentID, createdAt: Date.now(), resolve });
     });
   };
 }

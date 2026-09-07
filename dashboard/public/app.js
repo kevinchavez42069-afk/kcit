@@ -104,6 +104,7 @@ async function loadActivity() {
 
 function appendChatMessage(role, text) {
   const log = document.getElementById("chat-log");
+  log.querySelector(".chat-empty")?.remove();
   const el = document.createElement("div");
   el.className = `chat-msg ${role}`;
   el.textContent = text;
@@ -126,6 +127,84 @@ async function loadAgentSelector() {
   } catch {
     // agent list is a nice-to-have; executive-assistant still works without it
   }
+}
+
+// --- Tabs -------------------------------------------------------------
+
+function initTabs() {
+  const tabs = document.getElementById("tabs");
+  tabs.addEventListener("click", (e) => {
+    const btn = e.target.closest(".tab");
+    if (!btn) return;
+    for (const t of tabs.querySelectorAll(".tab")) t.classList.toggle("active", t === btn);
+    for (const panel of document.querySelectorAll(".tab-panel")) {
+      panel.hidden = panel.dataset.tabPanel !== btn.dataset.tab;
+    }
+  });
+}
+
+// --- Fleet: what's running right now -----------------------------------
+// Polls independently of any in-flight chat request, because a
+// scheduler-fired run (the 7am standup, prospect-scout's Mon/Wed/Fri slot)
+// starts with no browser request active at all.
+
+let fleetTimer = null;
+
+function renderRuns(runs) {
+  const el = document.getElementById("fleet-content");
+  if (runs.length === 0) {
+    el.innerHTML = '<p class="empty">Nothing running right now.</p>';
+    return;
+  }
+  el.innerHTML = runs
+    .map((run) => {
+      const elapsed = Math.max(0, Math.round((Date.now() - run.startedAt) / 1000));
+      const tools =
+        run.activeTools.length === 0
+          ? '<div class="run-tool"><span class="pulse"></span><span class="run-tool-summary">Thinking&hellip;</span></div>'
+          : run.activeTools
+              .map((t) => {
+                const awaiting = t.status === "awaiting confirmation";
+                return `<div class="run-tool ${awaiting ? "awaiting" : ""}">
+                  <span class="pulse"></span>
+                  <span class="run-tool-name">${escapeHtml(t.name)}</span>
+                  <span class="run-tool-summary">${escapeHtml(t.summary)}</span>
+                </div>`;
+              })
+              .join("");
+      return `<div class="run-card">
+        <div class="run-head">
+          <span class="run-agent">${escapeHtml(run.agent)}</span>
+          <span class="run-meta">${elapsed}s &middot; ${run.completedCount} tool call${run.completedCount === 1 ? "" : "s"} done</span>
+        </div>
+        ${tools}
+      </div>`;
+    })
+    .join("");
+}
+
+async function loadRuns() {
+  try {
+    const { runs } = await fetchJson("/api/runs");
+    renderRuns(runs);
+    return runs;
+  } catch (err) {
+    document.getElementById("fleet-content").textContent = `Failed to load: ${err.message}`;
+    return [];
+  }
+}
+
+function startFleetPoll() {
+  stopFleetPoll();
+  loadRuns();
+  fleetTimer = setInterval(() => {
+    if (document.visibilityState === "visible") loadRuns();
+  }, 1500);
+}
+
+function stopFleetPoll() {
+  if (fleetTimer) clearInterval(fleetTimer);
+  fleetTimer = null;
 }
 
 // --- Confirm-step: polls while a phase-4 run is in flight -----------
@@ -181,6 +260,37 @@ function stopPendingPoll() {
   renderPending(null);
 }
 
+// --- Live status line in the chat log itself, replacing a static
+// "Thinking..." placeholder - reuses /api/runs, correlating by agent name
+// and picking the most recently started run for it (good enough for a
+// single-user tool; two runs for the same agent starting in the same
+// second isn't a real scenario here). ---------------------------------
+
+let chatStatusTimer = null;
+
+function statusLineFor(run) {
+  if (!run || run.activeTools.length === 0) return "Thinking…";
+  const tool = [...run.activeTools].sort((a, b) => b.startedAt - a.startedAt)[0];
+  if (tool.status === "awaiting confirmation") return "Awaiting your confirmation below…";
+  if (tool.name === "Task") return `Delegating to ${tool.summary}`;
+  if (tool.name === "Bash") return `Running: ${tool.summary}`;
+  return `${tool.name}: ${tool.summary}`;
+}
+
+function startChatStatusPoll(agent, pendingMsg) {
+  stopChatStatusPoll();
+  chatStatusTimer = setInterval(async () => {
+    const runs = await loadRuns();
+    const mine = runs.filter((r) => r.agent === agent).sort((a, b) => b.startedAt - a.startedAt)[0];
+    pendingMsg.textContent = statusLineFor(mine);
+  }, 900);
+}
+
+function stopChatStatusPoll() {
+  if (chatStatusTimer) clearInterval(chatStatusTimer);
+  chatStatusTimer = null;
+}
+
 function initChat() {
   const form = document.getElementById("chat-form");
   const input = document.getElementById("chat-input");
@@ -207,6 +317,7 @@ function initChat() {
     const pendingMsg = appendChatMessage("agent", "Thinking…");
 
     startPendingPoll();
+    startChatStatusPoll(agent, pendingMsg);
 
     try {
       const res = await fetch(isEA ? "/api/chat" : "/api/run", {
@@ -223,6 +334,7 @@ function initChat() {
       pendingMsg.textContent = `Couldn't reach ${agent}: ${err.message}`;
     } finally {
       stopPendingPoll();
+      stopChatStatusPoll();
       input.disabled = false;
       button.disabled = false;
       input.focus();
@@ -230,9 +342,11 @@ function initChat() {
   });
 }
 
+initTabs();
 loadDigest();
 loadCosts();
 loadAgentCosts();
 loadActivity();
 loadAgentSelector();
+startFleetPoll();
 initChat();
