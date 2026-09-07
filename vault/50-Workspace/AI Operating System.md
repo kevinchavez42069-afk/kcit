@@ -275,11 +275,13 @@ impressions would be worse. The Agent SDK's Sessions feature would avoid
 the re-reads; deliberately not used here, since trusting old context is
 the opposite of what a state-reporting agent should do.
 
-**Status as of this writing**: code built, syntax-checked, and the
-scheduler's date math verified against edge cases directly. Not yet
-verified: an actual delegated run producing a real confirm-step (needs a
-live test, same bar every prior phase was held to), and Pushover delivery
-(needs Kevin's account/token/user key — not set up yet).
+**Status as of this writing**: Pushover is set up and verified live —
+Kevin created the account and application, `PUSHOVER_TOKEN`/`PUSHOVER_USER`
+are in `dashboard/.env`, and a real test notification was sent and
+confirmed received on his phone. Scheduler date math verified against edge
+cases directly. Not yet verified: an actual delegated run producing a real
+confirm-step — needs a live test through the running dashboard, same bar
+every prior phase was held to.
 
 ## Open items for whoever picks up each phase
 

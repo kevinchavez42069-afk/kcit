@@ -15,6 +15,21 @@ Each entry: when, which session, what shipped, what's next.
 
 ---
 
+## 2026-09-07 (Pushover) — local session (this one)
+
+**Verified live:** Pushover notifications. Kevin created the account and
+a dedicated application ("KCIT Executive Assistant"), gave me the user
+key and API token, both saved to `dashboard/.env` (gitignored, never
+committed). Sent a real test notification through `notify.mjs` — Kevin
+confirmed it arrived on his phone.
+
+**Still open on phase 6**: an actual delegated agent run through the
+dashboard, producing a real confirm-step banner — the one remaining
+unverified piece of the EA hub work. `voice.md` writing samples remain
+the oldest open item, unrelated to this thread.
+
+---
+
 ## 2026-09-07 (night) — local session (this one)
 
 **Verified live, closing out the roadmap:** Phase 5's full loop. Kevin's
