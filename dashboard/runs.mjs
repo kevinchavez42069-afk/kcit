@@ -50,6 +50,12 @@ export function recordToolStart(runId, { toolUseId, name, input, parentToolUseId
     summary: summarize(name, input),
     startedAt: Date.now(),
     parentToolUseId: parentToolUseId ?? null,
+    // Recorded on Task entries specifically so a child tool's parent chain
+    // can resolve back to which agent is actually running it - see
+    // resolveAgent() below. Kevin caught this in testing: without it, every
+    // delegated tool call rendered as if EA itself were running it, because
+    // parentToolUseId was being stored but nothing ever read it back.
+    subagentType: name === "Task" ? input?.subagent_type : undefined,
     status: "running",
   });
 }
@@ -70,12 +76,17 @@ export function endRun(runId) {
   runs.delete(runId);
 }
 
-// Delegated calls attribute to the right agent by walking one level: a
-// tool's parentToolUseId points back to the Task call that started the
-// subagent, and that Task's own summary already carries the subagent_type
-// (see summarize() above) - the fleet is flat hub-and-spoke (confirmed in
-// Phase 7: a subagent can't itself delegate further), so one level is all
-// there is.
+// Walks one level: a tool's parentToolUseId points back to the Task call
+// that started the subagent it's running inside, and that Task entry's own
+// subagentType (set in recordToolStart above) names which agent that is.
+// One level is all there is - the fleet is flat hub-and-spoke, confirmed in
+// Phase 7 (a subagent can't itself delegate further).
+function resolveAgent(run, tool) {
+  if (!tool.parentToolUseId) return run.agent;
+  const parent = run.activeTools.get(tool.parentToolUseId);
+  return parent?.subagentType ?? run.agent;
+}
+
 export function listRuns() {
   return [...runs.values()]
     .sort((a, b) => b.startedAt - a.startedAt)
@@ -89,6 +100,7 @@ export function listRuns() {
       activeTools: [...run.activeTools.entries()].map(([toolUseId, tool]) => ({
         toolUseId,
         ...tool,
+        agent: resolveAgent(run, tool),
       })),
     }));
 }

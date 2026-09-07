@@ -507,13 +507,52 @@ matters holds. But the absolute guarantee doesn't, and nothing written for
 Kevin should repeat the stronger claim. The dashboard's own caption now
 reads "any command that changes something waits for your confirmation."
 
+**Phase 7 + 8, first real Kevin-run test, 2026-09-07: two more real bugs
+found, both fixed same day.** Kevin ran the exact cycle end to end himself
+— *"have developer add a one-line file to kcit on a dev branch, get
+code-reviewer to check it, and report back"* — and it worked at the level
+that matters: a real `dev/test-branch` was created, `developer` committed
+`fba7b05`, `code-reviewer` gave a genuine, specific "Changes needed"
+verdict (a stray `test.txt` didn't belong at repo root), and EA reported
+the branch, commit log, and verdict without merging anything itself.
+
+But Kevin also reported the Fleet tab only ever showed
+`executive-assistant` running, never `developer` or `code-reviewer`. Asked
+directly why, EA offered a plausible-sounding but wrong self-diagnosis
+("nested Task calls aren't tracked as separate fleet processes") — it
+hadn't actually read `runs.mjs`, it reasoned about its own architecture
+from the outside. The real bug, found by reading the file directly:
+`runs.mjs`'s own comment described walking `parentToolUseId` back to the
+delegating `Task` call to find which agent was really running a tool, but
+the code below the comment never did that walk — every delegated tool call
+was captured correctly, just displayed as if EA itself were running it.
+Fixed by recording a Task entry's `subagent_type` at the moment it starts
+and resolving each child tool's real owner from it; **verified live** by
+delegating a real Bash call to `developer` through the actual dashboard and
+confirming `/api/runs` reported `"agent":"developer"` on that specific
+tool, not `"executive-assistant"`.
+
+Second, separate finding while cleaning up from that same test: the
+working tree was left checked out on `dev/test-branch`, not `main` —
+`developer`'s hard rule 5 ("return to the branch you started on") was
+skipped in practice. This is a prompt-only rule with no code-level
+enforcement (unlike the confirm-step, which the CLI itself gates), so it's
+inherently probabilistic; strengthened the rule to require the checkout
+happen as the literal last action before replying, verified with a second
+`git branch --show-current`, rather than something to get to after
+summarizing.
+
 ## Open items for whoever picks up each phase
 
 - Frontend framework unspecified on purpose — whatever's fastest when a
   phase actually starts.
 - ~~Tailscale vs. Cloudflare Tunnel is a phase 2 decision.~~ Decided: Tailscale, live.
 - ~~What the "confirm step" looks like in the UI is a phase 4 design question.~~ Decided: phase 6.1's Mission Control redesign, superseded by phase 8.
-- Phase 7's full build → review → merge-decision cycle still needs one real
-  end-to-end run through the dashboard.
+- ~~Phase 7's full build → review → merge-decision cycle still needs one real
+  end-to-end run through the dashboard.~~ Done — Kevin ran it 2026-09-07, worked correctly.
 - The exact shape of Claude Code's built-in Bash allowlist is unmapped. Worth
   knowing more precisely if anything ever depends on a specific command gating.
+- `developer`'s "return to starting branch" rule has no code-level
+  enforcement, only a strengthened prompt. Worth a `canUseTool`-level check
+  (verify the working tree is back on its starting branch before allowing
+  the run to end) if it's ever skipped again in practice.

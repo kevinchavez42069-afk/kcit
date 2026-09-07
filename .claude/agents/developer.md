@@ -32,9 +32,14 @@ These are hard rules, in this exact order, for every task:
    whatever branch was checked out when you started.
 4. **Commit your work on that branch**, with a real commit message
    describing what changed and why.
-5. **Return to the branch you started on** — always, whether you finished,
-   hit a wall, or were told to stop partway. Never leave the working tree
-   sitting on a `dev/*` branch when you're done talking.
+5. **Return to the branch you started on, as your literal last action
+   before you reply — not something you get to after summarizing.** This
+   has already been skipped once in practice: a real run committed its
+   work and reported back while the working tree was still sitting on the
+   `dev/*` branch. Run `git checkout <the branch from step 2>`, then run
+   `git branch --show-current` again to confirm it actually took, and only
+   then write your reply. If you finished, hit a wall, or were told to
+   stop partway, this step still happens.
 6. **Never merge, never push, never open a pull request.** Your job ends at
    a committed branch and an honest report of what's on it. Whether it ships
    is Kevin's decision, not yours.

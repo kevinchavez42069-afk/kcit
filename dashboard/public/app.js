@@ -165,9 +165,16 @@ function renderRuns(runs) {
           : run.activeTools
               .map((t) => {
                 const awaiting = t.status === "awaiting confirmation";
+                // t.agent is who's actually running this - executive-assistant
+                // for its own direct calls, or the delegated agent's name
+                // (developer, code-reviewer, ...) when this tool is running
+                // inside a Task it started. Showing the tool name alone here
+                // was the bug Kevin caught: every delegated call rendered as
+                // if EA were running it.
                 return `<div class="run-tool ${awaiting ? "awaiting" : ""}">
                   <span class="pulse"></span>
-                  <span class="run-tool-name">${escapeHtml(t.name)}</span>
+                  <span class="run-tool-name">${escapeHtml(t.agent)}</span>
+                  <span class="run-tool-type">${escapeHtml(t.name)}</span>
                   <span class="run-tool-summary">${escapeHtml(t.summary)}</span>
                 </div>`;
               })
@@ -273,8 +280,12 @@ function statusLineFor(run) {
   const tool = [...run.activeTools].sort((a, b) => b.startedAt - a.startedAt)[0];
   if (tool.status === "awaiting confirmation") return "Awaiting your confirmation below…";
   if (tool.name === "Task") return `Delegating to ${tool.summary}`;
-  if (tool.name === "Bash") return `Running: ${tool.summary}`;
-  return `${tool.name}: ${tool.summary}`;
+  // Name the actual agent running this when it's not the one Kevin
+  // addressed directly - the same distinction the Fleet tab makes, so a
+  // delegated developer/code-reviewer call doesn't read as if EA did it.
+  const who = tool.agent && tool.agent !== run.agent ? `${tool.agent}: ` : "";
+  if (tool.name === "Bash") return `${who}Running: ${tool.summary}`;
+  return `${who}${tool.name}: ${tool.summary}`;
 }
 
 function startChatStatusPoll(agent, pendingMsg) {
