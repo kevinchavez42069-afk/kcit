@@ -239,6 +239,48 @@ running new code; check the numbers when it matters.
 
 **All five phases of the original roadmap are now built and verified.**
 
+**Phase 6 — the EA hub.** Came from Kevin's own personal daily-notes
+journal (`Downloads/projects/Daily Log/`, not part of this repo) — a
+requirements brain-dump for a much bigger role for `executive-assistant`:
+real delegation to the other three agents, push notifications, a scheduled
+daily standup, and a genuine improvement loop. This directly reversed
+EA's old hard rule ("never write for other agents, never delegate").
+
+Three decisions confirmed directly with Kevin before building: delegation
+is real but guardrail-tuning stays a drafted suggestion, never
+auto-applied; notifications go through Pushover specifically for its
+emergency-priority repeat-until-acknowledged tier (ntfy.sh has no
+equivalent); the standup is scheduled, not just on-demand.
+
+**Architecture, in one paragraph:** `chatWithAgent` now gives EA its real
+tools (still no Bash — it delegates for that) plus the SDK's native
+`agents` option, built from `loadAgents()`, so it can genuinely invoke
+`prospect-scout`/`follow-up`/`client-onboarder` as subagents — verified in
+the SDK's own source, not assumed from docs. A delegated agent keeps its
+own real tool list and hits the same `canUseTool` policy `permissions.mjs`
+already enforces, since permission checking is session-wide. New
+`dashboard/notify.mjs` (Pushover) and `dashboard/scheduler.mjs` (daily
+standup + weekly retro, plain `setTimeout`, no cron dependency) round it
+out. The improvement loop is a weekly retro, not autonomous self-editing:
+EA reviews its own past standups and `agent_runs` cost data, then drafts
+concrete proposed prompt changes into new `vault/50-Workspace/EA Retro.md`
+for Kevin to apply himself.
+
+**A limitation surfaced and accepted, not a bug**: every `chatWithAgent`
+call is a fresh, stateless invocation — no memory of any previous one.
+This is why the vault has to be the memory instead of the model: each run
+re-reads whatever files it needs via `Read`/`Glob`/`Grep`, which is
+correct, since the vault changes between invocations and stale cached
+impressions would be worse. The Agent SDK's Sessions feature would avoid
+the re-reads; deliberately not used here, since trusting old context is
+the opposite of what a state-reporting agent should do.
+
+**Status as of this writing**: code built, syntax-checked, and the
+scheduler's date math verified against edge cases directly. Not yet
+verified: an actual delegated run producing a real confirm-step (needs a
+live test, same bar every prior phase was held to), and Pushover delivery
+(needs Kevin's account/token/user key — not set up yet).
+
 ## Open items for whoever picks up each phase
 
 - Frontend framework unspecified on purpose — whatever's fastest when a

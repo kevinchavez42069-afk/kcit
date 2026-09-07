@@ -1,23 +1,25 @@
 // =====================================================================
-//  AI Operating System dashboard - phases 1-4.
+//  AI Operating System dashboard - phases 1-6.
 //  See vault/50-Workspace/AI Operating System.md for the full roadmap.
 //
 //  Run:  node server.mjs
 //  Then open http://localhost:7417 (or the printed URL/credentials).
 //
-//  Phase 2's status/cost endpoints are read-only. Phase 3 adds one live
-//  chat endpoint, scoped to executive-assistant only and to read-only
-//  tools even though EA's own file grants more (see chat.mjs) - the
-//  other three agents get real write/deploy/AWS power in phase 4, not
-//  yet built. Needs ANTHROPIC_API_KEY in the environment for phase 3 to
+//  executive-assistant (phase 6) is a real hub: its own tools plus the
+//  other three agents available to delegate to, and a scheduler firing
+//  its daily standup and weekly retro automatically (scheduler.mjs).
+//  The other three agents get real write/deploy/AWS power directly too
+//  (phase 4). Needs ANTHROPIC_API_KEY in the environment for any chat to
 //  work at all; without it, everything else on this page still works,
-//  chat alone returns a clear error.
+//  chat alone returns a clear error. Pushover notifications (notify.mjs)
+//  need PUSHOVER_TOKEN/PUSHOVER_USER too, and no-op with a console
+//  warning until those are set.
 //
 //  Access model: reachable over Tailscale plus HTTP Basic Auth with a
 //  per-IP lockout after repeated failures (see requireAuth below) - that
-//  pairing is what's allowed to gate real tool execution once phase 4
-//  lands, so it isn't loosened here. Never port-forward this to the
-//  public internet regardless.
+//  pairing is what's allowed to gate real tool execution, so it isn't
+//  loosened here. Never port-forward this to the public internet
+//  regardless.
 // =====================================================================
 
 import { createServer } from "http";
@@ -37,6 +39,7 @@ try {
 }
 import { openDb, summaryByClient, summaryByAgent } from "./db.mjs";
 import { chatWithAgent, runAgentFull } from "./chat.mjs";
+import { startScheduler } from "./scheduler.mjs";
 import { loadAgents } from "./agents.mjs";
 import { listPending, resolvePending } from "./permissions.mjs";
 
@@ -319,9 +322,12 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`\nKC IT Ops Dashboard (phases 1-4)`);
+  console.log(`\nKC IT Ops Dashboard (phases 1-6)`);
   if (!process.env.ANTHROPIC_API_KEY) {
     console.log(`ANTHROPIC_API_KEY not set - everything works except chat.`);
+  }
+  if (!process.env.PUSHOVER_TOKEN || !process.env.PUSHOVER_USER) {
+    console.log(`PUSHOVER_TOKEN/PUSHOVER_USER not set - standup/retro will run but won't push.`);
   }
   console.log(`Local:      http://localhost:${PORT}`);
   const tsIp = tailscaleIp();
@@ -338,4 +344,5 @@ server.listen(PORT, HOST, () => {
   } else {
     console.log("");
   }
+  startScheduler();
 });

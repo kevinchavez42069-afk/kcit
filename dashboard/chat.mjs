@@ -1,16 +1,28 @@
 // =====================================================================
 //  Live chat with an agent, via the Claude Agent SDK. Two entry points:
 //
-//  chatWithAgent  - phase 3. executive-assistant only, allowedTools
-//                   forced to Read/Glob/Grep regardless of what the
-//                   agent's own file grants (it lists Write/Edit too,
-//                   for Daily Digest.md on Claude Code) - a deliberate,
-//                   stricter cap for the first live-chat integration.
+//  chatWithAgent  - executive-assistant only, and now a real hub (phase 6):
+//                   its own real tools (Read/Write/Edit/Glob/Grep, still no
+//                   Bash - it never needs Bash directly, see below), plus
+//                   an `agents` map so it can genuinely delegate to the
+//                   other three via the SDK's native subagent support.
+//                   Phase 3 (2026-09-06) had this forced to Read/Glob/Grep
+//                   only, as a deliberate stricter cap for the first live
+//                   integration; superseded now that phases 3-5 are
+//                   verified and Kevin explicitly asked for the hub role.
 //  runAgentFull   - phase 4. Any of the four agents, with their real
 //                   tools. Safety comes from permissions.mjs: Bash always
 //                   waits for a human via canUseTool, and a stale local
 //                   checkout of either repo blocks the run before it
 //                   starts (see checkReposCurrent).
+//
+//  Why EA never needs Bash itself: any task that actually needs a shell
+//  command belongs to whichever of the other three agents has Bash in its
+//  own file, invoked as a delegated subagent - which carries its own real
+//  tools and hits the *same* canUseTool policy, since permission checking
+//  is session-wide, not per-agent. Confirmed architecturally by reading
+//  the SDK's own source; the actual confirm-step-fires-through-delegation
+//  behavior still needs a live test once this is running.
 //
 //  Needs ANTHROPIC_API_KEY in the environment - the Agent SDK cannot
 //  reuse Claude Code's own session credentials, it makes its own API
@@ -21,14 +33,30 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import { getAgent } from "./agents.mjs";
+import { getAgent, loadAgents } from "./agents.mjs";
 import { makeCanUseTool, checkReposCurrent } from "./permissions.mjs";
 import { openDb, insertAgentRun } from "./db.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const KCIT_ROOT = join(here, "..");
 
-const READ_ONLY_TOOLS = ["Read", "Glob", "Grep"];
+// Builds the SDK's `agents` option: every agent except the one running,
+// so executive-assistant can delegate to prospect-scout/follow-up/
+// client-onboarder without a forked copy of their definitions - this
+// reads the same .claude/agents/*.md files agents.mjs already parses.
+function buildSubagents(excludeName) {
+  const subagents = {};
+  for (const [name, agent] of loadAgents()) {
+    if (name === excludeName) continue;
+    subagents[name] = {
+      description: agent.description,
+      tools: agent.tools,
+      prompt: agent.systemPrompt,
+      model: agent.model,
+    };
+  }
+  return subagents;
+}
 
 function requireApiKey() {
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -89,7 +117,9 @@ async function runQuery(agentName, phase, prompt, options) {
 }
 
 /**
- * Phase 3: chat with executive-assistant, forced read-only.
+ * Phase 6: chat with executive-assistant, the hub. Real tools (no Bash -
+ * it delegates for that), plus the other three agents available as real
+ * subagents it can invoke directly.
  * @param {string} agentName
  * @param {string} prompt
  * @returns {Promise<{text: string, usage: object, costUsd: number}>}
@@ -100,21 +130,36 @@ export async function chatWithAgent(agentName, prompt) {
   const agent = getAgent(agentName);
   if (!agent) throw new Error(`Unknown agent "${agentName}"`);
 
-  // Phase 3 only serves executive-assistant, and only read-only. This
-  // guard stays even though more agents are now available via
-  // runAgentFull, so a caller can't reach phase 4's real tool access by
-  // going through the wrong function.
+  // This function is EA's dedicated path because it's the only agent that
+  // gets the `agents` delegation map - a caller reaching for that for one
+  // of the other three should use runAgentFull instead.
   if (agentName !== "executive-assistant") {
     throw new Error(`chatWithAgent only serves executive-assistant, not "${agentName}" - use runAgentFull.`);
   }
 
-  return runQuery(agentName, "3", prompt, {
+  // EA now writes to the vault (Daily Digest.md, EA Retro.md) and can
+  // delegate to agents that write elsewhere, so a stale local checkout
+  // matters here exactly as it does for runAgentFull.
+  const repoCheck = checkReposCurrent();
+  if (!repoCheck.current) {
+    throw new Error(
+      "Refusing to start: " + repoCheck.reasons.join(" ") + " Pull the latest before running EA."
+    );
+  }
+
+  return runQuery(agentName, "6", prompt, {
     cwd: KCIT_ROOT,
     model: agent.model,
     systemPrompt: agent.systemPrompt,
-    allowedTools: READ_ONLY_TOOLS,
-    permissionMode: "default",
-    maxTurns: 8,
+    // No Bash in EA's own tools - see the file-header note on why. Every
+    // other tool is pre-approved (git-tracked, reversible); canUseTool
+    // below is what actually matters here, since it also gates Bash
+    // calls made by any subagent EA delegates to.
+    tools: agent.tools,
+    allowedTools: agent.tools,
+    agents: buildSubagents("executive-assistant"),
+    canUseTool: makeCanUseTool(),
+    maxTurns: 20,
   });
 }
 
