@@ -9,12 +9,16 @@
 <body>
 <header>
   <h1>KC IT Ops Dashboard</h1>
-  <p class="subtitle">Chat with executive-assistant is read-only. No writes, no deploys from here yet &mdash; that's phase 4.</p>
+  <p class="subtitle">executive-assistant is always read-only. The other three agents run with their real tools &mdash; Bash always waits for your confirmation below before anything executes.</p>
 </header>
 
 <main>
   <section class="panel" id="chat-panel">
-    <h2>Chat with executive-assistant</h2>
+    <div class="chat-header">
+      <h2>Chat</h2>
+      <select id="agent-select"><option value="executive-assistant">executive-assistant (read-only)</option></select>
+    </div>
+    <div id="confirm-banner" class="confirm-banner" hidden></div>
     <div id="chat-log" class="chat-log"></div>
     <form id="chat-form" class="chat-form">
       <input id="chat-input" type="text" placeholder="Ask about status, prospects, findings&hellip;" autocomplete="off">

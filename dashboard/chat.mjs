@@ -1,76 +1,50 @@
 // =====================================================================
-//  Phase 3: live chat with one agent, via the Claude Agent SDK.
+//  Live chat with an agent, via the Claude Agent SDK. Two entry points:
 //
-//  Deliberately narrower than the real agent for this phase: EA's own
-//  file (.claude/agents/executive-assistant.md) lists Write/Edit tools
-//  too, since it writes Daily Digest.md on Claude Code. This phase is
-//  billed as read-only in the design doc, so the SDK call below
-//  restricts allowedTools to Read/Glob/Grep regardless of what the
-//  agent's own frontmatter allows - a deliberate, stricter cap for the
-//  first live-chat integration, not a bug. Phase 4 lifts this for the
-//  other three agents, with a confirm-step in front of anything
-//  destructive (see the canUseTool callback path, unused here since
-//  everything allowed in phase 3 is already safe to auto-approve).
+//  chatWithAgent  - phase 3. executive-assistant only, allowedTools
+//                   forced to Read/Glob/Grep regardless of what the
+//                   agent's own file grants (it lists Write/Edit too,
+//                   for Daily Digest.md on Claude Code) - a deliberate,
+//                   stricter cap for the first live-chat integration.
+//  runAgentFull   - phase 4. Any of the four agents, with their real
+//                   tools. Safety comes from permissions.mjs: Bash always
+//                   waits for a human via canUseTool, and a stale local
+//                   checkout of either repo blocks the run before it
+//                   starts (see checkReposCurrent).
 //
 //  Needs ANTHROPIC_API_KEY in the environment - the Agent SDK cannot
 //  reuse Claude Code's own session credentials, it makes its own API
-//  calls and Anthropic's terms require a real API key for that (not
-//  reusing claude.ai/Claude Code auth). Not set up yet as of this
-//  writing; every function here is written against the SDK's real
-//  shipped type definitions (checked directly, not guessed) but is
-//  UNTESTED until a key is available.
+//  calls and Anthropic's terms require a real API key for that. Set by
+//  Kevin 2026-09-07, verified working via chatWithAgent.
 // =====================================================================
 
 import { query } from "@anthropic-ai/claude-agent-sdk";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { getAgent } from "./agents.mjs";
+import { makeCanUseTool, checkReposCurrent } from "./permissions.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const KCIT_ROOT = join(here, "..");
 
 const READ_ONLY_TOOLS = ["Read", "Glob", "Grep"];
 
-/**
- * Run one turn of chat with an agent and return the assistant's text.
- * @param {string} agentName
- * @param {string} prompt
- * @returns {Promise<{text: string, usage: object|null}>}
- */
-export async function chatWithAgent(agentName, prompt) {
+function requireApiKey() {
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new Error(
       "ANTHROPIC_API_KEY is not set. The dashboard's chat needs its own API key - " +
-        "see vault/50-Workspace/AI Operating System.md, phase 3."
+        "see vault/50-Workspace/AI Operating System.md."
     );
   }
+}
 
-  const agent = getAgent(agentName);
-  if (!agent) throw new Error(`Unknown agent "${agentName}"`);
-
-  // Phase 3 only serves executive-assistant, and only read-only. This
-  // guard stays even if more agents are added to the allowlist below by
-  // mistake, so phase 4's real tool access can't be reached accidentally.
-  if (agentName !== "executive-assistant") {
-    throw new Error(`Phase 3 only serves executive-assistant, not "${agentName}"`);
-  }
-
+async function runQuery(prompt, options) {
   let result = null;
 
-  for await (const message of query({
-    prompt,
-    options: {
-      cwd: KCIT_ROOT,
-      model: agent.model,
-      systemPrompt: agent.systemPrompt,
-      allowedTools: READ_ONLY_TOOLS,
-      permissionMode: "default",
-      maxTurns: 8,
-    },
-  })) {
+  for await (const message of query({ prompt, options })) {
     // The 'result' message is the authoritative final answer - it also
     // carries usage and total_cost_usd (SDK computes this itself, no need
-    // to duplicate pricing.mjs's math for agent-fleet costs later).
+    // to duplicate pricing.mjs's math for agent-fleet costs).
     if (message.type === "result") result = message;
   }
 
@@ -84,4 +58,78 @@ export async function chatWithAgent(agentName, prompt) {
     usage: result.usage,
     costUsd: result.total_cost_usd,
   };
+}
+
+/**
+ * Phase 3: chat with executive-assistant, forced read-only.
+ * @param {string} agentName
+ * @param {string} prompt
+ * @returns {Promise<{text: string, usage: object, costUsd: number}>}
+ */
+export async function chatWithAgent(agentName, prompt) {
+  requireApiKey();
+
+  const agent = getAgent(agentName);
+  if (!agent) throw new Error(`Unknown agent "${agentName}"`);
+
+  // Phase 3 only serves executive-assistant, and only read-only. This
+  // guard stays even though more agents are now available via
+  // runAgentFull, so a caller can't reach phase 4's real tool access by
+  // going through the wrong function.
+  if (agentName !== "executive-assistant") {
+    throw new Error(`chatWithAgent only serves executive-assistant, not "${agentName}" - use runAgentFull.`);
+  }
+
+  return runQuery(prompt, {
+    cwd: KCIT_ROOT,
+    model: agent.model,
+    systemPrompt: agent.systemPrompt,
+    allowedTools: READ_ONLY_TOOLS,
+    permissionMode: "default",
+    maxTurns: 8,
+  });
+}
+
+/**
+ * Phase 4: chat with any agent, using its real tools. Bash always waits
+ * for confirmation via permissions.mjs; refuses to start at all if
+ * either repo's local checkout is behind origin.
+ * @param {string} agentName
+ * @param {string} prompt
+ * @returns {Promise<{text: string, usage: object, costUsd: number}>}
+ */
+export async function runAgentFull(agentName, prompt) {
+  requireApiKey();
+
+  const agent = getAgent(agentName);
+  if (!agent) throw new Error(`Unknown agent "${agentName}"`);
+
+  const repoCheck = checkReposCurrent();
+  if (!repoCheck.current) {
+    throw new Error(
+      "Refusing to start: " +
+        repoCheck.reasons.join(" ") +
+        " Pull the latest before running an agent that writes here."
+    );
+  }
+
+  return runQuery(prompt, {
+    cwd: KCIT_ROOT,
+    model: agent.model,
+    systemPrompt: agent.systemPrompt,
+    // `tools` is what makes a tool available to the model at all (mirrors
+    // the agent's real .md `tools:` field exactly). `allowedTools` is a
+    // SEPARATE pre-approval layer on top - verified by reading the SDK's
+    // own source (sdk.mjs), which passes these as the real Claude Code
+    // CLI's --tools and --allowedTools flags. Bash is deliberately in
+    // `tools` (available) but left OUT of `allowedTools` (not
+    // pre-approved), so it's the one tool that always falls through to
+    // canUseTool below - confirmed by reading the CLI integration, not
+    // assumed from the type comments, since this is the one line that
+    // actually enforces the confirm-step.
+    tools: agent.tools,
+    allowedTools: agent.tools.filter((t) => t !== "Bash"),
+    canUseTool: makeCanUseTool(),
+    maxTurns: 20,
+  });
 }

@@ -83,9 +83,79 @@ function appendChatMessage(role, text) {
   return el;
 }
 
+async function loadAgentSelector() {
+  const select = document.getElementById("agent-select");
+  try {
+    const { agents } = await fetchJson("/api/agents");
+    for (const a of agents) {
+      if (a.name === "executive-assistant") continue; // already the default option
+      const opt = document.createElement("option");
+      opt.value = a.name;
+      opt.textContent = `${a.name} (${a.tools.includes("Bash") ? "full tools, Bash confirmed" : "full tools"})`;
+      select.appendChild(opt);
+    }
+  } catch {
+    // agent list is a nice-to-have; executive-assistant still works without it
+  }
+}
+
+// --- Confirm-step: polls while a phase-4 run is in flight -----------
+let pollTimer = null;
+
+function renderPending(entry) {
+  const banner = document.getElementById("confirm-banner");
+  if (!entry) {
+    banner.hidden = true;
+    banner.innerHTML = "";
+    return;
+  }
+  banner.hidden = false;
+  banner.innerHTML = `
+    <div class="confirm-title">Confirm before this runs: ${escapeHtml(entry.toolName)}</div>
+    <code>${escapeHtml(JSON.stringify(entry.input, null, 2))}</code>
+    <div class="confirm-actions">
+      <button class="approve" type="button">Approve</button>
+      <button class="deny" type="button">Deny</button>
+    </div>
+  `;
+  banner.querySelector(".approve").onclick = () => respondToPending(entry.id, true);
+  banner.querySelector(".deny").onclick = () => respondToPending(entry.id, false);
+}
+
+async function respondToPending(id, approve) {
+  try {
+    await fetch("/api/confirm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, approve }),
+    });
+  } finally {
+    renderPending(null);
+  }
+}
+
+function startPendingPoll() {
+  stopPendingPoll();
+  pollTimer = setInterval(async () => {
+    try {
+      const { pending } = await fetchJson("/api/pending");
+      renderPending(pending[0] ?? null);
+    } catch {
+      // transient - next tick will retry
+    }
+  }, 1200);
+}
+
+function stopPendingPoll() {
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = null;
+  renderPending(null);
+}
+
 function initChat() {
   const form = document.getElementById("chat-form");
   const input = document.getElementById("chat-input");
+  const select = document.getElementById("agent-select");
   const button = form.querySelector("button");
 
   form.addEventListener("submit", async (e) => {
@@ -93,25 +163,31 @@ function initChat() {
     const message = input.value.trim();
     if (!message) return;
 
-    appendChatMessage("user", message);
+    const agent = select.value;
+    const readOnly = agent === "executive-assistant";
+
+    appendChatMessage("user", `[${agent}] ${message}`);
     input.value = "";
     input.disabled = true;
     button.disabled = true;
-    const pending = appendChatMessage("agent", "Thinking…");
+    const pendingMsg = appendChatMessage("agent", "Thinking…");
+
+    if (!readOnly) startPendingPoll();
 
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch(readOnly ? "/api/chat" : "/api/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify(readOnly ? { message } : { agent, message }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-      pending.textContent = data.reply;
+      pendingMsg.textContent = data.reply;
     } catch (err) {
-      pending.className = "chat-msg error";
-      pending.textContent = `Couldn't reach executive-assistant: ${err.message}`;
+      pendingMsg.className = "chat-msg error";
+      pendingMsg.textContent = `Couldn't reach ${agent}: ${err.message}`;
     } finally {
+      stopPendingPoll();
       input.disabled = false;
       button.disabled = false;
       input.focus();
@@ -122,4 +198,5 @@ function initChat() {
 loadDigest();
 loadCosts();
 loadActivity();
+loadAgentSelector();
 initChat();

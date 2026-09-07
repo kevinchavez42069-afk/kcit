@@ -36,7 +36,9 @@ try {
   // no .env file - fine, chat just reports it's unconfigured until one exists
 }
 import { openDb, summaryByClient } from "./db.mjs";
-import { chatWithAgent } from "./chat.mjs";
+import { chatWithAgent, runAgentFull } from "./chat.mjs";
+import { loadAgents } from "./agents.mjs";
+import { listPending, resolvePending } from "./permissions.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const VAULT = join(here, "..", "vault");
@@ -255,6 +257,52 @@ const server = createServer(async (req, res) => {
       console.error("Chat error:", err);
       return jsonResponse(res, 500, { error: err.message });
     }
+  }
+
+  // Phase 4: list the agents this dashboard can run with real tools.
+  if (req.url === "/api/agents") {
+    const agents = [...loadAgents().values()].map((a) => ({ name: a.name, description: a.description, tools: a.tools }));
+    return jsonResponse(res, 200, { agents });
+  }
+
+  // Phase 4: run any agent with its real tools. Bash always waits for
+  // confirmation - the request stays open (no timeout set) until either
+  // the agent finishes or a pending confirmation is resolved via
+  // /api/confirm. The frontend polls /api/pending while this is in flight.
+  if (req.url === "/api/run" && req.method === "POST") {
+    let body;
+    try {
+      body = JSON.parse(await readBody(req));
+    } catch {
+      return jsonResponse(res, 400, { error: "Invalid JSON body." });
+    }
+    if (typeof body.agent !== "string" || typeof body.message !== "string" || !body.message.trim()) {
+      return jsonResponse(res, 400, { error: 'Expected "agent" and a non-empty "message".' });
+    }
+    try {
+      const { text, usage, costUsd } = await runAgentFull(body.agent, body.message);
+      return jsonResponse(res, 200, { reply: text, usage, costUsd });
+    } catch (err) {
+      console.error("Agent run error:", err);
+      return jsonResponse(res, 500, { error: err.message });
+    }
+  }
+
+  // Phase 4: the confirm-step. GET to see what's waiting, POST to decide.
+  if (req.url === "/api/pending") {
+    return jsonResponse(res, 200, { pending: listPending() });
+  }
+
+  if (req.url === "/api/confirm" && req.method === "POST") {
+    let body;
+    try {
+      body = JSON.parse(await readBody(req));
+    } catch {
+      return jsonResponse(res, 400, { error: "Invalid JSON body." });
+    }
+    const ok = resolvePending(body.id, Boolean(body.approve));
+    if (!ok) return jsonResponse(res, 404, { error: "No pending confirmation with that id (already resolved, or never existed)." });
+    return jsonResponse(res, 200, { resolved: true });
   }
 
   serveStatic(req, res);
