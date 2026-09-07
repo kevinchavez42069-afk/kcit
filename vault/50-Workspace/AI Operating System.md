@@ -8,7 +8,7 @@ tags: [technical, roadmap]
 
 Design doc and phased roadmap for a dashboard where Kevin can chat directly
 with the agent fleet, see usage and cost, and see findings, with
-[[executive-assistant]] as the agent overseeing the other three. Written
+`executive-assistant` as the agent overseeing the other three. Written
 2026-09-06, roadmap only, no code shipped yet.
 
 ## Why
@@ -106,6 +106,13 @@ already reads them. The dashboard is a window onto the vault, not a
 replacement for it — a Claude Code CLI session working the vault directly
 doesn't need to change anything. The dashboard and the CLI are two doors into
 the same room.
+
+Phases 5-6 added three more vault-native records, all following the same
+rule: `Daily Digest.md` (EA's standups), [[EA Retro]] (its weekly
+self-review), and [[Prospect Candidates Log]] (`prospect-scout`'s own memory
+of every business it has already evaluated, accepted or rejected, so a
+scheduled run doesn't re-research the same rejects). Only `costs.db` lives
+outside the vault, because per-request usage rows are data, not knowledge.
 
 ### Safety guardrails, non-negotiable regardless of phase
 

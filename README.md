@@ -23,17 +23,30 @@ and search results.
 | `vault/_style/voice.md` | Writing rules. Binding on every agent that drafts text |
 | `vault/_templates/` | Note templates |
 | `.claude/agents/` | The agent fleet |
+| `dashboard/` | Local ops dashboard. Chat with the fleet, costs, activity feed |
 | `CLAUDE.md` | Always-on guidance for Claude Code in this repo |
 
 ## The agents
 
 | Agent | Use it for |
 |---|---|
+| `executive-assistant` | Status updates, the daily standup, weekly retro, delegating to the other three |
 | `prospect-scout` | Building the visit list, researching a business before walking in |
 | `follow-up` | Post-visit messages, lead triage, quotes |
 | `client-onboarder` | Adding a client or demo tenant to the chat assistant, deploying |
 
-Run `/agents` in Claude Code to confirm they load.
+Two ways to reach them: a Claude Code session opened in this repo (they load
+automatically, by trigger phrase or by name), or the dashboard, which serves
+the same `.claude/agents/*.md` definitions rather than a forked copy.
+
+## The dashboard
+
+Local Node service on Kevin's machine, reachable from a phone over Tailscale,
+never a public URL. Chat with any agent, watch fleet and chatbot costs, read
+the activity feed and latest digest. Any `Bash` an agent tries to run waits
+for an explicit confirm in the UI first, no matter which agent asked.
+
+Design doc and full build history: `vault/50-Workspace/AI Operating System.md`.
 
 ## Private
 
