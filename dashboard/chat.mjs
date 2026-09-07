@@ -2,27 +2,34 @@
 //  Live chat with an agent, via the Claude Agent SDK. Two entry points:
 //
 //  chatWithAgent  - executive-assistant only, and now a real hub (phase 6):
-//                   its own real tools (Read/Write/Edit/Glob/Grep, still no
-//                   Bash - it never needs Bash directly, see below), plus
-//                   an `agents` map so it can genuinely delegate to the
-//                   other three via the SDK's native subagent support.
+//                   its own real tools (Read/Write/Edit/Glob/Grep/Bash),
+//                   plus an `agents` map so it can genuinely delegate to
+//                   the other three via the SDK's native subagent support.
 //                   Phase 3 (2026-09-06) had this forced to Read/Glob/Grep
 //                   only, as a deliberate stricter cap for the first live
 //                   integration; superseded now that phases 3-5 are
 //                   verified and Kevin explicitly asked for the hub role.
+//                   Phase 6.2 (2026-09-07) added Bash directly to EA's own
+//                   tools - Kevin's call: the hub needs to check
+//                   infrastructure state (git status, what's running, logs)
+//                   itself, not only by delegating. EA's own prompt still
+//                   draws the line at specialized business work
+//                   (prospect research, follow-up, onboarding), which
+//                   stays delegated to whichever agent's job it actually is.
 //  runAgentFull   - phase 4. Any of the four agents, with their real
 //                   tools. Safety comes from permissions.mjs: Bash always
 //                   waits for a human via canUseTool, and a stale local
 //                   checkout of either repo blocks the run before it
 //                   starts (see checkReposCurrent).
 //
-//  Why EA never needs Bash itself: any task that actually needs a shell
-//  command belongs to whichever of the other three agents has Bash in its
-//  own file, invoked as a delegated subagent - which carries its own real
-//  tools and hits the *same* canUseTool policy, since permission checking
-//  is session-wide, not per-agent. Confirmed architecturally by reading
-//  the SDK's own source; the actual confirm-step-fires-through-delegation
-//  behavior still needs a live test once this is running.
+//  EA's Bash calls hit the exact same canUseTool confirm-step as any other
+//  agent's - see the allowedTools filter in chatWithAgent below. Being the
+//  hub does not mean being pre-approved; that would be exactly the kind of
+//  privilege escalation the confirm-step exists to prevent. A delegated
+//  subagent's Bash call also hits the same policy, since permission
+//  checking is session-wide, not per-agent - confirmed architecturally by
+//  reading the SDK's own source; still needs a live test (ask EA to check
+//  git status and confirm the banner actually appears) once this ships.
 //
 //  Needs ANTHROPIC_API_KEY in the environment - the Agent SDK cannot
 //  reuse Claude Code's own session credentials, it makes its own API
@@ -117,9 +124,9 @@ async function runQuery(agentName, phase, prompt, options) {
 }
 
 /**
- * Phase 6: chat with executive-assistant, the hub. Real tools (no Bash -
- * it delegates for that), plus the other three agents available as real
- * subagents it can invoke directly.
+ * Phase 6: chat with executive-assistant, the hub. Its own real tools,
+ * Bash included as of phase 6.2, plus the other three agents available as
+ * real subagents it can invoke directly.
  * @param {string} agentName
  * @param {string} prompt
  * @returns {Promise<{text: string, usage: object, costUsd: number}>}
@@ -151,12 +158,15 @@ export async function chatWithAgent(agentName, prompt) {
     cwd: KCIT_ROOT,
     model: agent.model,
     systemPrompt: agent.systemPrompt,
-    // No Bash in EA's own tools - see the file-header note on why. Every
-    // other tool is pre-approved (git-tracked, reversible); canUseTool
-    // below is what actually matters here, since it also gates Bash
-    // calls made by any subagent EA delegates to.
+    // `tools` makes Bash available to EA (as of phase 6.2); `allowedTools`
+    // deliberately leaves Bash OUT so it always falls through to
+    // canUseTool below - the exact same pre-approval split runAgentFull
+    // uses for the other three agents. Without this filter, adding Bash
+    // to EA's frontmatter tools would have made it a pre-approved tool
+    // for EA specifically, silently skipping the confirm-step - the one
+    // thing being "the hub" must never do.
     tools: agent.tools,
-    allowedTools: agent.tools,
+    allowedTools: agent.tools.filter((t) => t !== "Bash"),
     agents: buildSubagents("executive-assistant"),
     canUseTool: makeCanUseTool(),
     maxTurns: 20,

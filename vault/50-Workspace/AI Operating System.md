@@ -253,7 +253,7 @@ emergency-priority repeat-until-acknowledged tier (ntfy.sh has no
 equivalent); the standup is scheduled, not just on-demand.
 
 **Architecture, in one paragraph:** `chatWithAgent` now gives EA its real
-tools (still no Bash — it delegates for that) plus the SDK's native
+tools, Bash included as of phase 6.2, plus the SDK's native
 `agents` option, built from `loadAgents()`, so it can genuinely invoke
 `prospect-scout`/`follow-up`/`client-onboarder` as subagents — verified in
 the SDK's own source, not assumed from docs. A delegated agent keeps its
@@ -305,6 +305,41 @@ hidden when there was nothing to confirm. Fixed with an explicit
 now stays hidden by default and renders correctly (title, code block,
 Approve/Deny) when a confirmation is pending, and clears cleanly on
 Approve/Deny.
+
+**Phase 6.2 — EA gets Bash directly. Done, 2026-09-07.** Kevin tried
+asking EA to check git status through the live dashboard; it correctly
+declined to delegate (none of `prospect-scout`/`follow-up`/
+`client-onboarder`'s specialized jobs cover a generic infra command) but
+had no way to just do it, since its frontmatter tools were
+Read/Write/Edit/Glob/Grep only. Kevin's call: that's wrong for a hub —
+EA should be able to check infrastructure state itself, not only by
+delegating.
+
+Added `Bash` to `.claude/agents/executive-assistant.md`'s `tools:` field
+and rewrote the prompt's opening to state its role and reporting line
+explicitly (executive assistant for KC IT Solutions, reports to Kevin
+Chavez, the sole owner) plus a new hard rule distinguishing the two cases:
+infrastructure visibility (git status, what's running, logs) is EA's own
+job now, directly; specialized business work (prospect research, drafting
+a follow-up, an onboarding sequence) still delegates to whichever agent's
+job it actually is — not because EA lacks the tool, but because that
+agent's own prompt carries the domain-specific judgment for it.
+
+The safety-critical part was in `dashboard/chat.mjs`, not the prompt file:
+`chatWithAgent` previously set `allowedTools: agent.tools` unfiltered for
+EA (there was no Bash in that list to worry about before). Adding Bash to
+EA's frontmatter tools without also fixing this would have made Bash a
+*pre-approved* tool for EA specifically — skipping the confirm-step
+entirely for the one agent used the most, exactly backwards from the
+point of the confirm-step. Caught before shipping, not after: fixed by
+filtering Bash out of EA's `allowedTools` the same way `runAgentFull`
+already does for the other three agents, so it always falls through to
+`canUseTool`.
+
+Not yet verified live: asking EA to check git status through the running
+dashboard and confirming the banner actually appears — same bar every
+prior phase was held to, next thing to test once the server picks up this
+change.
 
 ## Open items for whoever picks up each phase
 

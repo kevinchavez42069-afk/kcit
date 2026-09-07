@@ -195,8 +195,9 @@ function initChat() {
     const agent = select.value;
     // executive-assistant has its own dedicated endpoint (it gets the
     // delegation `agents` map chat.mjs builds specially for it), but as of
-    // phase 6 it's not read-only - it can delegate to a Bash-capable agent
-    // and needs the same confirm-step polling as a direct phase-4 run.
+    // phase 6 it's not read-only - it has its own Bash (phase 6.2) and can
+    // also delegate to a Bash-capable agent, so it needs the same
+    // confirm-step polling as a direct phase-4 run.
     const isEA = agent === "executive-assistant";
 
     appendChatMessage("user", `[${agent}] ${message}`);
