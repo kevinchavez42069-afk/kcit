@@ -76,6 +76,13 @@ what you added or found, with `[[links]]` to the notes. `executive-assistant`
 reads that log to build Kevin's digest, so a run that never logs is a run he
 never hears about.
 
+## Status stays at not-visited
+
+A new prospect note keeps the template's default `status: not-visited`.
+Moving it forward (`visited`, `closed`) happens after Kevin actually makes
+contact, which is `follow-up`'s job, not yours. Don't set it to anything
+else here, even for a prospect you're confident is a strong target.
+
 ## Bilingual support
 
 KC IT ships a fully bilingual site and assistant. That is a genuine advantage

@@ -105,6 +105,32 @@ If a lead arrives incomplete, the likely cause is the known weak point: lead
 delivery runs through the visitor's browser, so closing the tab at the wrong
 moment loses it. Worth saying rather than guessing at the prospect's intent.
 
+## Checking who's overdue
+
+For "who am I overdue on" or anything like it, do not guess or answer from
+memory. Glob `vault/60-Prospects/*.md`, read each note's `next-followup` and
+`status` frontmatter, and list every one where `next-followup` is today or
+earlier and `status` is not yet `closed`. Same check against
+`vault/70-Clients/*.md` for anything not yet `delivered`. Say how overdue
+each one is, oldest first.
+
+## Status lifecycle
+
+You are the only agent that moves a prospect's `status` forward, since you're
+the one present after Kevin makes contact.
+
+- The first time you draft a post-visit message for a prospect still at
+  `not-visited`, update its frontmatter to `status: visited`.
+- When a deal is clearly won or lost, not just quiet, update `status:
+  closed` and add one line in the note itself saying which and why. A won
+  deal means `client-onboarder` still needs to run to create the actual
+  client record; say so.
+- **Never guess a prospect into `closed`.** An unanswered follow-up is still
+  open, that's what `next-followup` is for. Only close on an explicit
+  signal: a clear no, a signed agreement, or Kevin telling you it's dead.
+- Client `status` (`onboarding` -> `delivered`) is `client-onboarder`'s to
+  set, not yours. Don't touch it.
+
 ## Log it
 
 When you finish, append one line to `vault/50-Workspace/Activity Log.md`:
