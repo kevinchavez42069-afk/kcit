@@ -123,7 +123,24 @@ export function insertUsage(db, row) {
   return result.changes > 0; // true if this was a new row, false if a duplicate
 }
 
-/** Per-client totals for rows with timestamp_ms >= sinceMs (default: all time). */
+// Tenants that were renamed. The logs keep the old id forever, so a rename
+// shows up here as an extra tenant that never existed, and anything reading
+// this table counts one customer too many. The finance agent did exactly
+// that on its first run: it saw three ids, and reported `riverbend-plumbing`
+// as Kevin's first real client. It was the demo tenant before b2f894c
+// renamed it, and Kevin has zero clients.
+//
+// Mapped rather than corrected in place on purpose. The CloudWatch logs
+// still say `riverbend-plumbing` for that period, so an UPDATE would be
+// undone by the next cost-report.mjs run that covers it. A map survives a
+// re-pull; a rewrite does not.
+const RENAMED_TENANTS = {
+  "riverbend-plumbing": "sample-plumbing",
+};
+
+/** Per-client totals for rows with timestamp_ms >= sinceMs (default: all time).
+ *  Renamed tenants are folded into their current id, so the row count is the
+ *  number of tenants that actually exist, not the number of names ever used. */
 export function summaryByClient(db, sinceMs = 0) {
   const stmt = db.prepare(`
     SELECT client_id,
@@ -138,7 +155,20 @@ export function summaryByClient(db, sinceMs = 0) {
     GROUP BY client_id
     ORDER BY cost_usd DESC
   `);
-  return stmt.all(sinceMs);
+
+  const merged = new Map();
+  for (const row of stmt.all(sinceMs)) {
+    const id = RENAMED_TENANTS[row.client_id] ?? row.client_id;
+    const into = merged.get(id);
+    if (!into) {
+      merged.set(id, { ...row, client_id: id });
+      continue;
+    }
+    for (const k of ["requests", "input_tokens", "output_tokens", "cache_read", "cache_write", "cost_usd"]) {
+      into[k] += row[k] ?? 0;
+    }
+  }
+  return [...merged.values()].sort((a, b) => b.cost_usd - a.cost_usd);
 }
 
 export function latestTimestamp(db) {
