@@ -1,3 +1,13 @@
+// Every state-changing request carries this header. The server refuses any
+// POST without it (see requireSameOrigin in server.mjs). A cross-origin page
+// cannot set a custom header without a CORS preflight, and this server
+// answers no preflights, so a forged form post from another site fails
+// before it reaches a route. That was the audit's first critical finding.
+const JSON_POST_HEADERS = {
+  "Content-Type": "application/json",
+  "X-Requested-By": "kcit-dashboard",
+};
+
 async function fetchJson(url, options) {
   const res = await fetch(url, options);
   if (!res.ok) throw new Error(`${url} -> ${res.status}`);
@@ -176,7 +186,7 @@ async function initAutoApprove() {
     try {
       const { autoApprove } = await fetchJson("/api/auto-approve", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: JSON_POST_HEADERS,
         body: JSON.stringify({ on: wantOn }),
       });
       render(autoApprove);
@@ -298,7 +308,7 @@ async function respondToPending(id, approve) {
   try {
     await fetch("/api/confirm", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: JSON_POST_HEADERS,
       body: JSON.stringify({ id, approve }),
     });
   } finally {
@@ -388,7 +398,7 @@ function initChat() {
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: JSON_POST_HEADERS,
         body: JSON.stringify({ message }),
       });
       const data = await res.json();
@@ -463,7 +473,7 @@ async function initDrawer() {
     try {
       const res = await fetch("/api/run", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: JSON_POST_HEADERS,
         body: JSON.stringify({ agent: selected, message }),
       });
       const data = await res.json();

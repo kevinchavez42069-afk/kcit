@@ -133,6 +133,58 @@ function requireAuth(req, res) {
   return false;
 }
 
+// --- CSRF ----------------------------------------------------------------
+// The 2026-09-07 audit's first critical finding. Basic Auth credentials are
+// cached by the browser per origin and attached automatically to ANY request
+// to that origin, including one a completely unrelated web page triggers
+// while the dashboard tab is open. A hidden form posting with
+// enctype="text/plain" is a CORS "simple request": no preflight, no consent,
+// and this server used to parse its body as JSON and act on it. That was
+// enough to flip auto-approve on and then run an agent with Bash, with
+// Kevin's own browser supplying the credentials and no confirm banner ever
+// appearing. "It's Tailscale-only" is no defense - the request originates
+// from his browser, which is already on the tailnet.
+//
+// The fix is the standard one: require a header a cross-origin form cannot
+// set. Any custom header forces a CORS preflight, and the preflight fails
+// because this server never sends Access-Control-Allow-* to anyone. Applied
+// to every state-changing method rather than only the two endpoints the
+// audit named, because /api/confirm approves a queued Bash command and
+// deserves the same protection.
+const CSRF_HEADER = "x-requested-by";
+const CSRF_VALUE = "kcit-dashboard";
+
+function requireSameOrigin(req, res) {
+  if (req.method === "GET" || req.method === "HEAD") return true;
+
+  if (req.headers[CSRF_HEADER] !== CSRF_VALUE) {
+    jsonResponse(res, 403, {
+      error: `State-changing requests need the ${CSRF_HEADER}: ${CSRF_VALUE} header. This blocks cross-site request forgery.`,
+    });
+    return false;
+  }
+
+  // Belt and braces: if the browser sent an Origin (it does on POST), it has
+  // to be this server. A form post from another page carries that page's
+  // origin, so this catches it even if the header check were ever relaxed.
+  const origin = req.headers.origin;
+  if (origin) {
+    const host = req.headers.host;
+    let originHost = null;
+    try {
+      originHost = new URL(origin).host;
+    } catch {
+      originHost = null;
+    }
+    if (!host || originHost !== host) {
+      jsonResponse(res, 403, { error: "Cross-origin request refused." });
+      return false;
+    }
+  }
+
+  return true;
+}
+
 // --- Data sources --------------------------------------------------------
 
 function readVaultFile(relativePath) {
@@ -224,6 +276,7 @@ function serveStatic(req, res) {
 
 const server = createServer(async (req, res) => {
   if (!requireAuth(req, res)) return;
+  if (!requireSameOrigin(req, res)) return;
 
   if (req.url === "/api/activity") {
     const entries = parseActivityLog(readVaultFile("50-Workspace/Activity Log.md"));
