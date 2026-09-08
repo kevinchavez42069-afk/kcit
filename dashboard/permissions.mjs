@@ -145,11 +145,32 @@ export function makeCanUseTool(runId, { ignoreAutoApprove = false } = {}) {
 // mid-work. Before a write-capable agent run starts, fetch and compare -
 // refuse to start if this machine's view of either repo is stale, rather
 // than let an agent write on top of history it hasn't seen.
+// `git fetch` talks to the network, and this runs synchronously on the only
+// thread the dashboard has, before every write-capable agent run. Without a
+// timeout, one unreachable remote or one credential prompt hangs the entire
+// server - not just this check. GIT_TERMINAL_PROMPT=0 turns a would-be
+// interactive credential prompt into an immediate failure instead of an
+// indefinite wait, which is the case a timeout alone handles slowly.
+const FETCH_TIMEOUT_MS = 10_000;
+
 function checkRepoCurrent(repoPath) {
   try {
-    execFileSync("git", ["fetch", "origin"], { cwd: repoPath, stdio: "pipe" });
-  } catch {
-    return { current: true, reason: null }; // no remote, or fetch failed - nothing to compare against
+    execFileSync("git", ["fetch", "origin"], {
+      cwd: repoPath,
+      stdio: "pipe",
+      timeout: FETCH_TIMEOUT_MS,
+      env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
+    });
+  } catch (err) {
+    // Deliberately fail open: kc.IT genuinely has no remote, so a failed
+    // fetch is the normal case there, and blocking every agent run on a
+    // flaky network would be worse than the staleness risk. But say so -
+    // this was previously silent, which made "no remote" indistinguishable
+    // from "the network is down and the staleness check isn't running."
+    console.warn(
+      `checkRepoCurrent: fetch failed for ${repoPath} (${err.code === "ETIMEDOUT" ? `timed out after ${FETCH_TIMEOUT_MS}ms` : err.message}) - skipping the staleness check for this repo.`
+    );
+    return { current: true, reason: null };
   }
   try {
     const behind = execFileSync("git", ["rev-list", "--count", "HEAD..origin/main"], {

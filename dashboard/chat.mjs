@@ -38,6 +38,7 @@
 // =====================================================================
 
 import { query } from "@anthropic-ai/claude-agent-sdk";
+import { readFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { getAgent, loadAgents } from "./agents.mjs";
@@ -86,6 +87,40 @@ const MAX_TURNS = 60;
 // stale multi-day conversation ever becomes a real problem in practice.
 const sessionIds = new Map();
 
+// CLAUDE.md's rules - no cold outreach, never invent proof, never quote an
+// unset price, never expose the API key, voice.md is binding - are described
+// in that file as the things that are NOT up for interpretation. They reached
+// every Claude Code CLI session and none of these runs: `systemPrompt` here is
+// only ever the agent's own .md body, and the SDK defaults `settingSources` to
+// [] (sdk.mjs), so no project context loads at all. Every dashboard and
+// scheduler run since phase 3 has been operating without them.
+//
+// Prepending the file explicitly rather than passing settingSources:["project"]
+// is deliberate. That option would also import .claude/settings.json if one is
+// ever added, including any permission rules in it, which could silently widen
+// what canUseTool auto-approves. A hidden allowlist undermining an assumed
+// guarantee is the exact failure this project already hit once. This way the
+// prompt is exactly what you can read here, with no second source.
+let projectRulesCache = null;
+
+function projectRules() {
+  if (projectRulesCache !== null) return projectRulesCache;
+  try {
+    projectRulesCache = readFileSync(join(KCIT_ROOT, "CLAUDE.md"), "utf8").trim();
+  } catch (err) {
+    // Loud, not silent: losing these rules is the bug this code exists to fix.
+    console.error(`Could not load CLAUDE.md - agents are running WITHOUT the project's binding rules: ${err.message}`);
+    projectRulesCache = "";
+  }
+  return projectRulesCache;
+}
+
+function withProjectRules(systemPrompt) {
+  const rules = projectRules();
+  if (!rules) return systemPrompt;
+  return `${rules}\n\n---\n\n${systemPrompt}`;
+}
+
 // Builds the SDK's `agents` option: every agent except the one running,
 // so executive-assistant can delegate to prospect-scout/follow-up/
 // client-onboarder without a forked copy of their definitions - this
@@ -97,7 +132,10 @@ function buildSubagents(excludeName) {
     subagents[name] = {
       description: agent.description,
       tools: agent.tools,
-      prompt: agent.systemPrompt,
+      // A delegated subagent gets the rules too - it does the same real work
+      // with the same real tools, so exempting it would leave the exact hole
+      // this fixes, reachable one delegation away.
+      prompt: withProjectRules(agent.systemPrompt),
       model: agent.model,
     };
   }
@@ -277,7 +315,7 @@ export async function chatWithAgent(agentName, prompt, { unattended = false } = 
     cwd: KCIT_ROOT,
     additionalDirectories: ADDITIONAL_DIRECTORIES,
     model: agent.model,
-    systemPrompt: agent.systemPrompt,
+    systemPrompt: withProjectRules(agent.systemPrompt),
     // `tools` makes Bash available to EA (as of phase 6.2); `allowedTools`
     // deliberately leaves Bash OUT so it always falls through to
     // canUseTool below - the exact same pre-approval split runAgentFull
@@ -330,7 +368,7 @@ export async function runAgentFull(agentName, prompt, { unattended = false } = {
     cwd: KCIT_ROOT,
     additionalDirectories: ADDITIONAL_DIRECTORIES,
     model: agent.model,
-    systemPrompt: agent.systemPrompt,
+    systemPrompt: withProjectRules(agent.systemPrompt),
     // `tools` is what makes a tool available to the model at all (mirrors
     // the agent's real .md `tools:` field exactly). `allowedTools` is a
     // SEPARATE pre-approval layer on top - verified by reading the SDK's
