@@ -251,6 +251,47 @@ function parseActivityLog(markdown) {
   return entries.reverse(); // newest first
 }
 
+// Parses Board.md into the three columns Home shows. Convention:
+//   ## In flight
+//   - what the item is | a short note
+//   - something only Kevin can finish @you
+// The pipe separates the item from its note, and @you marks work no agent
+// can close. Deliberately a hand-edited file rather than something inferred
+// from commits: what shipped, what is moving and what is next are judgement
+// calls, and a wrong guess on the Home screen is worse than an empty column.
+const BOARD_COLUMNS = ["Shipped", "In flight", "Up next"];
+
+function parseBoard(markdown) {
+  const columns = BOARD_COLUMNS.map((title) => ({ title, items: [] }));
+  if (!markdown) return columns;
+
+  let current = null;
+  for (const line of markdown.split("\n")) {
+    const heading = line.match(/^##\s+(.+?)\s*$/);
+    if (heading) {
+      const wanted = heading[1].toLowerCase();
+      current = columns.find((c) => c.title.toLowerCase() === wanted) ?? null;
+      continue;
+    }
+    if (!current) continue;
+
+    const bullet = line.match(/^-\s+(.+?)\s*$/);
+    if (!bullet) continue;
+
+    let text = bullet[1];
+    let note = "";
+    const pipe = text.indexOf("|");
+    if (pipe !== -1) {
+      note = text.slice(pipe + 1).trim();
+      text = text.slice(0, pipe).trim();
+    }
+    const you = /@you\b/.test(text);
+    text = text.replace(/@you\b/g, "").replace(/\s+/g, " ").trim();
+    if (text) current.items.push({ text, note, you });
+  }
+  return columns;
+}
+
 function jsonResponse(res, status, body) {
   res.writeHead(status, { "Content-Type": "application/json" });
   res.end(JSON.stringify(body));
@@ -296,6 +337,14 @@ const server = createServer(async (req, res) => {
   if (req.url === "/api/digest") {
     const digest = readVaultFile("50-Workspace/Daily Digest.md");
     return jsonResponse(res, 200, { digest, exists: digest !== null });
+  }
+
+  // What shipped, what is moving, what is next. Absent file is not an error,
+  // same as /api/digest: the frontend renders "no board yet" and says how to
+  // start one, rather than showing a broken strip on a fresh setup.
+  if (req.url === "/api/board") {
+    const markdown = readVaultFile("50-Workspace/Board.md");
+    return jsonResponse(res, 200, { columns: parseBoard(markdown), exists: markdown !== null });
   }
 
   if (req.url === "/api/costs") {

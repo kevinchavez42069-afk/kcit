@@ -1,3 +1,12 @@
+// =====================================================================
+//  KC IT Agent Ops - frontend.
+//
+//  Everything on this page comes from a real endpoint. Where there is no
+//  data source there is an empty state, never a placeholder number: this
+//  screen is how Kevin decides what to do next, and an invented figure on
+//  it is worse than a blank.
+// =====================================================================
+
 // Every state-changing request carries this header. The server refuses any
 // POST without it (see requireSameOrigin in server.mjs). A cross-origin page
 // cannot set a custom header without a CORS preflight, and this server
@@ -8,6 +17,8 @@ const JSON_POST_HEADERS = {
   "X-Requested-By": "kcit-dashboard",
 };
 
+const $ = (id) => document.getElementById(id);
+
 async function fetchJson(url, options) {
   const res = await fetch(url, options);
   if (!res.ok) throw new Error(`${url} -> ${res.status}`);
@@ -15,296 +26,377 @@ async function fetchJson(url, options) {
 }
 
 function escapeHtml(str) {
-  return str.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
-async function loadDigest() {
-  const el = document.getElementById("digest-content");
-  try {
-    const { digest, exists } = await fetchJson("/api/digest");
-    if (!exists) {
-      el.innerHTML = '<p class="empty">No digest yet - executive-assistant hasn\'t produced one.</p>';
-      return;
-    }
-    el.innerHTML = `<div class="digest-body">${escapeHtml(digest)}</div>`;
-  } catch (err) {
-    el.textContent = `Failed to load: ${err.message}`;
+function money(n) {
+  return `$${Number(n || 0).toFixed(n >= 100 ? 2 : 4)}`;
+}
+
+// --- Agents -------------------------------------------------------------
+// Icon and accent per agent. The keys are the real filenames in
+// .claude/agents/, so adding an agent there without adding it here falls
+// back to the generic chip rather than rendering nothing.
+
+const AGENT_META = {
+  "executive-assistant": { ic: "i-ea", ac: "--ag-ea" },
+  developer: { ic: "i-dev", ac: "--ag-dev" },
+  "code-reviewer": { ic: "i-rev", ac: "--ag-rev" },
+  "prospect-scout": { ic: "i-scout", ac: "--ag-scout" },
+  "client-onboarder": { ic: "i-onb", ac: "--ag-onb" },
+  "follow-up": { ic: "i-fu", ac: "--ag-fu" },
+};
+const FALLBACK_META = { ic: "i-gen", ac: "--ag-ea" };
+const meta = (name) => AGENT_META[name] || FALLBACK_META;
+
+function icon(name) {
+  const m = meta(name);
+  return `<svg class="ic" style="--ac:var(${m.ac})" viewBox="0 0 16 16" aria-hidden="true"><use href="#${m.ic}"/></svg>`;
+}
+
+let AGENTS = []; // [{name, description, tools}] from /api/agents
+let current = "executive-assistant";
+
+// --- Screens ------------------------------------------------------------
+
+let screen = "home";
+
+function show(name) {
+  screen = name;
+  for (const b of document.querySelectorAll("#nav button")) {
+    if (b.dataset.s === name) b.setAttribute("aria-current", "page");
+    else b.removeAttribute("aria-current");
   }
+  for (const s of document.querySelectorAll(".screen")) s.classList.toggle("on", s.dataset.s === name);
 }
 
-async function loadCosts() {
-  const el = document.getElementById("costs-content");
-  try {
-    const { clients } = await fetchJson("/api/costs");
-    if (clients.length === 0) {
-      el.innerHTML = '<p class="empty">No usage recorded yet. Run dashboard/cost-report.mjs to pull the latest.</p>';
-      return;
-    }
-    const totalCost = clients.reduce((sum, c) => sum + c.cost_usd, 0);
-    const rows = clients
-      .map(
-        (c) => `<tr>
-          <td>${escapeHtml(c.client_id)}</td>
-          <td>${c.requests}</td>
-          <td class="cost-total">$${c.cost_usd.toFixed(4)}</td>
-        </tr>`
-      )
-      .join("");
-    el.innerHTML = `
-      <table>
-        <thead><tr><th>Client</th><th>Requests</th><th>Cost</th></tr></thead>
-        <tbody>${rows}</tbody>
-        <tfoot><tr><th>Total</th><th></th><th class="cost-total">$${totalCost.toFixed(4)}</th></tr></tfoot>
-      </table>`;
-  } catch (err) {
-    el.textContent = `Failed to load: ${err.message}`;
-  }
+$("nav").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-s]");
+  if (b) show(b.dataset.s);
+});
+document.addEventListener("click", (e) => {
+  const g = e.target.closest("[data-goto]");
+  if (g) show(g.dataset.goto);
+});
+
+// --- Theme --------------------------------------------------------------
+
+const root = document.documentElement;
+const SUN = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.6 12h2.2M19.2 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>';
+const MOON = '<svg viewBox="0 0 24 24"><path d="M20 14.2A8.2 8.2 0 0 1 9.8 4a8.2 8.2 0 1 0 10.2 10.2z"/></svg>';
+
+function theme() {
+  const t = root.getAttribute("data-theme");
+  if (t === "dark" || t === "light") return t;
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
-
-async function loadAgentCosts() {
-  const el = document.getElementById("agent-costs-content");
-  try {
-    const { agents } = await fetchJson("/api/agent-costs");
-    if (agents.length === 0) {
-      el.innerHTML = '<p class="empty">No dashboard chat runs yet.</p>';
-      return;
-    }
-    const totalCost = agents.reduce((sum, a) => sum + a.cost_usd, 0);
-    const rows = agents
-      .map(
-        (a) => `<tr>
-          <td>${escapeHtml(a.agent_name)}</td>
-          <td>${a.runs}</td>
-          <td class="cost-total">$${a.cost_usd.toFixed(4)}</td>
-        </tr>`
-      )
-      .join("");
-    el.innerHTML = `
-      <table>
-        <thead><tr><th>Agent</th><th>Runs</th><th>Cost</th></tr></thead>
-        <tbody>${rows}</tbody>
-        <tfoot><tr><th>Total</th><th></th><th class="cost-total">$${totalCost.toFixed(4)}</th></tr></tfoot>
-      </table>`;
-  } catch (err) {
-    el.textContent = `Failed to load: ${err.message}`;
-  }
+function paintTheme() {
+  const dark = theme() === "dark";
+  $("thm").innerHTML = dark ? SUN : MOON;
+  $("thm").title = dark ? "Switch to light" : "Switch to dark";
+  $("thm").setAttribute("aria-label", $("thm").title);
 }
+try {
+  const stored = localStorage.getItem("theme");
+  if (stored === "dark" || stored === "light") root.setAttribute("data-theme", stored);
+} catch {}
+$("thm").addEventListener("click", () => {
+  const next = theme() === "dark" ? "light" : "dark";
+  root.setAttribute("data-theme", next);
+  try { localStorage.setItem("theme", next); } catch {}
+  paintTheme();
+});
+window.matchMedia?.("(prefers-color-scheme: dark)").addEventListener("change", paintTheme);
+paintTheme();
 
-async function loadActivity() {
-  const el = document.getElementById("activity-content");
-  try {
-    const { entries } = await fetchJson("/api/activity");
-    if (entries.length === 0) {
-      el.innerHTML = '<p class="empty">No activity logged yet.</p>';
-      return;
-    }
-    el.innerHTML = entries
-      .map(
-        (e) => `<div class="activity-entry">
-          <span class="activity-agent">${escapeHtml(e.agent)}</span>
-          <span class="activity-date">&middot; ${escapeHtml(e.date)}</span>
-          <div>${escapeHtml(e.summary)}</div>
-        </div>`
-      )
-      .join("");
-  } catch (err) {
-    el.textContent = `Failed to load: ${err.message}`;
-  }
-}
+// --- Collapsible sections ----------------------------------------------
 
-function appendChatMessage(log, role, text) {
-  log.querySelector(".chat-empty")?.remove();
-  const el = document.createElement("div");
-  el.className = `chat-msg ${role}`;
-  el.textContent = text;
-  log.appendChild(el);
-  log.scrollTop = log.scrollHeight;
-  return el;
-}
-
-// --- Resizable chat column ----------------------------------------------
-
-function initResize() {
-  const chatColumn = document.getElementById("chat-column");
-  const handle = document.getElementById("resize-handle");
-  const app = document.getElementById("app");
-  let dragging = false;
-  handle.addEventListener("mousedown", (e) => {
-    dragging = true;
-    handle.classList.add("active");
-    e.preventDefault();
+for (const sec of document.querySelectorAll(".sec")) {
+  const key = `sec:${sec.dataset.k}`;
+  const head = sec.querySelector(":scope > .hd3, :scope > .ch");
+  if (!head) continue;
+  try { if (localStorage.getItem(key) === "0") sec.dataset.open = "false"; } catch {}
+  head.setAttribute("role", "button");
+  head.tabIndex = 0;
+  const sync = () => head.setAttribute("aria-expanded", sec.dataset.open !== "false");
+  const toggle = () => {
+    const open = sec.dataset.open !== "false";
+    sec.dataset.open = open ? "false" : "true";
+    try { localStorage.setItem(key, open ? "0" : "1"); } catch {}
+    sync();
+  };
+  head.addEventListener("click", (e) => {
+    if (e.target.closest("[data-goto], button.more")) return;
+    toggle();
   });
-  window.addEventListener("mousemove", (e) => {
-    if (!dragging) return;
-    const rect = app.getBoundingClientRect();
-    const w = Math.min(660, Math.max(320, e.clientX - rect.left));
-    chatColumn.style.width = `${w}px`;
+  head.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
   });
-  window.addEventListener("mouseup", () => {
-    dragging = false;
-    handle.classList.remove("active");
-  });
+  sync();
 }
 
-// --- Tabs -------------------------------------------------------------
+// --- Resizable fleet rail ------------------------------------------------
 
-function initTabs() {
-  const tabs = document.getElementById("tabs");
-  tabs.addEventListener("click", (e) => {
-    const btn = e.target.closest(".tab");
-    if (!btn) return;
-    for (const t of tabs.querySelectorAll(".tab")) t.classList.toggle("active", t === btn);
-    for (const panel of document.querySelectorAll(".tab-panel")) {
-      panel.hidden = panel.dataset.tabPanel !== btn.dataset.tab;
-    }
-  });
-}
+const consoleEl = document.querySelector(".console");
+const RAIL_MIN = 170, RAIL_MAX = 520;
+try {
+  const w = parseInt(localStorage.getItem("railW"), 10);
+  if (w >= RAIL_MIN && w <= RAIL_MAX) consoleEl.style.setProperty("--railW", `${w}px`);
+} catch {}
 
-// --- Auto-approve: an explicit, loud, human-flipped override -----------
-// Session-only, never persisted - see permissions.mjs for why this is a
+$("grip").addEventListener("pointerdown", function (e) {
+  e.preventDefault();
+  this.setPointerCapture(e.pointerId);
+  document.body.classList.add("dragging");
+  const move = (ev) => {
+    let w = Math.round(consoleEl.getBoundingClientRect().right - ev.clientX);
+    w = Math.max(RAIL_MIN, Math.min(RAIL_MAX, w));
+    consoleEl.style.setProperty("--railW", `${w}px`);
+  };
+  const up = () => {
+    document.body.classList.remove("dragging");
+    window.removeEventListener("pointermove", move);
+    window.removeEventListener("pointerup", up);
+    try { localStorage.setItem("railW", parseInt(consoleEl.style.getPropertyValue("--railW"), 10)); } catch {}
+  };
+  window.addEventListener("pointermove", move);
+  window.addEventListener("pointerup", up);
+});
+
+let railMin = false;
+try { railMin = localStorage.getItem("railMin") === "1"; } catch {}
+document.body.classList.toggle("rail-min", railMin);
+$("rail-toggle").addEventListener("click", function () {
+  railMin = !railMin;
+  document.body.classList.toggle("rail-min", railMin);
+  this.title = railMin ? "Expand" : "Collapse";
+  this.setAttribute("aria-label", railMin ? "Expand fleet" : "Collapse fleet");
+  try { localStorage.setItem("railMin", railMin ? "1" : "0"); } catch {}
+});
+
+// --- Auto-approve --------------------------------------------------------
+// Session-only, never persisted. See permissions.mjs for why this is a
 // visible toggle and not a smarter allowlist.
 
 async function initAutoApprove() {
-  const btn = document.getElementById("auto-toggle");
-  const warning = document.getElementById("auto-warning");
-
-  function render(on) {
-    btn.textContent = on ? "[ auto-approve: on ]" : "[ auto-approve: off ]";
-    btn.classList.toggle("solid", on);
-    warning.classList.toggle("show", on);
-  }
-
+  const btn = $("auto-toggle");
+  const warn = $("auto-warning");
+  const paint = (on) => {
+    btn.classList.toggle("on", on);
+    btn.setAttribute("aria-pressed", String(on));
+    warn.hidden = !on;
+  };
   try {
     const { autoApprove } = await fetchJson("/api/auto-approve");
-    render(autoApprove);
+    paint(autoApprove);
   } catch {
-    // starts rendered off, matches the safe default if this fails
+    // starts off, which matches the safe default if this fails
   }
-
   btn.addEventListener("click", async () => {
-    const wantOn = !btn.classList.contains("solid");
+    const wantOn = !btn.classList.contains("on");
     try {
       const { autoApprove } = await fetchJson("/api/auto-approve", {
         method: "POST",
         headers: JSON_POST_HEADERS,
         body: JSON.stringify({ on: wantOn }),
       });
-      render(autoApprove);
+      paint(autoApprove);
     } catch {
-      // leave it as it was - a failed toggle should not silently claim success
+      // leave it as it was - a failed toggle must not claim success
     }
   });
 }
 
-// --- Fleet: what's running right now -----------------------------------
-// Polls independently of any in-flight chat request, because a
-// scheduler-fired run (the 7am standup, prospect-scout's Mon/Wed/Fri slot)
-// starts with no browser request active at all.
+// --- Fleet ---------------------------------------------------------------
+// One row per agent, always all of them: lit when running, dimmed when
+// idle. That is the whole point of the rail - seeing at a glance who is
+// doing what - so it lists the roster, not just whatever happens to be
+// active. A tool's own `agent` field (resolved server-side in runs.mjs)
+// says who is really running it, whether Kevin addressed that agent
+// directly or executive-assistant delegated to it.
 
-let fleetTimer = null;
+let latestRuns = [];
 
-function renderRuns(runs) {
-  const el = document.getElementById("fleet-content");
-
-  // One frame per agent that's actually doing something right now, not one
-  // per top-level run with everything else nested inside it. A tool's own
-  // `agent` field (resolved server-side in runs.mjs) already says who's
-  // really running it, whether that's the agent Kevin addressed directly
-  // or one it delegated to - grouping by that field is what separates them.
-  const byAgent = new Map();
+function agentStates(runs) {
+  const state = new Map();
   for (const run of runs) {
-    if (!byAgent.has(run.agent)) byAgent.set(run.agent, { agent: run.agent, tools: [] });
+    if (!state.has(run.agent)) state.set(run.agent, { tools: [] });
     for (const tool of run.activeTools) {
       const key = tool.agent || run.agent;
-      if (!byAgent.has(key)) byAgent.set(key, { agent: key, tools: [] });
-      byAgent.get(key).tools.push(tool);
+      if (!state.has(key)) state.set(key, { tools: [] });
+      state.get(key).tools.push(tool);
     }
   }
+  return state;
+}
 
-  const groups = [...byAgent.values()];
-  if (groups.length === 0) {
-    el.innerHTML = '<p class="empty">Nothing running right now.</p>';
-    return;
+function fleetRowHtml(name, st, selectable) {
+  const waiting = st && st.tools.some((t) => t.status === "awaiting confirmation");
+  const live = Boolean(st);
+  const cls = !live ? "idle" : waiting ? "live held" : "live";
+  const newest = st && st.tools.length
+    ? [...st.tools].sort((a, b) => b.startedAt - a.startedAt)[0]
+    : null;
+  let line = "";
+  if (waiting) line = "Waiting on your approval";
+  else if (newest) line = `${newest.name}  ${newest.summary || ""}`.trim();
+  else if (live) line = "Thinking";
+  const sel = selectable && name === current ? " sel" : "";
+  return `<button class="ag ${cls}${sel}" data-agent="${escapeHtml(name)}" type="button" title="${escapeHtml(name)}">
+    <span class="ico">${icon(name)}<span class="led"></span></span>
+    <span class="bd">
+      <span class="nm">${escapeHtml(name)}</span>
+      ${line ? `<span class="ln">${escapeHtml(line)}</span>` : ""}
+      ${live ? "" : '<span class="mt"><span>idle</span></span>'}
+    </span>
+  </button>`;
+}
+
+function renderFleet(runs) {
+  const state = agentStates(runs);
+  const names = AGENTS.length ? AGENTS.map((a) => a.name) : [...state.keys()];
+  const liveCount = names.filter((n) => state.has(n)).length;
+
+  $("fleet-rows").innerHTML = names.map((n) => fleetRowHtml(n, state.get(n), true)).join("");
+  $("home-fleet").innerHTML = names.map((n) => fleetRowHtml(n, state.get(n), false)).join("");
+  $("fleet-count").textContent = `${liveCount} live`;
+  $("home-fleet-cnt").textContent = `${liveCount} live`;
+  $("fleet-sum").textContent = `${liveCount} live, ${names.length - liveCount} idle`;
+
+  const ea = state.get("executive-assistant");
+  $("home-chat-state").textContent = ea ? "working" : "";
+}
+
+// Clicking an agent anywhere switches the Console conversation to it. A
+// full window each, not a split - the drawer this replaces put two
+// conversations on screen at once and neither had room.
+document.addEventListener("click", (e) => {
+  const row = e.target.closest(".ag[data-agent]");
+  if (!row) return;
+  current = row.dataset.agent;
+  paintChatHeader();
+  renderFleet(latestRuns);
+  show("console");
+  $("chat-input").focus();
+});
+
+async function loadRuns() {
+  try {
+    const { runs } = await fetchJson("/api/runs");
+    latestRuns = runs;
+    renderFleet(runs);
+    return runs;
+  } catch {
+    return latestRuns;
+  }
+}
+
+// --- Pending confirmations ----------------------------------------------
+// Polled continuously and visibility-gated, not only while a browser
+// request is in flight. A scheduler-fired run (the 7am standup) reaches
+// the confirm gate with no chat request open at all, and the old
+// behaviour showed Kevin nothing to approve in that case.
+
+let pendingCache = [];
+
+// listPending() deliberately returns only {id, toolName, input, createdAt} -
+// it has toolUseID internally but does not expose it, so there is no exact
+// join key. The live runs do know who is blocked: every tool sitting at the
+// gate is flagged "awaiting confirmation" and carries its own resolved agent.
+// Pair them by order, which is exact in the normal case of one at a time,
+// and fall back to an honest generic label rather than guessing a name.
+function waitingAgents() {
+  const out = [];
+  for (const run of latestRuns) {
+    for (const tool of run.activeTools) {
+      if (tool.status === "awaiting confirmation") out.push(tool.agent || run.agent);
+    }
+  }
+  return out;
+}
+
+function whoAsked(index) {
+  const waiting = waitingAgents();
+  if (waiting.length === pendingCache.length && waiting[index]) return waiting[index];
+  if (waiting.length === 1) return waiting[0];
+  return "An agent";
+}
+
+// An unanswered confirmation now expires and resolves as a denial that says
+// so (permissions.mjs). That is a different thing from Kevin refusing, and
+// the agent is told which it was, so the countdown is worth showing rather
+// than letting one lapse silently while he is looking at the screen.
+function expiryLabel(entry) {
+  if (!entry.expiresAt) return "";
+  const left = Math.round((entry.expiresAt - Date.now()) / 1000);
+  if (left <= 0) return "expiring";
+  if (left < 60) return `${left}s left`;
+  return `${Math.round(left / 60)}m left`;
+}
+
+function confirmHtml(entry, index) {
+  const cmd = entry.input && typeof entry.input.command === "string"
+    ? entry.input.command
+    : JSON.stringify(entry.input, null, 2);
+  return `<div class="t">${escapeHtml(whoAsked(index))} is asking to run a command<span class="k">${escapeHtml(entry.toolName)}${expiryLabel(entry) ? " &middot; " + expiryLabel(entry) : ""}</span></div>
+    <pre>${escapeHtml(cmd)}</pre>
+    <div class="a">
+      <button class="y" type="button" data-confirm="${escapeHtml(entry.id)}" data-approve="1">Approve</button>
+      <button class="n" type="button" data-confirm="${escapeHtml(entry.id)}" data-approve="0">Deny</button>
+    </div>`;
+}
+
+function renderPending(pending) {
+  pendingCache = pending;
+
+  const banner = $("confirm-banner");
+  if (pending.length === 0) {
+    banner.hidden = true;
+    banner.innerHTML = "";
+  } else {
+    banner.hidden = false;
+    banner.innerHTML = confirmHtml(pending[0], 0);
   }
 
-  el.innerHTML = groups
-    .map((group) => {
-      const waiting = group.tools.some((t) => t.status === "awaiting confirmation");
-      const state = waiting ? "waiting" : "running";
-      const stateLabel = waiting ? "confirm" : "running";
-      const tools =
-        group.tools.length === 0
-          ? '<div class="agent-card-tool"><span class="prompt">&gt;</span><code>thinking&hellip;</code></div>'
-          : group.tools
-              .map(
-                (t) => `<div class="agent-card-tool">
-                  <span class="prompt">&gt;</span>
-                  <span class="tool-type">${escapeHtml(t.name)}</span>
-                  <code>${escapeHtml(t.summary)}</code>
-                </div>`
-              )
-              .join("");
-      return `<div class="agent-card active">
-        <span class="cb1"></span><span class="cb2"></span>
-        <div class="agent-card-head">
-          <span class="agent-card-name">${escapeHtml(group.agent)}</span>
-          <span class="agent-card-state ${state}">${stateLabel}</span>
+  const needs = $("needs");
+  const cnt = $("needs-cnt");
+  cnt.hidden = pending.length === 0;
+  cnt.textContent = String(pending.length);
+  $("needs-sum").textContent = pending.length
+    ? `${pending.length} waiting on you`
+    : "nothing waiting";
+
+  if (pending.length === 0) {
+    needs.innerHTML = '<p class="empty">Nothing is waiting on you.</p>';
+    return;
+  }
+  needs.innerHTML = pending
+    .map((entry, index) => {
+      const cmd = entry.input && typeof entry.input.command === "string"
+        ? entry.input.command
+        : JSON.stringify(entry.input, null, 2);
+      return `<div class="need">
+        <div class="bd">
+          <div class="ttl">${escapeHtml(whoAsked(index))} wants to run ${escapeHtml(entry.toolName)}</div>
+          <pre>${escapeHtml(cmd)}</pre>
+          <div class="act">
+            <button class="pri" type="button" data-confirm="${escapeHtml(entry.id)}" data-approve="1">Approve</button>
+            <button type="button" data-confirm="${escapeHtml(entry.id)}" data-approve="0">Deny</button>
+            <button type="button" data-goto="console">Open in Console</button>
+            <span class="who2">${escapeHtml(expiryLabel(entry))}</span>
+          </div>
         </div>
-        ${tools}
       </div>`;
     })
     .join("");
 }
 
-async function loadRuns() {
-  try {
-    const { runs } = await fetchJson("/api/runs");
-    renderRuns(runs);
-    return runs;
-  } catch (err) {
-    document.getElementById("fleet-content").textContent = `Failed to load: ${err.message}`;
-    return [];
-  }
-}
-
-function startFleetPoll() {
-  stopFleetPoll();
-  loadRuns();
-  fleetTimer = setInterval(() => {
-    if (document.visibilityState === "visible") loadRuns();
-  }, 1500);
-}
-
-function stopFleetPoll() {
-  if (fleetTimer) clearInterval(fleetTimer);
-  fleetTimer = null;
-}
-
-// --- Confirm-step: polls while a run is in flight ----------------------
-
-let pollTimer = null;
-
-function renderPending(entry) {
-  const banner = document.getElementById("confirm-banner");
-  if (!entry) {
-    banner.hidden = true;
-    banner.innerHTML = "";
-    return;
-  }
-  banner.hidden = false;
-  banner.innerHTML = `
-    <div class="confirm-title">confirm before this runs :: ${escapeHtml(entry.toolName)}</div>
-    <code>${escapeHtml(JSON.stringify(entry.input, null, 2))}</code>
-    <div class="confirm-actions">
-      <button class="bracket-btn solid" type="button">[ approve ]</button>
-      <button class="bracket-btn danger" type="button">[ deny ]</button>
-    </div>
-  `;
-  banner.querySelector(".solid").onclick = () => respondToPending(entry.id, true);
-  banner.querySelector(".danger").onclick = () => respondToPending(entry.id, false);
-}
-
-async function respondToPending(id, approve) {
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-confirm]");
+  if (!btn) return;
+  const id = btn.dataset.confirm;
+  const approve = btn.dataset.approve === "1";
+  for (const b of document.querySelectorAll(`[data-confirm="${CSS.escape(id)}"]`)) b.disabled = true;
   try {
     await fetch("/api/confirm", {
       method: "POST",
@@ -312,106 +404,127 @@ async function respondToPending(id, approve) {
       body: JSON.stringify({ id, approve }),
     });
   } finally {
-    renderPending(null);
+    loadPending();
+  }
+});
+
+async function loadPending() {
+  try {
+    const { pending } = await fetchJson("/api/pending");
+    renderPending(pending);
+  } catch {
+    // transient - the next tick retries
   }
 }
 
-function startPendingPoll() {
-  stopPendingPoll();
-  pollTimer = setInterval(async () => {
-    try {
-      const { pending } = await fetchJson("/api/pending");
-      renderPending(pending[0] ?? null);
-    } catch {
-      // transient - next tick will retry
-    }
-  }, 1200);
+// --- The live poll -------------------------------------------------------
+// One timer for both, gated on tab visibility so an unwatched tab is quiet.
+
+function startPolling() {
+  loadRuns();
+  loadPending();
+  setInterval(() => {
+    if (document.visibilityState !== "visible") return;
+    loadRuns();
+    loadPending();
+  }, 1500);
 }
 
-function stopPendingPoll() {
-  if (pollTimer) clearInterval(pollTimer);
-  pollTimer = null;
-  renderPending(null);
+// --- Chat ----------------------------------------------------------------
+
+function paintChatHeader() {
+  const a = AGENTS.find((x) => x.name === current);
+  $("chat-av").innerHTML = icon(current);
+  $("chat-who").textContent = current;
+  // The description is a long list of trigger phrases for the SDK. Only the
+  // first sentence of it is a description a person wants in a header.
+  $("chat-role").textContent = (a?.description || "").split(/\.\s/)[0].replace(/\.$/, "");
+  $("chat-to").innerHTML = `${icon(current)}${escapeHtml(current)}`;
+  $("chat-input").placeholder = `Ask ${current}`;
+  $("home-chat-av").innerHTML = icon("executive-assistant");
 }
 
-// --- A live "working" strip, separate from any chat bubble --------------
-// Kevin's own catch: a raw command like "code-reviewer: Running: git branch
-// -v" should never render as chat text. It's a status line above the
-// eventual reply, the way Claude's own interface shows tool use separately
-// from the answer - shown while a run is in flight, removed the moment a
-// real reply (or an error) actually arrives.
-
-function workingLineFor(run) {
-  if (!run || run.activeTools.length === 0) return null;
-  const tool = [...run.activeTools].sort((a, b) => b.startedAt - a.startedAt)[0];
-  if (tool.status === "awaiting confirmation") return { who: tool.agent, cmd: "awaiting your confirmation below" };
-  if (tool.name === "Task") return { who: run.agent, cmd: `delegating to ${tool.summary}` };
-  return { who: tool.agent, cmd: tool.summary || tool.name };
+function appendMessage(log, role, text, who) {
+  log.querySelector(".empty")?.remove();
+  const el = document.createElement("div");
+  el.className = `msg ${role}`;
+  const avatar = role === "me" ? "KC" : icon(who || current);
+  el.innerHTML = `<span class="av">${avatar}</span><div class="bub"></div>`;
+  el.querySelector(".bub").textContent = text;
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+  return el;
 }
 
-function setWorking(log, who, cmd) {
-  let el = log.querySelector(".working");
+// A status line above the eventual reply, never chat text. Kevin's own
+// catch: "code-reviewer: Running: git branch -v" does not belong in a
+// bubble, it belongs in small type the way a tool call does in Claude's
+// own interface.
+function setWorking(log, tool, arg) {
+  let el = log.querySelector(".work");
   if (!el) {
     el = document.createElement("div");
-    el.className = "working";
+    el.className = "work";
+    el.innerHTML = '<span class="tk"></span><span class="tool"></span><span class="arg"></span>';
     log.appendChild(el);
   }
-  el.innerHTML = `<span class="prompt">&gt;</span><span class="who">${escapeHtml(who)}</span><span class="cmd">${escapeHtml(cmd)}</span>`;
+  el.querySelector(".tool").textContent = tool;
+  el.querySelector(".arg").textContent = arg;
   log.scrollTop = log.scrollHeight;
 }
-
 function clearWorking(log) {
-  log.querySelector(".working")?.remove();
+  log.querySelector(".work")?.remove();
 }
 
-function startStatusPoll(log, agent) {
-  return setInterval(async () => {
-    const runs = await loadRuns();
-    const mine = runs.filter((r) => r.agent === agent).sort((a, b) => b.startedAt - a.startedAt)[0];
-    const line = workingLineFor(mine);
-    if (line) setWorking(log, line.who, line.cmd);
-    else clearWorking(log);
-  }, 900);
+function workingFor(agent) {
+  const run = latestRuns.filter((r) => r.agent === agent).sort((a, b) => b.startedAt - a.startedAt)[0];
+  if (!run) return null;
+  if (run.activeTools.length === 0) return { tool: "Thinking", arg: "" };
+  const t = [...run.activeTools].sort((a, b) => b.startedAt - a.startedAt)[0];
+  if (t.status === "awaiting confirmation") return { tool: "Waiting", arg: "on your confirmation below" };
+  if (t.name === "Task") return { tool: "Task", arg: t.summary || "" };
+  return { tool: t.name, arg: t.summary || "" };
 }
 
-// --- executive-assistant's own chat, always open ------------------------
-
-function initChat() {
-  const form = document.getElementById("chat-form");
-  const input = document.getElementById("chat-input");
+function wireChat(formId, inputId, logId, agentFor) {
+  const form = $(formId);
+  const input = $(inputId);
+  const log = $(logId);
   const button = form.querySelector("button");
-  const log = document.getElementById("chat-log");
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const message = input.value.trim();
     if (!message) return;
+    const agent = agentFor();
 
-    appendChatMessage(log, "user", message);
+    appendMessage(log, "me", message);
     input.value = "";
     input.disabled = true;
     button.disabled = true;
 
-    startPendingPoll();
-    const statusTimer = startStatusPoll(log, "executive-assistant");
+    const ticker = setInterval(() => {
+      const w = workingFor(agent);
+      if (w) setWorking(log, w.tool, w.arg);
+    }, 900);
 
+    const isEa = agent === "executive-assistant";
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch(isEa ? "/api/chat" : "/api/run", {
         method: "POST",
         headers: JSON_POST_HEADERS,
-        body: JSON.stringify({ message }),
+        body: JSON.stringify(isEa ? { message } : { agent, message }),
       });
       const data = await res.json();
       clearWorking(log);
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-      appendChatMessage(log, "agent", data.reply);
-      loadAgentCosts(); // this run just logged a cost - refresh the panel
+      appendMessage(log, "agent", data.reply, agent);
+      loadCosts();
     } catch (err) {
       clearWorking(log);
-      appendChatMessage(log, "error", `Couldn't reach executive-assistant: ${err.message}`);
+      appendMessage(log, "error", `Couldn't reach ${agent}: ${err.message}`, agent);
     } finally {
-      clearInterval(statusTimer);
-      stopPendingPoll();
+      clearInterval(ticker);
       input.disabled = false;
       button.disabled = false;
       input.focus();
@@ -419,87 +532,236 @@ function initChat() {
   });
 }
 
-// --- The collapsible drawer: talk to one other agent directly -----------
-// A separate session from executive-assistant's, on purpose - picking a
-// different agent here never touches the main chat above it.
+// --- Costs ---------------------------------------------------------------
 
-async function initDrawer() {
-  const toggle = document.getElementById("drawer-toggle");
-  const body = document.getElementById("drawer-body");
-  const chips = document.getElementById("drawer-chips");
-  const log = document.getElementById("drawer-log");
-  const form = document.getElementById("drawer-form");
-  const input = document.getElementById("drawer-input");
-  let selected = null;
-
-  toggle.addEventListener("click", () => {
-    toggle.classList.toggle("open");
-    body.classList.toggle("open");
-  });
-
-  try {
-    const { agents } = await fetchJson("/api/agents");
-    for (const a of agents) {
-      if (a.name === "executive-assistant") continue;
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = "agent-chip";
-      chip.textContent = a.name;
-      chip.addEventListener("click", () => {
-        selected = a.name;
-        for (const c of chips.querySelectorAll(".agent-chip")) c.classList.toggle("selected", c === chip);
-        input.placeholder = `> ask ${a.name} directly`;
-        input.disabled = false;
-      });
-      chips.appendChild(chip);
-    }
-  } catch {
-    chips.textContent = "Couldn't load the agent list.";
-  }
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (!selected) return;
-    const message = input.value.trim();
-    if (!message) return;
-
-    appendChatMessage(log, "user", message);
-    input.value = "";
-    input.disabled = true;
-
-    startPendingPoll();
-    const statusTimer = startStatusPoll(log, selected);
-
-    try {
-      const res = await fetch("/api/run", {
-        method: "POST",
-        headers: JSON_POST_HEADERS,
-        body: JSON.stringify({ agent: selected, message }),
-      });
-      const data = await res.json();
-      clearWorking(log);
-      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-      appendChatMessage(log, "agent", data.reply);
-      loadAgentCosts();
-    } catch (err) {
-      clearWorking(log);
-      appendChatMessage(log, "error", `Couldn't reach ${selected}: ${err.message}`);
-    } finally {
-      clearInterval(statusTimer);
-      stopPendingPoll();
-      input.disabled = false;
-      input.focus();
-    }
-  });
+function costTable(rows, nameKey, countKey, countLabel, withIcon) {
+  if (rows.length === 0) return null;
+  const total = rows.reduce((s, r) => s + r.cost_usd, 0);
+  const body = rows
+    .map((r) => {
+      const label = escapeHtml(r[nameKey]);
+      const cell = withIcon ? `<span>${icon(r[nameKey])}${label}</span>` : label;
+      return `<tr><td class="nm">${cell}</td><td class="r">${r[countKey]}</td><td class="r">${money(r.cost_usd)}</td></tr>`;
+    })
+    .join("");
+  return `<table>
+    <thead><tr><th>${withIcon ? "Agent" : "Client"}</th><th class="r">${countLabel}</th><th class="r">Cost</th></tr></thead>
+    <tbody>${body}</tbody>
+    <tfoot><tr><td>Total</td><td></td><td class="r">${money(total)}</td></tr></tfoot>
+  </table>`;
 }
 
-initTabs();
-initResize();
-initAutoApprove();
-loadDigest();
-loadCosts();
-loadAgentCosts();
-loadActivity();
-startFleetPoll();
-initChat();
-initDrawer();
+async function loadCosts() {
+  let agentTotal = 0, clientTotal = 0, runCount = 0;
+
+  try {
+    const { agents } = await fetchJson("/api/agent-costs");
+    agentTotal = agents.reduce((s, a) => s + a.cost_usd, 0);
+    runCount = agents.reduce((s, a) => s + a.runs, 0);
+    $("agent-costs").innerHTML =
+      costTable(agents, "agent_name", "runs", "Runs", true) ||
+      '<p class="empty">No dashboard chat runs yet.</p>';
+  } catch (err) {
+    $("agent-costs").innerHTML = `<p class="empty">Failed to load: ${escapeHtml(err.message)}</p>`;
+  }
+
+  try {
+    const { clients } = await fetchJson("/api/costs");
+    clientTotal = clients.reduce((s, c) => s + c.cost_usd, 0);
+    $("client-costs").innerHTML =
+      costTable(clients, "client_id", "requests", "Requests", false) ||
+      '<p class="empty">No chatbot usage recorded yet. Run dashboard/cost-report.mjs to pull the latest.</p>';
+  } catch (err) {
+    $("client-costs").innerHTML = `<p class="empty">Failed to load: ${escapeHtml(err.message)}</p>`;
+  }
+
+  $("cost-stats").innerHTML = `
+    <div><div class="lab">Agent fleet, all time</div><div class="big">${money(agentTotal)}</div><div class="sub">${runCount} runs</div></div>
+    <div><div class="lab">Client chatbots, all time</div><div class="big">${money(clientTotal)}</div><div class="sub">recoverable against retainer</div></div>
+    <div><div class="lab">Combined</div><div class="big">${money(agentTotal + clientTotal)}</div><div class="sub">both fleets together</div></div>`;
+
+  renderKpi(agentTotal, clientTotal, runCount);
+}
+
+function renderKpi(agentTotal, clientTotal, runCount) {
+  const live = latestRuns.length;
+  const waiting = pendingCache.length;
+  $("kpi").innerHTML = `
+    <div><div class="lab">Agent fleet, all time</div><div class="big">${money(agentTotal)}</div><div class="sub">${runCount} runs</div></div>
+    <div><div class="lab">Client chatbots, all time</div><div class="big">${money(clientTotal)}</div><div class="sub">recoverable</div></div>
+    <div><div class="lab">Running now</div><div class="big">${live}</div><div class="sub">${live ? "agents working" : "fleet idle"}</div></div>
+    <div><div class="lab">Awaiting approval</div><div class="big">${waiting}</div><div class="sub ${waiting ? "up" : ""}">${waiting ? "blocking an agent" : "nothing blocked"}</div></div>`;
+  $("snap-sum").textContent = `${money(agentTotal + clientTotal)} all time, ${waiting} awaiting you`;
+}
+
+// --- Board ---------------------------------------------------------------
+// Backed by vault/50-Workspace/Board.md. Deliberately not derived from
+// anything clever: what shipped, what is moving and what is next are
+// judgement calls, so they live in a file Kevin and executive-assistant
+// both edit rather than being inferred from commits.
+
+async function loadBoard() {
+  const el = $("board");
+  try {
+    const { columns, exists } = await fetchJson("/api/board");
+    if (!exists) {
+      el.innerHTML = '<p class="empty">No board yet. Create vault/50-Workspace/Board.md with "## Shipped", "## In flight" and "## Up next" headings, or ask executive-assistant to start one.</p>';
+      $("board-sum").textContent = "empty";
+      return;
+    }
+    const dots = { Shipped: "ok", "In flight": "go", "Up next": "" };
+    const total = columns.reduce((s, c) => s + c.items.length, 0);
+    if (total === 0) {
+      el.innerHTML = '<p class="empty">The board is empty.</p>';
+      $("board-sum").textContent = "empty";
+      return;
+    }
+    el.innerHTML = `<div class="board">${columns
+      .map(
+        (col) => `<div class="col">
+          <div class="ch3"><span class="dt ${dots[col.title] ?? ""}"></span>${escapeHtml(col.title)}<span class="n3">${col.items.length}</span></div>
+          ${col.items
+            .map(
+              (it) => `<div class="it">
+                <div class="t3">${escapeHtml(it.text)}${it.you ? '<span class="flag">you</span>' : ""}</div>
+                ${it.note ? `<div class="m3">${escapeHtml(it.note)}</div>` : ""}
+              </div>`
+            )
+            .join("")}
+        </div>`
+      )
+      .join("")}</div>`;
+    $("board-sum").textContent = columns.map((c) => `${c.items.length} ${c.title.toLowerCase()}`).join(", ");
+  } catch (err) {
+    el.innerHTML = `<p class="empty">Failed to load: ${escapeHtml(err.message)}</p>`;
+  }
+}
+
+// --- Digest --------------------------------------------------------------
+// Split on the date headings the standup writes, newest first, with just
+// enough markdown rendered to be readable. Frontmatter is dropped: it is
+// metadata for Obsidian, not something to read here.
+
+function inline(md) {
+  return escapeHtml(md)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\[\[([^\]]+)\]\]/g, "$1");
+}
+
+function renderMarkdown(md) {
+  const out = [];
+  let list = [];
+  let para = [];
+  const flushList = () => { if (list.length) { out.push(`<ul>${list.join("")}</ul>`); list = []; } };
+  // A wrapped sentence is one paragraph, not one paragraph per source line.
+  const flushPara = () => { if (para.length) { out.push(`<p>${inline(para.join(" "))}</p>`); para = []; } };
+
+  for (const raw of md.split("\n")) {
+    const line = raw.trim();
+    if (!line) { flushPara(); flushList(); continue; }
+    const heading = line.match(/^(#{2,6})\s+(.*)$/);
+    if (heading) { flushPara(); flushList(); out.push(`<h5>${inline(heading[2])}</h5>`); continue; }
+    if (/^[-*]\s+/.test(line)) {
+      flushPara();
+      list.push(`<li>${inline(line.replace(/^[-*]\s+/, ""))}</li>`);
+      continue;
+    }
+    flushList();
+    para.push(line);
+  }
+  flushPara(); flushList();
+  return out.join("");
+}
+
+async function loadDigest() {
+  const el = $("digest");
+  try {
+    const { digest, exists } = await fetchJson("/api/digest");
+    if (!exists || !digest.trim()) {
+      el.innerHTML = '<p class="empty">No digest yet. executive-assistant writes one on the morning standup.</p>';
+      return;
+    }
+    const body = digest.replace(/^---\n[\s\S]*?\n---\n/, "");
+
+    // Each standup is a "## <date>" section. Everything before the first one
+    // is the file's own note about what it is for, which is documentation
+    // for whoever opens the vault, not something to read here. Newest first:
+    // the file appends chronologically, and the useful end is the latest.
+    const sections = [];
+    const re = /^##\s+(.+)$/gm;
+    let match, last = null;
+    while ((match = re.exec(body)) !== null) {
+      if (last) last.end = match.index;
+      last = { title: match[1].trim(), start: re.lastIndex };
+      sections.push(last);
+    }
+    if (last) last.end = body.length;
+
+    if (sections.length === 0) {
+      el.innerHTML = `<div class="en">${renderMarkdown(body)}</div>`;
+      return;
+    }
+    el.innerHTML = sections
+      .reverse()
+      .map(
+        (sec) => `<div class="en"><div class="eh"><time>${escapeHtml(sec.title)}</time></div>${renderMarkdown(
+          body.slice(sec.start, sec.end)
+        )}</div>`
+      )
+      .join("");
+  } catch (err) {
+    el.innerHTML = `<p class="empty">Failed to load: ${escapeHtml(err.message)}</p>`;
+  }
+}
+
+// --- Activity ------------------------------------------------------------
+
+function activityRow(e) {
+  return `<div class="ev">
+    <time>${escapeHtml(e.date)}</time>
+    ${icon(e.agent)}
+    <div class="tx"><b>${escapeHtml(e.agent)}</b> ${escapeHtml(e.summary)}</div>
+  </div>`;
+}
+
+async function loadActivity() {
+  try {
+    const { entries } = await fetchJson("/api/activity");
+    if (entries.length === 0) {
+      $("activity").innerHTML = '<p class="empty">No activity logged yet.</p>';
+      $("home-feed").innerHTML = '<p class="empty">No activity logged yet.</p>';
+      $("recent-sum").textContent = "nothing logged";
+      return;
+    }
+    $("activity").innerHTML = entries.map(activityRow).join("");
+    $("home-feed").innerHTML = entries.slice(0, 6).map(activityRow).join("");
+    $("recent-sum").textContent = `${entries.length} entries`;
+  } catch (err) {
+    $("activity").innerHTML = `<p class="empty">Failed to load: ${escapeHtml(err.message)}</p>`;
+    $("home-feed").innerHTML = "";
+  }
+}
+
+// --- Boot ----------------------------------------------------------------
+
+async function init() {
+  try {
+    const { agents } = await fetchJson("/api/agents");
+    AGENTS = agents;
+  } catch {
+    AGENTS = [];
+  }
+  paintChatHeader();
+  renderPending([]);
+  wireChat("chat-form", "chat-input", "chat-log", () => current);
+  wireChat("home-chat-form", "home-chat-input", "home-chat-log", () => "executive-assistant");
+  initAutoApprove();
+  loadBoard();
+  loadCosts();
+  loadDigest();
+  loadActivity();
+  startPolling();
+}
+
+init();

@@ -3,96 +3,226 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KC IT Ops Dashboard</title>
+<title>KC IT Agent Ops</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Martian+Mono:wght@400;600;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Martian+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="topnav">
-  <span class="brand display"><span class="sq"></span>KC-IT-OPS <span class="brand-sub">/ terminal</span></span>
-  <span class="topnav-status">
-    <span>USER: KEVIN</span>
-    <span id="fleet-count">FLEET: 6 AGENTS</span>
-  </span>
-</header>
 
-<div class="app" id="app">
-  <aside class="chat-column" id="chat-column">
-    <div class="resize-handle" id="resize-handle"></div>
+<!-- Pixel icon set, 16x16 grid. Each agent gets one that says something about
+     the job: an answering machine for the hub, a keyboard for the one that
+     writes code, a scanning craft for the one that goes looking, a SIM card
+     for the one that provisions a client, a handset for the one that calls
+     people back. --ac carries that agent's accent, --icon the body colour. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-ea" viewBox="0 0 16 16"><g fill="currentColor">
+<rect x="2" y="4" width="12" height="1"/><rect x="2" y="11" width="12" height="1"/>
+<rect x="2" y="5" width="1" height="6"/><rect x="13" y="5" width="1" height="6"/>
+<rect x="3" y="12" width="2" height="1"/><rect x="11" y="12" width="2" height="1"/>
+<rect x="4" y="9" width="1" height="1"/><rect x="6" y="9" width="1" height="1"/>
+<rect x="8" y="9" width="1" height="1"/><rect x="10" y="9" width="1" height="1"/></g>
+<rect x="4" y="6" width="6" height="2" fill="var(--ac,currentColor)"/>
+<rect x="11" y="6" width="1" height="1" fill="var(--ac,currentColor)"/></symbol>
 
-    <div class="chat-header">
-      <span class="sq"></span>
-      <span class="agent-name">executive-assistant</span>
-      <button class="bracket-btn" id="auto-toggle" type="button">[ auto-approve: off ]</button>
+<symbol id="i-dev" viewBox="0 0 16 16"><g fill="currentColor">
+<rect x="1" y="4" width="14" height="1"/><rect x="1" y="11" width="14" height="1"/>
+<rect x="1" y="5" width="1" height="6"/><rect x="14" y="5" width="1" height="6"/>
+<rect x="3" y="6" width="1" height="1"/><rect x="5" y="6" width="1" height="1"/>
+<rect x="7" y="6" width="1" height="1"/><rect x="9" y="6" width="1" height="1"/>
+<rect x="11" y="6" width="1" height="1"/>
+<rect x="3" y="8" width="1" height="1"/><rect x="11" y="8" width="1" height="1"/></g>
+<rect x="5" y="8" width="5" height="2" fill="var(--ac,currentColor)"/></symbol>
+
+<symbol id="i-rev" viewBox="0 0 16 16"><g fill="currentColor">
+<rect x="2" y="2" width="12" height="1"/><rect x="2" y="9" width="12" height="1"/>
+<rect x="2" y="3" width="1" height="6"/><rect x="13" y="3" width="1" height="6"/>
+<rect x="1" y="12" width="14" height="1"/><rect x="6" y="10" width="4" height="2"/>
+<rect x="4" y="4" width="1" height="1"/><rect x="6" y="4" width="1" height="1"/>
+<rect x="8" y="4" width="1" height="1"/><rect x="5" y="6" width="1" height="1"/>
+<rect x="7" y="6" width="1" height="1"/><rect x="9" y="6" width="1" height="1"/></g>
+<rect x="10" y="4" width="2" height="1" fill="var(--ac,currentColor)"/>
+<rect x="4" y="7" width="4" height="1" fill="var(--ac,currentColor)"/></symbol>
+
+<symbol id="i-scout" viewBox="0 0 16 16"><g fill="currentColor">
+<rect x="5" y="3" width="6" height="1"/><rect x="3" y="4" width="10" height="1"/>
+<rect x="2" y="5" width="1" height="3"/><rect x="13" y="5" width="1" height="3"/>
+<rect x="3" y="8" width="10" height="1"/><rect x="5" y="9" width="6" height="1"/>
+<rect x="4" y="10" width="1" height="2"/><rect x="7" y="10" width="1" height="3"/>
+<rect x="11" y="10" width="1" height="2"/></g>
+<rect x="4" y="6" width="3" height="2" fill="var(--ac,currentColor)"/>
+<rect x="9" y="6" width="2" height="1" fill="var(--ac,currentColor)"/></symbol>
+
+<symbol id="i-onb" viewBox="0 0 16 16"><g fill="currentColor">
+<rect x="3" y="2" width="8" height="1"/><rect x="11" y="3" width="1" height="1"/>
+<rect x="12" y="4" width="1" height="9"/><rect x="3" y="13" width="10" height="1"/>
+<rect x="3" y="3" width="1" height="10"/></g>
+<rect x="5" y="5" width="2" height="3" fill="var(--ac,currentColor)"/>
+<rect x="8" y="5" width="2" height="3" fill="var(--ac,currentColor)"/>
+<rect x="5" y="9" width="2" height="2" fill="var(--ac,currentColor)"/>
+<rect x="8" y="9" width="2" height="2" fill="var(--ac,currentColor)"/></symbol>
+
+<symbol id="i-fu" viewBox="0 0 16 16"><g fill="currentColor">
+<rect x="2" y="3" width="3" height="3"/><rect x="4" y="6" width="2" height="1"/>
+<rect x="5" y="7" width="2" height="1"/><rect x="6" y="8" width="2" height="1"/>
+<rect x="7" y="9" width="2" height="1"/><rect x="8" y="10" width="3" height="1"/>
+<rect x="10" y="10" width="3" height="3"/></g>
+<rect x="10" y="5" width="1" height="1" fill="var(--ac,currentColor)"/>
+<rect x="11" y="4" width="1" height="1" fill="var(--ac,currentColor)"/>
+<rect x="12" y="3" width="1" height="1" fill="var(--ac,currentColor)"/>
+<rect x="13" y="2" width="1" height="1" fill="var(--ac,currentColor)"/></symbol>
+
+<!-- fallback, for an agent added to .claude/agents/ without an icon here -->
+<symbol id="i-gen" viewBox="0 0 16 16"><g fill="currentColor">
+<rect x="2" y="3" width="12" height="1"/><rect x="2" y="12" width="12" height="1"/>
+<rect x="2" y="4" width="1" height="8"/><rect x="13" y="4" width="1" height="8"/></g>
+<rect x="5" y="6" width="6" height="4" fill="var(--ac,currentColor)"/></symbol>
+</defs></svg>
+
+<div id="app">
+  <header class="top">
+    <div class="brand"><span class="d"></span><b>Agent Ops</b></div>
+    <nav id="nav">
+      <button aria-current="page" data-s="home" type="button">Home</button>
+      <button data-s="console" type="button">Console</button>
+      <button data-s="costs" type="button">Costs</button>
+      <button data-s="digest" type="button">Digest</button>
+      <button data-s="activity" type="button">Activity</button>
+    </nav>
+    <div class="right">
+      <button class="sw" id="auto-toggle" type="button" aria-pressed="false"><span class="t"></span>Auto approve</button>
+      <button class="thm" id="thm" type="button" aria-label="Switch theme"></button>
+      <span class="acct">KC</span>
     </div>
-    <div class="auto-warning" id="auto-warning">AUTO-APPROVE ON: any command that changes something runs without asking, this session only.</div>
+  </header>
 
-    <div class="drawer">
-      <button class="drawer-toggle" id="drawer-toggle" type="button">
-        &gt; talk to a specific agent
-        <span class="chev">&rsaquo;</span>
-      </button>
-      <div class="drawer-body" id="drawer-body">
-        <div class="drawer-chips" id="drawer-chips"></div>
-        <span class="drawer-hint">Bypasses executive-assistant, talks to that agent's own session directly.</span>
-        <div class="drawer-log" id="drawer-log"></div>
-        <form class="drawer-form" id="drawer-form">
-          <input id="drawer-input" type="text" placeholder="&gt; ask this agent directly" autocomplete="off">
-          <button type="submit">send</button>
-        </form>
+  <p class="auto-warning" id="auto-warning" hidden>Auto approve is on. Any command that changes something runs without asking, this session only. It never applies to scheduled runs.</p>
+
+  <!-- ================= HOME ================= -->
+  <section class="screen on" data-s="home">
+    <div class="wrap">
+
+      <div class="sec" data-k="snap" data-open="true">
+        <h3 class="hd3"><span class="chev"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>Snapshot<span class="sum" id="snap-sum"></span></h3>
+        <div class="secbody"><div class="kpi" id="kpi"></div></div>
+      </div>
+
+      <div class="sec" data-k="board" data-open="true">
+        <h3 class="hd3"><span class="chev"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>Board<span class="sum" id="board-sum"></span></h3>
+        <div class="secbody"><div id="board" class="loading">loading&hellip;</div></div>
+      </div>
+
+      <div class="hgrid">
+        <div>
+          <section class="sec" data-k="needs" data-open="true">
+            <h3 class="hd3"><span class="chev"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>Needs you <span class="cnt" id="needs-cnt" hidden>0</span><span class="sum" id="needs-sum"></span></h3>
+            <div class="secbody"><div id="needs"></div></div>
+          </section>
+
+          <section class="sec" data-k="recent" data-open="true">
+            <h3 class="hd3"><span class="chev"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>Recent activity<span class="sum" id="recent-sum"></span><button class="more" data-goto="activity" type="button">Open Activity</button></h3>
+            <div class="secbody"><div id="home-feed" class="loading">loading&hellip;</div></div>
+          </section>
+        </div>
+
+        <aside>
+          <section class="chatlet sec" data-k="chat" data-open="true">
+            <div class="ch">
+              <span class="chev"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+              <span class="av" id="home-chat-av"></span>
+              <span class="nm2">executive-assistant</span>
+              <span class="st2" id="home-chat-state"></span>
+            </div>
+            <div class="secbody">
+              <div class="bdy" id="home-chat-log"><p class="empty">Ask what is going on.</p></div>
+              <form class="cf" id="home-chat-form">
+                <input class="fk" id="home-chat-input" type="text" placeholder="Ask executive-assistant" autocomplete="off">
+                <button class="go" type="submit" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13"/><path d="M12 5l7 7-7 7"/></svg></button>
+              </form>
+            </div>
+          </section>
+
+          <section class="sec" data-k="fleet" data-open="true">
+            <h3 class="hd3"><span class="chev"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>Fleet <span class="cnt live3" id="home-fleet-cnt">0 live</span><span class="sum" id="fleet-sum"></span></h3>
+            <div class="secbody"><div class="hrows" id="home-fleet"></div></div>
+          </section>
+        </aside>
       </div>
     </div>
+  </section>
 
-    <div id="confirm-banner" class="confirm-banner" hidden></div>
+  <!-- ================= CONSOLE ================= -->
+  <section class="screen" data-s="console">
+    <div class="console">
+      <div class="chat">
+        <div class="chead">
+          <span class="av" id="chat-av"></span>
+          <div>
+            <div class="who" id="chat-who">executive-assistant</div>
+            <div class="role" id="chat-role"></div>
+          </div>
+          <div class="n" id="chat-meta"></div>
+        </div>
 
-    <div id="chat-log" class="chat-log">
-      <p class="chat-empty">Ask executive-assistant what's going on.</p>
+        <div class="thread" id="chat-log"><p class="empty">Ask executive-assistant what is going on.</p></div>
+
+        <div id="confirm-banner" class="ask" hidden></div>
+
+        <form class="comp" id="chat-form">
+          <div class="box">
+            <input class="f" id="chat-input" type="text" placeholder="Ask executive-assistant" autocomplete="off">
+            <div class="r">
+              <span class="to" id="chat-to"></span>
+              <button class="go" type="submit" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13"/><path d="M12 5l7 7-7 7"/></svg></button>
+            </div>
+          </div>
+          <p class="cap">Any command that changes something waits for your confirmation here first.</p>
+        </form>
+      </div>
+
+      <div class="grip" id="grip" role="separator" aria-orientation="vertical" aria-label="Resize chat"></div>
+
+      <aside class="fleet">
+        <div class="h">
+          <h3>Fleet</h3><span class="c" id="fleet-count">0 live</span>
+          <button class="tg" id="rail-toggle" type="button" aria-label="Collapse fleet" title="Collapse">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+        <div class="rows" id="fleet-rows"></div>
+      </aside>
     </div>
+  </section>
 
-    <form id="chat-form" class="chat-form">
-      <input id="chat-input" type="text" placeholder="&gt; ask about status, prospects, findings" autocomplete="off">
-      <button type="submit">send</button>
-    </form>
-    <p class="chat-caption">Any command that changes something waits for your confirmation here first.</p>
-  </aside>
-
-  <section class="panel-column">
-    <nav class="tabs" id="tabs">
-      <button class="tab active" data-tab="fleet" type="button">Fleet</button>
-      <button class="tab" data-tab="digest" type="button">Digest</button>
-      <button class="tab" data-tab="costs" type="button">Costs</button>
-      <button class="tab" data-tab="activity" type="button">Activity</button>
-    </nav>
-
-    <div class="tab-panel" data-tab-panel="fleet">
-      <h2>&gt; what's running right now</h2>
-      <p class="sub">One frame per agent doing something. Nothing nests under executive-assistant.</p>
-      <div id="fleet-content" class="loading">loading&hellip;</div>
+  <!-- ================= COSTS ================= -->
+  <section class="screen" data-s="costs">
+    <div class="wrap">
+      <div class="stat" id="cost-stats"></div>
+      <div class="two">
+        <div>
+          <h4>Agent fleet</h4>
+          <p class="nt">What your own six agents cost to run from this dashboard. Not billable.</p>
+          <div id="agent-costs" class="loading">loading&hellip;</div>
+        </div>
+        <div>
+          <h4>Client chatbots</h4>
+          <p class="nt">Chat traffic on client sites. Recoverable against retainer.</p>
+          <div id="client-costs" class="loading">loading&hellip;</div>
+        </div>
+      </div>
+      <p class="foot">Totals are all time. Run <code>dashboard/cost-report.mjs</code> to pull the latest chatbot usage.</p>
     </div>
+  </section>
 
-    <div class="tab-panel" data-tab-panel="digest" hidden>
-      <h2>&gt; daily digest</h2>
-      <div id="digest-content" class="loading">loading&hellip;</div>
-    </div>
+  <!-- ================= DIGEST ================= -->
+  <section class="screen" data-s="digest">
+    <div class="wrap"><div id="digest" class="loading">loading&hellip;</div></div>
+  </section>
 
-    <div class="tab-panel" data-tab-panel="costs" hidden>
-      <h2>&gt; chatbot cost, by client</h2>
-      <div id="costs-content" class="loading">loading&hellip;</div>
-      <h2 class="second">&gt; agent fleet cost</h2>
-      <div id="agent-costs-content" class="loading">loading&hellip;</div>
-    </div>
-
-    <div class="tab-panel" data-tab-panel="activity" hidden>
-      <h2>&gt; recent activity</h2>
-      <div id="activity-content" class="loading">loading&hellip;</div>
-    </div>
-
-    <div class="status-bar">
-      <span>A command that changes something waits for confirmation, whether Kevin runs it directly or an agent delegates. Auto-approve skips that on purpose, only when you turn it on.</span>
-      <span>dashboard/server.mjs &middot; never port-forward this</span>
-    </div>
+  <!-- ================= ACTIVITY ================= -->
+  <section class="screen" data-s="activity">
+    <div class="wrap"><div id="activity" class="loading">loading&hellip;</div></div>
   </section>
 </div>
 
