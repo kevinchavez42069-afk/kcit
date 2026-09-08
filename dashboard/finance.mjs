@@ -32,7 +32,8 @@ function parseRecurringCosts() {
   const markdown = readFileSync(RECURRING_PATH, "utf8");
   const items = [];
 
-  for (const line of markdown.split("\n")) {
+  for (let line of markdown.split("\n")) {
+    line = line.replace(/\r?\n?$/, ""); // Strip trailing CRLF
     const match = line.match(/^-\s+(.+?):\s*\$?([\d.]*)\s*\/mo(?:\s*\|\s*(.+))?$/);
     if (!match) continue;
 

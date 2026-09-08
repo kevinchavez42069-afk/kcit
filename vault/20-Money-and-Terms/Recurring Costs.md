@@ -7,12 +7,10 @@ after a pipe.
 
 A blank amount is fine - better than a guess. Kevin fills these.
 
-Example:
+Example format:
 
-    - Domain registration (Namecheap): $14.88/mo | actually annual, shown as monthly equivalent
-    - Tailscale: $/mo | TODO
-    - Pushover: $/mo | TODO
-    - cal.com: $/mo | TODO
+    - Service name: $XX.XX/mo | optional note
+    - Another service: $/mo | blank amount until known
 
 ## The list
 
