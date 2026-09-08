@@ -56,6 +56,46 @@ raise the same need unprompted. Not before.
 | **DynamoDB rate limiting** | Current in-memory limiter is per-container and best-effort | Only if abuse actually happens |
 | **Second and third demo sites** | One good demo is enough to sell with | If the first demo proves it closes deals |
 
+## A finance agent
+
+Kevin's idea, 2026-09-08: a seventh agent that looks at every cost in one
+place and recommends where to cut. Not a dashboard panel, an agent that
+reasons about the spend and pushes back.
+
+**What it would actually see.** Most of the data already exists and nothing
+reads it together:
+
+| Cost | Where it already lives | Status |
+|---|---|---|
+| Customer chatbot API spend | `chatbot_usage` in `dashboard/costs.db`, from CloudWatch | Collected |
+| Kevin's own agent-fleet spend | `agent_runs` in the same DB, per run, with `total_cost_usd` | Collected |
+| AWS infrastructure (S3, CloudFront, Lambda) | AWS Cost Explorer | Not pulled, needs a read-only credential |
+| Domain, Tailscale, Pushover, cal.com | Nowhere | Not tracked at all |
+
+The interesting question isn't the total, it's the ratio: fleet spend is
+Kevin's own overhead, chatbot spend is cost of goods on a product sold at
+$149/month. A finance agent that can't tell those apart is a spreadsheet.
+One that can is the thing that answers whether the monthly plan actually
+has margin, which [[Pricing and Unit Economics]] still leaves open.
+
+**Why not now:** with zero clients there is no revenue side to optimize
+against, and the honest current answer to "where is the money going" is a
+few dollars of API spend. The 2026-09-07 audit's central finding was that
+infrastructure got built instead of visiting the three prospects sitting
+in `60-Prospects/` unvisited. Another agent is more of exactly that.
+
+**Trigger to start:** the first paying client, or monthly spend crossing
+roughly $50, whichever comes first. Before that, the cheap version is the
+existing cost panel plus the spend ceilings that don't exist yet (see
+below), which are a real gap regardless of whether this agent is ever
+built.
+
+**Prerequisite either way, and not optional:** there is currently no spend
+ceiling anywhere. Not a Lambda reserved-concurrency cap, not an AWS Budget,
+not an Anthropic console limit. A runaway loop or an abused endpoint has
+nothing to stop it. All three are console changes only Kevin can make, and
+they matter more than the agent does.
+
 ## The rule for this page
 
 Anything here is a real idea worth doing eventually. **Nothing here gets
