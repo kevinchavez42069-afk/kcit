@@ -111,15 +111,38 @@ a corpus:
 4. Iterate: agent drafts ten messages, Kevin marks each "sounds like me" or
    not. Below ~8 of 10, tighten and repeat. Expect two or three rounds.
 
-### 3. The chatbot's prompt caching costs more than it saves
+### 3. Shrink the chatbot system prompt
 
-On the traffic it actually gets. `sample-plumbing` has never had a cache
-read: three requests, hours apart, against a five minute ephemeral window,
-averaging 2.3x per request what `kc-it-solutions` costs. The general form is
-the real problem: a conversation that never gets a second message is about
-25% more expensive with caching on than off, and five of the nine recorded
-conversations are single message. Real client traffic looks like that, not
-like a testing session. A `kc.IT` change, Kevin's to schedule.
+**Not** the caching. That was investigated on 2026-09-08 and the claim was
+wrong, which is worth reading before anyone re-opens it.
+
+The alarm was that `sample-plumbing` has a 0% cache hit rate and averages
+2.3x per request what `kc-it-solutions` costs, so caching was said to be
+costing more than it saves. Measured against the real 21 requests instead,
+in units of one system prompt (write 1.25x input, read 0.1x):
+
+| Configuration | Cost |
+|---|---|
+| 5 minute cache, current | **12.45** |
+| No caching at all | 21.00, 41% more |
+| 1 hour TTL | 13.50, 8% more |
+
+Caching pays off from a conversation length of 1.28 onward and the measured
+mean is 2.33. Twelve of 21 requests hit the cache. A 1 hour TTL loses
+because its write costs 2x rather than 1.25x, and only 3 of 18 gaps between
+requests fell in the 5-to-60 minute band it would have rescued.
+
+The `sample-plumbing` number is real but it is not a bug. Every one of its
+requests is an isolated single-message conversation, which pays the 1.25x
+write and never reads. That is what demo traffic looks like: a prospect asks
+one question and leaves. No cache setting fixes it.
+
+The actual lever is the **system prompt size**, about 1,620 tokens, because
+a single-shot visitor pays 1.25x that with nothing to amortise it against.
+Shortening it helps every request, cached or not.
+
+Re-measure before changing any of this. The right answer depends on the
+traffic mix and the mix will change as real clients arrive.
 
 ### 4. Smaller, tracked on the board
 

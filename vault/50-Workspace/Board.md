@@ -23,6 +23,7 @@ what it thinks the state of play is, and Kevin overrules it freely.
 - Pending confirmations now expire instead of hanging | an unanswered Bash call used to block its run forever
 - Agent Ops redesign | Home, light and dark, per agent icons, collapsible everything
 - Every cost figure now names its window | they were all-time totals wearing no date, and one got read as a day's spend
+- Checked the chatbot caching claim | it was wrong, caching saves 41% on real traffic, and both alternatives cost more
 
 ## In flight
 
@@ -35,6 +36,6 @@ what it thinks the state of play is, and Kevin overrules it freely.
 - Set an AWS budget alarm and an Anthropic spend cap @you | needs the console, kcit-deploy gets AccessDenied by design
 - Reserved concurrency on the chatbot Lambda @you | same console, same reason
 - Push kc.IT to a private remote @you | needs an empty repo created first, everything there lives on one drive
-- Chatbot prompt caching costs more than it saves | sample-plumbing is 0% cache hits and 2.3x per request, and a conversation nobody replies to costs ~25% more with caching on than off
+- Shrink the chatbot system prompt | about 1,620 tokens, and every single-shot demo visitor pays 1.25x that with no follow-up to amortise it
 - The weekly retro has never read cost data | AI Operating System.md says it reviews agent_runs cost data, the agent's own file does not list it
 - voice.md writing samples | oldest open item, still unwritten
