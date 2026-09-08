@@ -53,6 +53,7 @@ import { startScheduler } from "./scheduler.mjs";
 import { loadAgents } from "./agents.mjs";
 import { listPending, resolvePending, getAutoApprove, setAutoApprove } from "./permissions.mjs";
 import { listRuns } from "./runs.mjs";
+import { getFinanceData } from "./finance.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const VAULT = join(here, "..", "vault");
@@ -388,6 +389,16 @@ const server = createServer(async (req, res) => {
     const rows = summaryByAgent(db, sinceMs);
     db.close();
     return jsonResponse(res, 200, { agents: rows, sinceMs });
+  }
+
+  // The unified finance view: fleet overhead (agent_runs), cost of goods
+  // (chatbot_usage), and recurring fixed costs (domain, Tailscale, etc).
+  // Takes ?since= like the other cost endpoints. Graceful when the
+  // Recurring Costs file doesn't exist yet - same pattern as /api/board
+  // and /api/digest.
+  if (pathOf(req) === "/api/finance") {
+    const sinceMs = sinceOf(req);
+    return jsonResponse(res, 200, getFinanceData(sinceMs));
   }
 
   // executive-assistant's dedicated endpoint - real tools plus delegation
