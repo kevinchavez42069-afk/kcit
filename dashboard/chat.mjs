@@ -101,18 +101,52 @@ const sessionIds = new Map();
 // what canUseTool auto-approves. A hidden allowlist undermining an assumed
 // guarantee is the exact failure this project already hit once. This way the
 // prompt is exactly what you can read here, with no second source.
-let projectRulesCache = null;
+// BOTH repos, not just this one. ADDITIONAL_DIRECTORIES above puts kc.IT in
+// reach of every agent through both entry points, and kc.IT/CLAUDE.md carries
+// binding rules that appear nowhere in this repo's: the Function URL must stay
+// on AWS_IAM (setting it to NONE silently exposes the Lambda), deploy.ps1
+// ships everything in files/ including a mid-edit session's unfinished work,
+// bump the ?v= when script.js or style.css changes, and the sample-plumbing
+// demo tenant must keep admitting it's a demo and routing real emergencies to
+// a real plumber. Loading only this repo's file would have left those in
+// exactly the state this whole fix exists to end: documented as binding,
+// silently never delivered.
+//
+// Labelled by repo rather than concatenated. The two sets disagree on scope,
+// and an agent that can't tell which is which could apply a kc.IT deploy rule
+// to the vault.
+//
+// Read on every call, deliberately not cached: these are described as the
+// rules that are not up for interpretation, so an edit to either file has to
+// take effect on the next run, not after someone remembers to restart the
+// server. Two small files per run is nothing next to the API call it precedes.
+const RULE_SOURCES = [
+  { scope: "the kcit repo (this vault, the agent fleet, the dashboard)", path: join(KCIT_ROOT, "CLAUDE.md") },
+  { scope: "the kc.IT repo (the live kcitsolutions.co site and the chatbot product)", path: join(KC_IT_ROOT, "CLAUDE.md") },
+];
 
 function projectRules() {
-  if (projectRulesCache !== null) return projectRulesCache;
-  try {
-    projectRulesCache = readFileSync(join(KCIT_ROOT, "CLAUDE.md"), "utf8").trim();
-  } catch (err) {
-    // Loud, not silent: losing these rules is the bug this code exists to fix.
-    console.error(`Could not load CLAUDE.md - agents are running WITHOUT the project's binding rules: ${err.message}`);
-    projectRulesCache = "";
+  const blocks = [];
+  for (const { scope, path } of RULE_SOURCES) {
+    try {
+      const body = readFileSync(path, "utf8").trim();
+      if (body) {
+        blocks.push(
+          `===== BINDING RULES governing ${scope} =====\n\n${body}\n\n===== end of rules for ${scope} =====`
+        );
+      }
+    } catch (err) {
+      // Loud, not silent: losing these is the bug this code exists to fix.
+      console.error(`Could not load ${path} - agents are running WITHOUT the binding rules for ${scope}: ${err.message}`);
+    }
   }
-  return projectRulesCache;
+  if (blocks.length === 0) return "";
+  return (
+    "The following are the project's binding rules, loaded from each repo's CLAUDE.md. " +
+    "Two rule sets follow and they govern different codebases: apply each to the repo it names, " +
+    "and do not carry a rule from one across to the other.\n\n" +
+    blocks.join("\n\n")
+  );
 }
 
 function withProjectRules(systemPrompt) {
