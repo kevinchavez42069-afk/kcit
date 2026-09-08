@@ -520,6 +520,7 @@ function wireChat(formId, inputId, logId, agentFor) {
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
       appendMessage(log, "agent", data.reply, agent);
       loadCosts();
+      loadTodayKpi();
     } catch (err) {
       clearWorking(log);
       appendMessage(log, "error", `Couldn't reach ${agent}: ${err.message}`, agent);
@@ -551,35 +552,88 @@ function costTable(rows, nameKey, countKey, countLabel, withIcon) {
   </table>`;
 }
 
+// Windows. summaryByAgent/summaryByClient always took a sinceMs and no
+// caller ever passed one, so every figure here used to be an all-time total
+// with no date on it. That is how a fleet total got read as one day s spend
+// and reached Kevin wrong. Every number now carries the window it covers.
+const RANGES = {
+  today: { label: "today", since: () => new Date().setHours(0, 0, 0, 0) },
+  "7d": { label: "last 7 days", since: () => Date.now() - 7 * 864e5 },
+  "30d": { label: "last 30 days", since: () => Date.now() - 30 * 864e5 },
+  all: { label: "all time", since: () => 0 },
+};
+let range = "today";
+try { if (RANGES[localStorage.getItem("costRange")]) range = localStorage.getItem("costRange"); } catch {}
+
+$("ranges").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-range]");
+  if (!b) return;
+  range = b.dataset.range;
+  try { localStorage.setItem("costRange", range); } catch {}
+  paintRanges();
+  loadCosts();
+});
+function paintRanges() {
+  for (const b of document.querySelectorAll("#ranges button")) {
+    b.setAttribute("aria-pressed", String(b.dataset.range === range));
+  }
+}
+
 async function loadCosts() {
-  let agentTotal = 0, clientTotal = 0, runCount = 0;
+  const win = RANGES[range] || RANGES.today;
+  const since = win.since();
+  const qs = since > 0 ? `?since=${since}` : "";
+  let agentTotal = 0, clientTotal = 0, runCount = 0, reqCount = 0;
 
   try {
-    const { agents } = await fetchJson("/api/agent-costs");
+    const { agents } = await fetchJson(`/api/agent-costs${qs}`);
     agentTotal = agents.reduce((s, a) => s + a.cost_usd, 0);
     runCount = agents.reduce((s, a) => s + a.runs, 0);
     $("agent-costs").innerHTML =
       costTable(agents, "agent_name", "runs", "Runs", true) ||
-      '<p class="empty">No dashboard chat runs yet.</p>';
+      `<p class="empty">No agent runs ${win.label}.</p>`;
   } catch (err) {
     $("agent-costs").innerHTML = `<p class="empty">Failed to load: ${escapeHtml(err.message)}</p>`;
   }
 
   try {
-    const { clients } = await fetchJson("/api/costs");
+    const { clients } = await fetchJson(`/api/costs${qs}`);
     clientTotal = clients.reduce((s, c) => s + c.cost_usd, 0);
+    reqCount = clients.reduce((s, c) => s + c.requests, 0);
     $("client-costs").innerHTML =
       costTable(clients, "client_id", "requests", "Requests", false) ||
-      '<p class="empty">No chatbot usage recorded yet. Run dashboard/cost-report.mjs to pull the latest.</p>';
+      `<p class="empty">No chatbot traffic ${win.label}. Run dashboard/cost-report.mjs to pull the latest.</p>`;
   } catch (err) {
     $("client-costs").innerHTML = `<p class="empty">Failed to load: ${escapeHtml(err.message)}</p>`;
   }
 
   $("cost-stats").innerHTML = `
-    <div><div class="lab">Agent fleet, all time</div><div class="big">${money(agentTotal)}</div><div class="sub">${runCount} runs</div></div>
-    <div><div class="lab">Client chatbots, all time</div><div class="big">${money(clientTotal)}</div><div class="sub">recoverable against retainer</div></div>
-    <div><div class="lab">Combined</div><div class="big">${money(agentTotal + clientTotal)}</div><div class="sub">both fleets together</div></div>`;
+    <div><div class="lab">Agent fleet, ${win.label}</div><div class="big">${money(agentTotal)}</div><div class="sub">${runCount} runs</div></div>
+    <div><div class="lab">Client chatbots, ${win.label}</div><div class="big">${money(clientTotal)}</div><div class="sub">${reqCount} requests</div></div>
+    <div><div class="lab">Combined, ${win.label}</div><div class="big">${money(agentTotal + clientTotal)}</div><div class="sub">both fleets together</div></div>`;
 
+  // The footer used to say "totals are all time" whatever window was picked.
+  // A stale qualifier is worse than none: it is the same mistake as no date
+  // at all, only harder to spot because it looks like it was checked.
+  $("cost-foot").innerHTML =
+    `Covering <strong>${escapeHtml(win.label)}</strong>, in your timezone. ` +
+    `Chatbot figures come from the last <code>dashboard/cost-report.mjs</code> run.`;
+}
+
+// Home always reports today, whatever window the Costs tab is set to. The
+// two are answering different questions and the labels say so on both.
+async function loadTodayKpi() {
+  const since = RANGES.today.since();
+  let agentTotal = 0, clientTotal = 0, runCount = 0;
+  try {
+    const { agents } = await fetchJson(`/api/agent-costs?since=${since}`);
+    agentTotal = agents.reduce((s, a) => s + a.cost_usd, 0);
+    runCount = agents.reduce((s, a) => s + a.runs, 0);
+  } catch {}
+  try {
+    const { clients } = await fetchJson(`/api/costs?since=${since}`);
+    clientTotal = clients.reduce((s, c) => s + c.cost_usd, 0);
+  } catch {}
   renderKpi(agentTotal, clientTotal, runCount);
 }
 
@@ -587,11 +641,11 @@ function renderKpi(agentTotal, clientTotal, runCount) {
   const live = latestRuns.length;
   const waiting = pendingCache.length;
   $("kpi").innerHTML = `
-    <div><div class="lab">Agent fleet, all time</div><div class="big">${money(agentTotal)}</div><div class="sub">${runCount} runs</div></div>
-    <div><div class="lab">Client chatbots, all time</div><div class="big">${money(clientTotal)}</div><div class="sub">recoverable</div></div>
+    <div><div class="lab">Agent fleet, today</div><div class="big">${money(agentTotal)}</div><div class="sub">${runCount} runs today</div></div>
+    <div><div class="lab">Client chatbots, today</div><div class="big">${money(clientTotal)}</div><div class="sub">recoverable</div></div>
     <div><div class="lab">Running now</div><div class="big">${live}</div><div class="sub">${live ? "agents working" : "fleet idle"}</div></div>
     <div><div class="lab">Awaiting approval</div><div class="big">${waiting}</div><div class="sub ${waiting ? "up" : ""}">${waiting ? "blocking an agent" : "nothing blocked"}</div></div>`;
-  $("snap-sum").textContent = `${money(agentTotal + clientTotal)} all time, ${waiting} awaiting you`;
+  $("snap-sum").textContent = `${money(agentTotal + clientTotal)} today, ${waiting} awaiting you`;
 }
 
 // --- Board ---------------------------------------------------------------
@@ -757,8 +811,10 @@ async function init() {
   wireChat("chat-form", "chat-input", "chat-log", () => current);
   wireChat("home-chat-form", "home-chat-input", "home-chat-log", () => "executive-assistant");
   initAutoApprove();
+  paintRanges();
   loadBoard();
   loadCosts();
+  loadTodayKpi();
   loadDigest();
   loadActivity();
   startPolling();

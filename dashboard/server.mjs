@@ -292,6 +292,23 @@ function parseBoard(markdown) {
   return columns;
 }
 
+// Most routes match req.url exactly, which is fine while nothing takes a
+// query string. The two cost endpoints do, so they compare the path alone.
+function pathOf(req) {
+  const q = req.url.indexOf("?");
+  return q === -1 ? req.url : req.url.slice(0, q);
+}
+
+// The browser computes the window boundary, because it is the thing that
+// knows Kevin's timezone; "today" on a server in UTC is not today in
+// Richmond. Anything unparseable falls back to 0, meaning all time.
+function sinceOf(req) {
+  const q = req.url.indexOf("?");
+  if (q === -1) return 0;
+  const value = Number(new URLSearchParams(req.url.slice(q + 1)).get("since"));
+  return Number.isFinite(value) && value > 0 ? value : 0;
+}
+
 function jsonResponse(res, status, body) {
   res.writeHead(status, { "Content-Type": "application/json" });
   res.end(JSON.stringify(body));
@@ -347,21 +364,30 @@ const server = createServer(async (req, res) => {
     return jsonResponse(res, 200, { columns: parseBoard(markdown), exists: markdown !== null });
   }
 
-  if (req.url === "/api/costs") {
+  // ?since=<epoch ms> narrows both cost endpoints. summaryByClient and
+  // summaryByAgent have taken sinceMs since they were written; no caller
+  // ever passed one, so every number on the dashboard was an all-time total
+  // wearing no date. That is not a cosmetic gap: a fleet total got read as a
+  // day's spend on 2026-09-08 and the wrong figure reached Kevin before
+  // anyone checked it. The window comes back in the response so the UI has
+  // to label what it is showing rather than guess.
+  if (pathOf(req) === "/api/costs") {
+    const sinceMs = sinceOf(req);
     const db = openDb();
-    const rows = summaryByClient(db);
+    const rows = summaryByClient(db, sinceMs);
     db.close();
-    return jsonResponse(res, 200, { clients: rows });
+    return jsonResponse(res, 200, { clients: rows, sinceMs });
   }
 
   // Phase 5: what the agent fleet itself costs to run from this dashboard
   // (chatWithAgent and runAgentFull both log here) - distinct from
   // /api/costs, which is customer chatbot traffic.
-  if (req.url === "/api/agent-costs") {
+  if (pathOf(req) === "/api/agent-costs") {
+    const sinceMs = sinceOf(req);
     const db = openDb();
-    const rows = summaryByAgent(db);
+    const rows = summaryByAgent(db, sinceMs);
     db.close();
-    return jsonResponse(res, 200, { agents: rows });
+    return jsonResponse(res, 200, { agents: rows, sinceMs });
   }
 
   // executive-assistant's dedicated endpoint - real tools plus delegation

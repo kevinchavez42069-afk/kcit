@@ -198,6 +198,12 @@
   <!-- ================= COSTS ================= -->
   <section class="screen" data-s="costs">
     <div class="wrap">
+      <div class="ranges" id="ranges" role="group" aria-label="Time window">
+        <button data-range="today" aria-pressed="true" type="button">Today</button>
+        <button data-range="7d" aria-pressed="false" type="button">7 days</button>
+        <button data-range="30d" aria-pressed="false" type="button">30 days</button>
+        <button data-range="all" aria-pressed="false" type="button">All time</button>
+      </div>
       <div class="stat" id="cost-stats"></div>
       <div class="two">
         <div>
@@ -211,7 +217,7 @@
           <div id="client-costs" class="loading">loading&hellip;</div>
         </div>
       </div>
-      <p class="foot">Totals are all time. Run <code>dashboard/cost-report.mjs</code> to pull the latest chatbot usage.</p>
+      <p class="foot" id="cost-foot"></p>
     </div>
   </section>
 
