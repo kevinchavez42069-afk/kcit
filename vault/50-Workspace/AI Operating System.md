@@ -286,6 +286,14 @@ EA reviews its own past standups and `agent_runs` cost data, then drafts
 concrete proposed prompt changes into new `vault/50-Workspace/EA Retro.md`
 for Kevin to apply himself.
 
+> **Correction, 2026-09-08: the cost data half of that never shipped.** The
+> agent's own file tells it to review "the past week's standups and the last
+> retro" and nothing else. `agent_runs` is not in its read list, so no retro
+> has ever looked at what the fleet costs. This paragraph described an
+> intention and then got believed for two days, which is the same shape as
+> the CLAUDE.md gap below: documented, assumed, never wired. Left as a
+> decision for Kevin rather than quietly patched, and tracked on [[Board]].
+
 **A limitation surfaced and accepted, not a bug**: every `chatWithAgent`
 call is a fresh, stateless invocation — no memory of any previous one.
 This is why the vault has to be the memory instead of the model: each run
@@ -657,6 +665,127 @@ Left for the scheduler side, not done here: `scheduler.mjs`'s own call
 sites need to actually pass `{ unattended: true }` on its `chatWithAgent`/
 `runAgentFull` calls to close the loop. That file belongs to the
 concurrent session's work; the flag is ready for it.
+
+**Audit remediation, 2026-09-08.** Everything below came out of
+[[Infrastructure Audit - 2026-09-07]] rather than from a feature request,
+and most of it was invisible from the outside. Two sessions worked it in
+parallel, which is why the commits interleave.
+
+*The CSRF hole.* The audit's first critical finding, and the one that
+needed no attacker skill at all. Basic Auth credentials are cached by the
+browser per origin and attached automatically to any request to that
+origin, including one an unrelated page triggers while the dashboard tab is
+open. A hidden form posting `enctype="text/plain"` is a CORS simple request:
+no preflight, no consent, and the server parsed its body as JSON and acted
+on it. That was enough to flip auto-approve on and then run an agent with
+Bash, with Kevin's own browser supplying the credentials and no confirm
+banner ever appearing. "It's Tailscale-only" was no defence, because the
+request originates from his browser, which is already on the tailnet. Fixed
+with a required custom header (`x-requested-by`) plus an Origin/Host match,
+applied to every state-changing method rather than only the two endpoints
+the audit named.
+
+*Secrets were readable by every agent.* `dashboard/.env` sat inside the repo
+tree, agents run with cwd at the repo root, and `Read`/`Grep` are
+auto-allowed with no confirm step. `WebFetch` is auto-allowed too, so
+reading the key and POSTing it somewhere needed no Bash call and raised no
+prompt. Being gitignored did nothing about that: gitignore governs what git
+tracks, not what the filesystem hands out. Secrets moved to `~/.kcit/.env`
+outside the tree, with no fallback to the old path on purpose, plus a
+denylist checked before the auto-allow list covering `.env*`, private keys,
+`.ssh`/`.aws`/`.gnupg` and git credentials. Stated limit: a broad `Grep`
+over a directory containing a secret is not caught, because `canUseTool`
+gates the call and cannot filter output. Moving the file is what actually
+holds.
+
+*CLAUDE.md never reached a single agent run.* `settingSources` was never
+passed, so the "not up for interpretation" rules, no cold outreach, never
+invent proof, never quote an unset price, were absent from every dashboard
+and scheduler run since the fleet was built. Closed by reading the files
+explicitly and prepending them at all three prompt composition sites,
+including `buildSubagents`, which a `settingSources` fix would have missed
+because a delegated subagent gets its prompt from the `agents` map rather
+than the parent's options. Deliberately not `settingSources: ["project"]`:
+that would also import `.claude/settings.json` if one ever appeared,
+permission rules included, and a second source of permission truth is the
+same mistake as the hidden CLI allowlist with a different filename. It
+loads **both** repos' CLAUDE.md, labelled per repo, because agents work in
+`kc.IT` too and its deploy rules, keep the Function URL on `AWS_IAM`, bump
+the `?v=`, one session owns deploys, exist nowhere in this repo's copy.
+
+*An unanswered confirmation hung its run forever.* The pending promise only
+ever resolved via `resolvePending`, so a Bash call nobody answered blocked
+that agent indefinitely, holding an open SDK session and a zombie Fleet
+entry until a server restart. More likely after the unattended flag started
+forcing scheduled runs through the real confirm flow. Now bounded, ten
+minutes by default, and an expiry resolves as a denial whose message says it
+expired unanswered rather than that Kevin refused, because an agent reading
+a bare "denied" would report something false back to him.
+
+**Phase 10: the dashboard rebuilt around a Home screen. Done, 2026-09-08.**
+Kevin's verdict on phase 9 after living with it: "it still looks a little
+junky like it ver basic HTML", "this is very AI", "we dont need to put
+everything inside a rectangle with rounded corners". He also wanted a
+landing view that answers what needs him now instead of making him hunt
+across tabs.
+
+Worked as an annotated mockup first, published as an artifact with a markup
+layer so he could circle elements and leave notes that came back directly
+into the session rather than being described in prose
+(`dashboard/mockups/agent-ops-redline.html`, kept as the record). Five
+rounds of his notes drove it.
+
+What changed: full bleed, no rounded frame holding the app, hairlines and
+background shifts instead of borders everywhere except the confirm banner
+and the chat, which are genuinely different objects. A **Home** screen whose
+every block collapses and remembers its state, keeping a summary in the
+header when shut so closing a section does not cost the information.
+**Console** replaces the split drawer, so picking another agent swaps the
+whole window instead of halving it. The fleet rail lists all six agents
+always, dimmed when idle and lit when running, and it resizes and
+collapses. A pixel icon per agent, carried into the rail, chat header,
+message avatars, cost table and activity log, with a generic fallback so an
+agent added to `.claude/agents/` without one renders something. **Light and
+dark**, driven by tokens, which took reworking about thirty places with
+colour baked in, including all six agent accents, since the blue and violet
+were unreadable on a pale ground.
+
+New `GET /api/board` reads `vault/50-Workspace/Board.md` into Shipped / In
+flight / Up next. Deliberately a hand-edited file rather than something
+inferred from commits: what shipped, what is moving and what is next are
+judgement calls, and a confident wrong guess on the Home screen is worse
+than a blank. Absent file is not an error, same as `/api/digest`.
+
+`/api/pending` is now polled continuously and visibility-gated instead of
+only while a browser request is in flight. A scheduler-fired run reaching
+the confirm gate at 7am had nothing to show Kevin unless he happened to
+have a chat open. With the expiry window above, the audit's
+stale-confirmation finding is properly closed: visible while it matters,
+self-clearing when nobody is there.
+
+**A costing bug worth recording, because the second attempt was worse than
+the first.** `summaryByAgent` and `summaryByClient` had always taken a
+`sinceMs` and parameterised it in the SQL. No caller ever passed one, so
+every cost figure the dashboard had ever shown was an all-time total wearing
+no date. That is how $3.74 got read as one day's spend. The correction that
+followed bucketed the rows with `toISOString`, produced a UTC split of
+$2.14/$1.65, and reported the original figure as the error, when the
+Eastern split is $3.28/$0.52 and the original had been right. Seventeen
+evening runs on the 7th were attributed to the 8th.
+
+Both endpoints now take `?since=<epoch ms>` and return the window they used,
+the Costs tab offers Today / 7 days / 30 days / All time, and nothing
+renders without naming its window. **The browser computes the boundary, not
+the server**, because epoch milliseconds compare correctly whatever the
+storage zone and the only thing that has to be right is who decides when the
+day starts, which is the machine that knows the timezone. A server-side
+"today" would have shipped the UTC bug as the product's own answer with a
+label asserting it was correct.
+
+The general lesson is the difference between the two mistakes. A total with
+no date is an omission and reads as unknown. A total with a date computed in
+the wrong zone carries a qualifier that makes it look checked. Same reason
+the Costs footer no longer says "Totals are all time" unconditionally.
 
 ## Open items for whoever picks up each phase
 

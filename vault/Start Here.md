@@ -34,7 +34,7 @@ either sales or a form to fill in.
 | **Instagram** | @kc.itsolutions. 5 followers, effectively dormant |
 | **Version control** | git, full history |
 | **Agent fleet** | Six Claude Code agents (`prospect-scout`, `follow-up`, `client-onboarder`, `executive-assistant`, `developer`, `code-reviewer`) reading this vault directly. `executive-assistant` is the hub and can delegate to the other five. See `.claude/agents/` |
-| **Ops dashboard** | Local, reachable over Tailscale. Full agentic chat with every agent, a live view of what each agent is actually doing right now, fleet cost tracking, Pushover notifications, and an explicit auto-approve override for the confirm-step (session-only, off by default). Phases 1-9.1 of the roadmap, all live. See [[AI Operating System]] |
+| **Ops dashboard** | Local, reachable over Tailscale. Home / Console / Costs / Digest / Activity, light and dark. Full agentic chat with every agent, a live view of what each is doing right now, cost tracking by time window, Pushover notifications, and an explicit auto-approve override for the confirm-step (session-only, off by default, never applies to scheduled runs). Phases 1-10 of the roadmap, all live. See [[AI Operating System]] and [[Board]] |
 
 ## The chatbot is a product, not just a feature
 
@@ -61,6 +61,9 @@ a working demo. Lead with it.
 
 | Item | Why it matters | Who |
 |---|---|---|
+| **Rotate the Anthropic API key** | A live key sat in a loose file at the `kc.IT` repo root. Still live. Nothing else closes this, and the file stays until it is rotated so there is a record of what leaked | Kevin |
+| **AWS Budget alarm + Anthropic spend cap** | Nothing anywhere stops a runaway. `kcit-deploy` gets AccessDenied by design, so it needs the console | Kevin |
+| **`kc.IT` has no git remote** | The whole site and chatbot live on one drive. Needs an empty private repo created first | Kevin |
 | **No clients** | The only number that matters | Kevin |
 | **Google Search Console** | All SEO is inert until the sitemap is submitted. ~10 minutes | Kevin |
 | **Google Business Profile** | Free, and the biggest factor in local map results. Verification takes days | Kevin |

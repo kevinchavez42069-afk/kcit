@@ -24,7 +24,34 @@ and search results.
 | `vault/_templates/` | Note templates |
 | `.claude/agents/` | The agent fleet |
 | `dashboard/` | Local ops dashboard. Chat with the fleet, costs, activity feed |
+| `dashboard/mockups/` | Design mockups, kept as the record of what was decided |
 | `CLAUDE.md` | Always-on guidance for Claude Code in this repo |
+
+## Where the documentation lives
+
+Sixteen documents is enough to need a map. Read them in this order.
+
+| Read | For | Authority |
+|---|---|---|
+| `README.md` | What this repo is and how to run it | Current |
+| `CLAUDE.md` | The rules agents must follow here | **Binding** |
+| `HANDOFF.md` | Picking the work up cold. State, what is next, traps | Current |
+| `vault/Start Here.md` | What the business has live right now | Current |
+| `vault/50-Workspace/Board.md` | What shipped, what is moving, what is next | Current |
+| `vault/50-Workspace/AI Operating System.md` | Why the dashboard is built the way it is, phase by phase | Build record |
+| `vault/50-Workspace/Infrastructure Audit - 2026-09-07.md` | Every known weakness, and which are still open | Findings |
+| `vault/50-Workspace/Technical Reference.md` | The site and chatbot stack | Reference |
+| `vault/50-Workspace/Security Architecture.md` | The access model | Reference |
+| everything else in `50-Workspace/` | Thinking in progress, allowed to be wrong | **Not authoritative** |
+
+Two rules about that last row, both from `CLAUDE.md`. The vault is reference
+material, not law, and where Kevin says something different, Kevin is right.
+And when something in `50-Workspace/` stops being an idea and becomes a
+decision, move it out into a numbered folder.
+
+`kc.IT`, the website and chatbot, is a **separate repo** with its own
+`CLAUDE.md` and `HANDOFF.md`. Those are authoritative for anything about the
+live site, and agents load both repos' `CLAUDE.md` at run time.
 
 ## The agents
 
@@ -51,11 +78,27 @@ the same `.claude/agents/*.md` definitions rather than a forked copy.
 ## The dashboard
 
 Local Node service on Kevin's machine, reachable from a phone over Tailscale,
-never a public URL. `executive-assistant`'s chat is always open; a
-collapsible drawer next to it talks to any other agent directly. A live
-Fleet view shows what each agent is actually doing right now, one frame per
-agent, not just the one Kevin addressed. Also: fleet and chatbot costs, the
-activity feed, the latest digest.
+never a public URL. Five screens:
+
+| Screen | What it answers |
+|---|---|
+| **Home** | What needs me right now. Approvals waiting, the board, today's spend, recent activity, a compact EA chat, the fleet. Every block collapses and keeps a summary in its header when shut |
+| **Console** | Talking to one agent. Picking another swaps the whole window rather than splitting it. The fleet rail beside it lists all six agents always, dimmed when idle and lit when running, and it resizes and collapses |
+| **Costs** | What it costs, over a window you choose. Today / 7 days / 30 days / all time, agent fleet and client chatbots separately |
+| **Digest** | The morning standup, newest first |
+| **Activity** | The full log, one row per event |
+
+Light and dark, following the system and overridable. Each agent has its own
+icon and accent colour, carried everywhere it appears.
+
+Every figure comes from a real endpoint. Anything without a data source gets
+an empty state rather than a placeholder number, and no cost is ever shown
+without naming the window it covers, because a total with no date attached
+has already been misread once.
+
+The board on Home reads `vault/50-Workspace/Board.md`. Move a line between
+its three headings, add `@you` to anything only Kevin can finish, and the
+Home screen follows. `executive-assistant` may edit it.
 
 A command that changes something waits for an explicit confirm in the UI
 first, by default, no matter which agent asked - with one caveat worth
