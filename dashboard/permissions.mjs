@@ -38,7 +38,7 @@
 // =====================================================================
 
 import { execFileSync } from "child_process";
-import { dirname, join } from "path";
+import { dirname, join, resolve } from "path";
 import { fileURLToPath } from "url";
 import { randomUUID } from "crypto";
 import { markAwaitingConfirmation } from "./runs.mjs";
@@ -48,6 +48,40 @@ const KCIT_ROOT = join(here, "..");
 export const KC_IT_ROOT = "C:\\Users\\PC USER\\Downloads\\kc.IT";
 
 const AUTO_ALLOW_TOOLS = new Set(["Read", "Glob", "Grep", "WebSearch", "WebFetch", "Write", "Edit"]);
+
+// --- Secret-file denylist -----------------------------------------------
+// Read, Grep and WebFetch are all auto-allowed, which is a complete
+// exfiltration chain with no Bash call and no confirm prompt: read a
+// secret, POST it somewhere. The primary fix was moving ~/.kcit/.env out of
+// the repo tree entirely (see server.mjs) - a file that isn't reachable
+// can't be read. This is the second layer, for the secret that lands in the
+// tree later, which the 2026-09-07 audit found had already happened once in
+// the kc.IT repo.
+//
+// Matched on the resolved absolute path, lowercased, never on the raw
+// argument. Raw-string matching is precisely how the CLI's own hidden
+// allowlist turned out to be unreliable: `git status --porcelain` bypassed
+// its gate while `git -C <path> status --porcelain` did not, same
+// operation. Resolve first, then decide.
+const DENIED_PATH_PATTERNS = [
+  /(^|[\\/])\.env(\.|$)/,          // .env, .env.local, .env.production
+  /(^|[\\/])\.git-credentials$/,
+  /(^|[\\/])\.(ssh|aws|gnupg)([\\/]|$)/,
+  /(^|[\\/])id_(rsa|ed25519|ecdsa)(\.pub)?$/,
+  /\.(pem|pfx|p12|keystore)$/,
+];
+
+// Tools whose arguments name a file whose CONTENTS then flow back to the
+// model. Glob is excluded on purpose: it returns paths, not contents.
+const PATH_ARG_TOOLS = new Set(["Read", "Write", "Edit", "Grep"]);
+
+function deniedPath(toolName, input) {
+  if (!PATH_ARG_TOOLS.has(toolName)) return null;
+  const raw = input?.file_path ?? input?.path;
+  if (!raw || typeof raw !== "string") return null;
+  const resolved = resolve(raw).toLowerCase().replace(/\\/g, "/");
+  return DENIED_PATH_PATTERNS.some((re) => re.test(resolved)) ? resolved : null;
+}
 
 // --- Auto-approve: an explicit, visible, human-flipped override --------
 // Kevin's own ask, after clicking through a real test that needed several
@@ -119,6 +153,19 @@ export function resolvePending(id, approve) {
 /** @returns {import("@anthropic-ai/claude-agent-sdk").CanUseTool} */
 export function makeCanUseTool(runId, { ignoreAutoApprove = false } = {}) {
   return async (toolName, input, { toolUseID, agentID } = {}) => {
+    // Checked before the auto-allow list, since every tool that can name a
+    // secret file is on that list. Denied outright rather than sent to the
+    // confirm queue: no agent here has a legitimate reason to open one, and
+    // a scheduled 7am run has nobody to answer the prompt anyway.
+    const denied = deniedPath(toolName, input);
+    if (denied) {
+      console.warn(`Blocked ${toolName} on a secret-shaped path: ${denied}`);
+      return {
+        behavior: "deny",
+        message: `${toolName} on ${denied} is blocked: that path looks like a credentials file. Secrets live outside the repo tree and are not readable by agents.`,
+      };
+    }
+
     if (AUTO_ALLOW_TOOLS.has(toolName)) {
       return { behavior: "allow", updatedInput: input };
     }

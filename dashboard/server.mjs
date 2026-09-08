@@ -28,14 +28,24 @@ import { extname, join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { randomBytes, timingSafeEqual } from "crypto";
 import { execFileSync } from "child_process";
+import { homedir } from "os";
 
-// Loads dashboard/.env if present (ANTHROPIC_API_KEY lives there, gitignored,
-// never committed). A real environment variable set another way still wins -
-// loadEnvFile doesn't override existing process.env entries.
+// Secrets live OUTSIDE the repo tree, at ~/.kcit/.env, and this is load
+// bearing rather than tidiness. Agents run with cwd = the repo root and have
+// Read/Grep auto-allowed with no confirm-step, so a .env inside the tree was
+// readable by any agent, including unattended scheduled runs - and WebFetch is
+// auto-allowed too, so reading it and POSTing it somewhere needed no Bash call
+// and raised no prompt. Being gitignored did nothing about that; that only
+// governs what git tracks, not what the filesystem hands out.
+//
+// Deliberately no fallback to the old dashboard/.env path: a fallback would
+// quietly re-accept the location this moved away from. If the file is missing
+// the server still starts, and chat reports itself unconfigured.
+const ENV_PATH = join(homedir(), ".kcit", ".env");
 try {
-  process.loadEnvFile(join(dirname(fileURLToPath(import.meta.url)), ".env"));
+  process.loadEnvFile(ENV_PATH);
 } catch {
-  // no .env file - fine, chat just reports it's unconfigured until one exists
+  console.warn(`No env file at ${ENV_PATH} - chat and notifications stay unconfigured until one exists there.`);
 }
 import { openDb, summaryByClient, summaryByAgent } from "./db.mjs";
 import { chatWithAgent, runAgentFull } from "./chat.mjs";
