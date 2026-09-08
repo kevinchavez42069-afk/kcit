@@ -111,25 +111,63 @@ export function setAutoApprove(on) {
 // underlying tool call actually proceed or fail.
 const pending = new Map();
 
+// A confirmation nobody answers used to block forever: canUseTool returned a
+// Promise that only ever settled through resolvePending, so an unanswered
+// Bash call held its agent run open indefinitely, kept an SDK session alive,
+// and left a permanently "awaiting confirmation" entry in the Fleet view until
+// someone restarted the server.
+//
+// Phase 9.1's unattended flag made that the likely case rather than the odd
+// one. Scheduled runs deliberately cannot be auto-approved, so the 7am standup
+// reaching for Bash with nobody awake is exactly the scenario that hangs. That
+// is the right call on safety and the wrong failure mode: it should fail
+// closed and finish, not fail closed and wait forever.
+//
+// Expiring denies rather than allows, for the obvious reason. The message says
+// it expired unanswered instead of claiming Kevin refused, because an agent
+// that reads "denied" draws a different and wrong conclusion about what the
+// human decided.
+// Env-tunable like STANDUP_HOUR and PROSPECT_BACKLOG_THRESHOLD, which also
+// makes the expiry path testable without waiting ten real minutes.
+const PENDING_TIMEOUT_MS = Number(process.env.PENDING_TIMEOUT_MS ?? 10 * 60 * 1000);
+
+// Both a human (console) and an agent (denial message) read this, so it has to
+// stay legible when the env var is set to something small.
+const timeoutLabel =
+  PENDING_TIMEOUT_MS >= 60_000
+    ? `${Math.round(PENDING_TIMEOUT_MS / 60_000)} minutes`
+    : `${Math.round(PENDING_TIMEOUT_MS / 1000)} seconds`;
+
 export function listPending() {
   return [...pending.values()].map(({ id, toolName, input, createdAt }) => ({
     id,
     toolName,
     input,
     createdAt,
+    expiresAt: createdAt + PENDING_TIMEOUT_MS,
   }));
+}
+
+// Shared by the human path and the timeout path so an entry can never be
+// resolved twice or left in the map.
+function settlePending(id, result) {
+  const entry = pending.get(id);
+  if (!entry) return false;
+  pending.delete(id);
+  clearTimeout(entry.timer);
+  entry.resolve(result);
+  return true;
 }
 
 export function resolvePending(id, approve) {
   const entry = pending.get(id);
   if (!entry) return false;
-  pending.delete(id);
-  entry.resolve(
+  return settlePending(
+    id,
     approve
       ? { behavior: "allow", updatedInput: entry.input }
       : { behavior: "deny", message: "Denied by Kevin from the dashboard." }
   );
-  return true;
 }
 
 // Phase 8: runId is the caller's own live-run id (see runs.mjs) - passed in
@@ -181,7 +219,18 @@ export function makeCanUseTool(runId, { ignoreAutoApprove = false } = {}) {
     // future tool) waits for a human.
     return new Promise((resolve) => {
       const id = randomUUID();
-      pending.set(id, { id, toolName, input, toolUseID, agentID, createdAt: Date.now(), resolve });
+      const timer = setTimeout(() => {
+        console.warn(`Pending ${toolName} confirmation expired unanswered after ${timeoutLabel} - denying so the run can finish.`);
+        settlePending(id, {
+          behavior: "deny",
+          message:
+            `This ${toolName} call waited ${timeoutLabel} for a human to confirm it and nobody answered, so it expired. ` +
+            `Kevin did not refuse it, he was not there. Report the step as unconfirmed rather than treating it as rejected on the merits, and do not retry it in this run.`,
+        });
+      }, PENDING_TIMEOUT_MS);
+      // Don't hold the process open on this timer alone.
+      timer.unref?.();
+      pending.set(id, { id, toolName, input, toolUseID, agentID, createdAt: Date.now(), resolve, timer });
     });
   };
 }
