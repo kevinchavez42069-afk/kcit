@@ -22,6 +22,7 @@ what it thinks the state of play is, and Kevin overrules it freely.
 - Agents load both repos' CLAUDE.md | the binding rules had never reached a single agent run
 - Pending confirmations now expire instead of hanging | an unanswered Bash call used to block its run forever
 - Agent Ops redesign | Home, light and dark, per agent icons, collapsible everything
+- Every cost figure now names its window | they were all-time totals wearing no date, and one got read as a day's spend
 
 ## In flight
 
@@ -34,5 +35,6 @@ what it thinks the state of play is, and Kevin overrules it freely.
 - Set an AWS budget alarm and an Anthropic spend cap @you | needs the console, kcit-deploy gets AccessDenied by design
 - Reserved concurrency on the chatbot Lambda @you | same console, same reason
 - Push kc.IT to a private remote @you | needs an empty repo created first, everything there lives on one drive
-- Per day cost history | the tables are all time totals, there is no by-day query yet
+- Chatbot prompt caching costs more than it saves | sample-plumbing is 0% cache hits and 2.3x per request, and a conversation nobody replies to costs ~25% more with caching on than off
+- The weekly retro has never read cost data | AI Operating System.md says it reviews agent_runs cost data, the agent's own file does not list it
 - voice.md writing samples | oldest open item, still unwritten
