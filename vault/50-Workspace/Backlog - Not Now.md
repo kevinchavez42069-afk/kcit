@@ -69,8 +69,8 @@ reads it together:
 |---|---|---|
 | Customer chatbot API spend | `chatbot_usage` in `dashboard/costs.db`, from CloudWatch | Collected |
 | Kevin's own agent-fleet spend | `agent_runs` in the same DB, per run, with `total_cost_usd` | Collected |
-| AWS infrastructure (S3, CloudFront, Lambda) | AWS Cost Explorer | Not pulled, needs a read-only credential |
-| Domain, Tailscale, Pushover, cal.com | Nowhere | Not tracked at all |
+| AWS infrastructure (S3, CloudFront, Lambda) | `aws_costs` in the same DB, from Cost Explorer via `aws-cost-report.mjs` and the read-only `kcit-finops-reader` user | Collected since 2026-09-11 |
+| Domain, Tailscale, Pushover, cal.com | `20-Money-and-Terms/Recurring Costs.md` | Tracked, amounts still blank |
 
 The interesting question isn't the total, it's the ratio: fleet spend is
 Kevin's own overhead, chatbot spend is cost of goods on a product sold at

@@ -5,12 +5,16 @@
 //  - Fleet overhead: agent_runs (Kevin's own operational cost)
 //  - Cost of goods: chatbot_usage (sold at $149/month, so COGS matters)
 //
-//  Reuses existing db.mjs summaries; no new SQL here. The third cost
+//  - Infrastructure: aws_costs (Cost Explorer, via aws-cost-report.mjs).
+//    Its own side, not folded into cost of goods: S3 and CloudFront serve
+//    Kevin's own site, and only some of the Lambda spend serves clients.
+//
+//  Reuses existing db.mjs summaries; no new SQL here. The fourth cost
 //  source (recurring fixed costs: domain, Tailscale, Pushover, cal.com)
 //  lives in a vault file, not the database, and is parsed here.
 // =====================================================================
 
-import { openDb, summaryByAgent, summaryByClient } from "./db.mjs";
+import { openDb, summaryByAgent, summaryByClient, summaryByService, latestAwsDay } from "./db.mjs";
 import { readFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
@@ -59,8 +63,10 @@ function parseRecurringCosts() {
  *   sinceMs: number,
  *   fleetOverhead: { agents: [{agent_name, runs, cost_usd, ...}], totalUsd: number },
  *   costOfGoods: { clients: [{client_id, requests, cost_usd, ...}], totalUsd: number },
+ *   infrastructure: { services: [{service, days, cost_usd, any_estimated}], totalUsd: number,
+ *                     latestDay: "YYYY-MM-DD" | null, anyEstimated: bool },
  *   recurring: { items: [{service, monthlyUsd, note}], totalMonthlyUsd: number },
- *   exists: { agentRuns: bool, chatbotUsage: bool, recurringFile: bool }
+ *   exists: { agentRuns: bool, chatbotUsage: bool, awsCosts: bool, recurringFile: bool }
  * }
  */
 export function getFinanceData(sinceMs = 0) {
@@ -68,6 +74,8 @@ export function getFinanceData(sinceMs = 0) {
 
   const agents = summaryByAgent(db, sinceMs);
   const clients = summaryByClient(db, sinceMs);
+  const services = summaryByService(db, sinceMs);
+  const latestDay = latestAwsDay(db);
 
   db.close();
 
@@ -84,6 +92,12 @@ export function getFinanceData(sinceMs = 0) {
       clients,
       totalUsd: clients.reduce((sum, c) => sum + (c.cost_usd || 0), 0),
     },
+    infrastructure: {
+      services,
+      totalUsd: services.reduce((sum, s) => sum + (s.cost_usd || 0), 0),
+      latestDay,
+      anyEstimated: services.some((s) => s.any_estimated),
+    },
     recurring: {
       items: recurringItems,
       totalMonthlyUsd: recurringTotal,
@@ -91,6 +105,7 @@ export function getFinanceData(sinceMs = 0) {
     exists: {
       agentRuns: agents.length > 0,
       chatbotUsage: clients.length > 0,
+      awsCosts: latestDay !== null,
       recurringFile: existsSync(RECURRING_PATH),
     },
   };

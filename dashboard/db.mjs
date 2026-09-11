@@ -53,6 +53,22 @@ export function openDb() {
     );
     CREATE INDEX IF NOT EXISTS idx_agent_runs_name_time
       ON agent_runs (agent_name, timestamp_ms);
+
+    -- AWS infrastructure spend from Cost Explorer, one row per UTC day per
+    -- service, written by aws-cost-report.mjs. timestamp_ms is midnight UTC
+    -- of the day column, so the same WHERE timestamp_ms >= ? windowing works here as
+    -- on the other two tables. estimated is 1 while AWS still calls the
+    -- figure an estimate, which is the whole current month until the
+    -- invoice closes.
+    CREATE TABLE IF NOT EXISTS aws_costs (
+      day             TEXT NOT NULL,
+      service         TEXT NOT NULL,
+      timestamp_ms    INTEGER NOT NULL,
+      cost_usd        REAL NOT NULL,
+      estimated       INTEGER NOT NULL,
+      fetched_ms      INTEGER NOT NULL,
+      PRIMARY KEY (day, service)
+    );
   `);
 
   return db;
@@ -169,6 +185,53 @@ export function summaryByClient(db, sinceMs = 0) {
     }
   }
   return [...merged.values()].sort((a, b) => b.cost_usd - a.cost_usd);
+}
+
+/**
+ * Replaces every aws_costs row in [startDay, endDay) with `rows`, in one
+ * transaction. Deliberately the opposite of insertUsage's INSERT OR IGNORE:
+ * Cost Explorer revises its estimates until the month's invoice closes, so a
+ * re-pull has to overwrite, and a service that drops out of a revised day
+ * has to disappear too. Deleting the window first handles both; a plain
+ * upsert would leave the dropped service's stale row behind.
+ */
+export function replaceAwsCostWindow(db, startDay, endDay, rows) {
+  const insert = db.prepare(`
+    INSERT INTO aws_costs (day, service, timestamp_ms, cost_usd, estimated, fetched_ms)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
+  db.exec("BEGIN");
+  try {
+    db.prepare(`DELETE FROM aws_costs WHERE day >= ? AND day < ?`).run(startDay, endDay);
+    for (const r of rows) {
+      insert.run(r.day, r.service, r.timestampMs, r.costUsd, r.estimated ? 1 : 0, r.fetchedMs);
+    }
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
+}
+
+/** Per-service AWS totals for days on or after sinceMs (default: all time). */
+export function summaryByService(db, sinceMs = 0) {
+  const stmt = db.prepare(`
+    SELECT service,
+           COUNT(*) AS days,
+           SUM(cost_usd) AS cost_usd,
+           MAX(estimated) AS any_estimated
+    FROM aws_costs
+    WHERE timestamp_ms >= ?
+    GROUP BY service
+    ORDER BY cost_usd DESC
+  `);
+  return stmt.all(sinceMs);
+}
+
+/** Most recent day Cost Explorer data covers, as YYYY-MM-DD, or null. */
+export function latestAwsDay(db) {
+  const row = db.prepare(`SELECT MAX(day) AS latest FROM aws_costs`).get();
+  return row?.latest ?? null;
 }
 
 export function latestTimestamp(db) {

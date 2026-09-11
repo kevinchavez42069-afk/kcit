@@ -79,6 +79,19 @@ IAM user `kcit-deploy`:
 
 An `AccessDenied` from this user is the policy working as designed.
 
+IAM user `kcit-finops-reader`, added 2026-09-11 for the finance collector:
+
+- Only `ce:GetCostAndUsage` and `ce:GetCostForecast`. Cost Explorer has no
+  resource-level scoping, so the resource is `*`, but both actions only read
+- No console login. One access key, in the `kcit-finops` AWS CLI profile on
+  Kevin's machine
+- Used only by `dashboard/aws-cost-report.mjs`. The finance agent reads the
+  rows it writes and is told never to use the key itself
+- Policy: `dashboard/aws-finops-policy.json` in the kcit repo
+
+Kept separate from `kcit-deploy` on purpose. A leaked deploy key cannot read
+billing, and a leaked billing key cannot deploy anything.
+
 ## Open risks
 
 | Risk | Severity | Fix |

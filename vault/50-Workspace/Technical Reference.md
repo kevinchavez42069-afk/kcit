@@ -69,6 +69,11 @@ roles only `kcit-lambda-*` with only basic logging attachable, CloudFront
 limited to the one distribution. No EC2, no billing, nothing that can spend
 money. An AccessDenied from this user is the policy working, not a bug.
 
+IAM user `kcit-finops-reader` reads Cost Explorer and nothing else. Its key
+lives in the `kcit-finops` AWS CLI profile and only
+`dashboard/aws-cost-report.mjs` uses it. Each Cost Explorer request costs
+$0.01.
+
 ## Outstanding
 
 - Move lead delivery to SES
